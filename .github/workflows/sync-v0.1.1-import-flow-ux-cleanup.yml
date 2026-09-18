@@ -1,0 +1,59 @@
+name: Sync v0.1.1 import flow UX cleanup
+
+on:
+  push:
+    branches:
+      - sync-v0.1.1-import-flow-ux-cleanup
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sync-v0.1.1-import-flow-ux-cleanup
+          fetch-depth: 0
+
+      - name: Fetch exact verified production files
+        shell: bash
+        run: |
+          set -euo pipefail
+          fetch_verify() {
+            url="$1"
+            dest="$2"
+            expected="$3"
+            mkdir -p "$(dirname "$dest")"
+            curl -fsSL --retry 3 --retry-delay 1 "$url" -o "$dest"
+            actual="$(sha256sum "$dest" | awk '{print $1}')"
+            if [ "$actual" != "$expected" ]; then
+              echo "HASH_MISMATCH $dest expected=$expected actual=$actual"
+              exit 1
+            fi
+            echo "MATCH $dest $actual"
+          }
+
+          base="https://anyclass.heyaaron.asia"
+          fetch_verify "$base/import/" app/import/index.html d37419700add5e14b51d383b8bbe03b173b2adecdf023412ddc2fbb0231e09ad
+          fetch_verify "$base/assets/timetable/product-shell.css" app/assets/timetable/product-shell.css 3ecc677d07389c8e1a5d5e88c1ea45f335ec30da8dc790875ea4441a3421b8cc
+
+      - name: Verify public contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/public-contract.test.js
+
+      - name: Commit verified production sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/sync-v0.1.1-import-flow-ux-cleanup.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          echo "Changed paths:"
+          git diff --cached --name-only
+          git commit -m "fix: sync import flow UX cleanup for v0.1.1"
+          git push origin HEAD:sync-v0.1.1-import-flow-ux-cleanup
