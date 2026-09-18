@@ -21,6 +21,7 @@
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/正方教务%20V9-已验证-2ea44f?style=flat-square" alt="正方教务 V9 已验证" />
   <img src="https://img.shields.io/badge/Codex-supported-9333ea?style=flat-square&labelColor=111827" alt="Codex supported" />
+  <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
 </p>
 
 <p>
@@ -95,9 +96,10 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 ## 开源状态
 
-公开源码包、贡献文档、安全策略和首个 Release 正在准备中。
+**AnyClass v0.1.0 的公开源码已经发布在本仓库。**
 
-在公开源码审计完成之前，推荐直接使用线上版本。
+普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
+
 
 ## 贡献
 
