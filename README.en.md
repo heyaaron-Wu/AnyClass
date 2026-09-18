@@ -21,6 +21,7 @@
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/ZhengFang%20V9-Verified-2ea44f?style=flat-square" alt="ZhengFang V9 Verified" />
   <img src="https://img.shields.io/badge/Codex-supported-9333ea?style=flat-square&labelColor=111827" alt="Codex supported" />
+  <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
 </p>
 
 <p>
@@ -95,9 +96,10 @@ Roadmap items are plans, not currently available features.
 
 ## Open-source status
 
-The public source package, contributor documentation, security policy, and first Release are being prepared.
+**The public source for AnyClass v0.1.0 is now available in this repository.**
 
-Until the public-source audit is complete, the hosted web app remains the recommended way to use AnyClass.
+For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
+
 
 ## Contributing
 
