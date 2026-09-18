@@ -2,32 +2,36 @@
 
 > 今天有课吗？打开就知道。
 
-**AnyClass** is a local-first timetable tool for students. It helps you quickly check today's classes, view your weekly timetable, import course data, and export your schedule to a calendar.
+[English](README.en.md)
 
-**Web:** https://anyclass.heyaaron.asia/
+**AnyClass（有课吗）** 是一个面向学生的 Local-first 课程表工具。它帮助你快速查看今天的课程、浏览周课表、从教务系统导入课程，并将课表导出到系统日历。
 
-## Features
+**在线使用：** https://anyclass.heyaaron.asia/
+
+## 功能
 
 - 今日课程与当前 / 下一节课程
 - 周课表
 - 教务系统课表导入
-- Apple Calendar / iCalendar (ICS) 导出
+- Apple 日历 / iCalendar（ICS）导出
 - 课程提醒
 - 节次与显示范围设置
 - Local-first：课表数据默认保存在当前设备
 
-## Privacy
+## 隐私
 
-AnyClass is designed around a local-first model.
+AnyClass 采用 **Local-first** 设计。
 
-- Timetable data is stored locally by default.
-- The current product does not upload timetable data to the AnyClass server.
-- AnyClass does not require storing your school account password.
-- The current import flow does not upload your Cookie, Session, or authentication token.
+- 课表数据默认保存在当前设备的浏览器中。
+- 当前产品不会将课表数据上传到 AnyClass 服务器。
+- AnyClass 不要求保存你的学校账号密码。
+- 当前导入流程不会上传你的 Cookie、Session 或身份验证 Token。
 
-## Compatibility
+更多信息见 [PRIVACY.md](PRIVACY.md)。
 
-| Academic system | Status |
+## 兼容性
+
+| 教务系统 | 状态 |
 | --- | --- |
 | 正方教务 V9 | ✅ 已验证 |
 | 强智教务 | 未支持 |
@@ -37,42 +41,47 @@ AnyClass is designed around a local-first model.
 
 “已验证”表示已完成真实环境导入验证。公开项目说明不使用具体学校作为兼容性宣传。
 
-## Calendar
+## Apple 日历
 
-On iPhone and iPad, the primary flow is:
+在 iPhone 或 iPad 上，推荐流程是：
 
-1. Export the timetable as an ICS file in AnyClass.
-2. Open the Apple Calendar import interface from Safari.
-3. Add all events and choose the destination calendar.
+1. 在 AnyClass 中导出课程表 ICS。
+2. Safari 打开 Apple 日历导入界面。
+3. 点击“全部加入”。
+4. 选择目标日历。
 
-Shortcut and Files-app import remain fallback options.
+快捷指令与“文件”App 导入作为备用方式保留。
 
 ## Roadmap
 
-Planned areas include:
+计划中的方向包括：
 
-- Universal Shortcut / Bookmarklet import architecture
-- Additional academic-system adapters
-- Android calendar experience
-- Custom courses
-- Schedule changes / make-up classes
+- Universal Shortcut / Bookmarklet 导入架构
+- 更多教务系统 Adapter
+- Android 日历体验
+- 自定义课程
+- 调课 / 补课
 - Calendar Subscription
-- Multi-term management
+- 多学期管理
 
-Roadmap items are plans, not currently available features.
+Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
-## Open source status
+## 开源状态
 
-The public source package, contributor documentation, security policy, and first release notes are being prepared for the initial GitHub release.
+公开源码包、贡献文档、安全策略和首个 Release 正在准备中。
 
-Until that review is complete, the hosted web app remains the primary way to use AnyClass.
+在公开源码审计完成之前，推荐直接使用线上版本。
 
-## Contributing
+## 贡献
 
-Contribution guidelines will be published with the first source release.
+请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-Please never submit school account passwords, Cookies, Sessions, authentication tokens, or private student data in issues or pull requests.
+请勿在 Issue 或 Pull Request 中提交学校账号密码、Cookie、Session、身份验证 Token 或私人学生数据。
+
+## 安全
+
+请阅读 [SECURITY.md](SECURITY.md)。
 
 ## License
 
-A license will be selected before the first public source release.
+首个公开源码 Release 前将确定许可证。
