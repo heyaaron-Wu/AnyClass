@@ -1,0 +1,61 @@
+name: Sync v0.1.1 mobile period and Today export fix
+
+on:
+  push:
+    branches:
+      - sync-v0.1.1-mobile-period-today-export
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: sync-v0.1.1-mobile-period-today-export
+          fetch-depth: 0
+
+      - name: Fetch exact verified production files
+        shell: bash
+        run: |
+          set -euo pipefail
+          fetch_verify() {
+            url="$1"
+            dest="$2"
+            expected="$3"
+            mkdir -p "$(dirname "$dest")"
+            curl -fsSL --retry 3 --retry-delay 1 "$url" -o "$dest"
+            actual="$(sha256sum "$dest" | awk '{print $1}')"
+            if [ "$actual" != "$expected" ]; then
+              echo "HASH_MISMATCH $dest expected=$expected actual=$actual"
+              exit 1
+            fi
+            echo "MATCH $dest $actual"
+          }
+
+          base="https://anyclass.heyaaron.asia"
+          fetch_verify "$base/assets/timetable/product-shell.css" app/assets/timetable/product-shell.css 53acdd09a5f5d333c7a0fa0c4688d4c053e792edcec865696cf8ca5f060ee7c9
+          fetch_verify "$base/" app/index.html b60a9cca40c66475d2968c232a2b426756c2e9043ce02e7cd6228afa0fa7c2d5
+          fetch_verify "$base/today/" app/today/index.html b60a9cca40c66475d2968c232a2b426756c2e9043ce02e7cd6228afa0fa7c2d5
+          fetch_verify "$base/settings/timetable/" app/settings/timetable/index.html 5f962f4a994c3a58760ca02ce742dcffe003913973adc511e67a4afb0d92b03d
+
+      - name: Verify contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/public-contract.test.js
+
+      - name: Commit verified production sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/sync-v0.1.1-mobile-period-today-export.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          echo "Changed paths:"
+          git diff --cached --name-only
+          git commit -m "fix: sync mobile period layout and Today export cleanup"
+          git push origin HEAD:sync-v0.1.1-mobile-period-today-export
