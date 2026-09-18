@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>本地数据</title>
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
+  <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/product-shell.js"></script>
+  <link rel="stylesheet" href="/assets/timetable/common.css">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=public-source-candidate">
+</head>
+<body data-shell-page="local-status">
+<main class="shell local-status-shell settings-shell">
+  <div class="settings-page-heading"><a class="back-button" href="/settings/" aria-label="返回设置">← 设置</a><h1>本地数据</h1></div>
+  <section class="panel">
+    <p id="empty" class="muted" aria-live="polite">正在读取此设备的课程数据…</p>
+    <div id="data" hidden>
+      <div class="local-status-grid local-data-grid">
+        <article class="status-card"><span>学校</span><strong id="school"></strong></article>
+        <article class="status-card"><span>学期</span><strong id="semester"></strong></article>
+        <article class="status-card"><span>基础课程安排</span><strong id="count"></strong></article>
+        <article class="status-card"><span>逻辑课次</span><strong id="logicalCount"></strong></article>
+        <article class="status-card"><span>最终课次</span><strong id="finalCount"></strong></article>
+        <article class="status-card"><span>最后导入时间</span><strong id="time"></strong></article>
+      </div>
+      <div class="shell-disclosure local-advanced">
+        <button id="advancedToggle" class="shell-disclosure-toggle" type="button" aria-expanded="false" aria-controls="advancedPanel">
+          <span>高级信息</span><span class="shell-disclosure-indicator" aria-hidden="true">⌄</span>
+        </button>
+        <div id="advancedPanel" class="shell-disclosure-content" hidden>
+          <dl><dt>数据指纹</dt><dd id="fingerprint"></dd><dt>数据格式版本</dt><dd id="schemaVersion"></dd><dt>当前学期记录</dt><dd id="activeTerm"></dd><dt>学校配置快照</dt><dd id="profileVersion"></dd><dt>系统适配器</dt><dd id="adapterVersion"></dd><dt>事件引擎</dt><dd id="engineVersion"></dd></dl>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="/assets/timetable/school-config.js"></script>
+<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/storage-v2.js"></script>
+<script src="/assets/timetable/storage.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  $("advancedToggle").addEventListener("click", () => {
+    const expanded = $("advancedToggle").getAttribute("aria-expanded") === "true";
+    $("advancedToggle").setAttribute("aria-expanded", String(!expanded));
+    $("advancedPanel").hidden = expanded;
+  });
+  TimetableStorage.latestDataset("demo").then(dataset => {
+    if (!dataset) { $("empty").textContent = "此设备尚未保存课程表。"; AnyClassShell.setDataState(false); return; }
+    const set = (id, value) => { $(id).textContent = String(value ?? "—"); };
+    const graph = dataset.__phaseBGraph;
+    set("school", dataset.school && dataset.school.name);
+    set("semester", `${dataset.semester.academicYear} 第${dataset.semester.term}学期`);
+    set("count", Array.isArray(dataset.meetings) ? dataset.meetings.length : graph?.baseMeetings?.length || 0);
+    set("logicalCount", graph ? AnyClassPhaseB.logicalOccurrences(graph).length : "—");
+    set("finalCount", graph ? AnyClassPhaseB.finalOccurrences(graph).length : "—");
+    const imported = new Date(dataset.importedAt);
+    set("time", Number.isNaN(imported.getTime()) ? "—" : imported.toLocaleString("zh-CN", {hour12:false}));
+    set("fingerprint", dataset.fingerprint ? String(dataset.fingerprint).slice(0, 12) : "—");
+    return TimetableStorage.diagnostics("demo").then(diagnostics => {
+      set("schemaVersion", diagnostics.schemaVersion);
+      set("activeTerm", diagnostics.activeTermId);
+      set("profileVersion", diagnostics.profileSnapshotVersion);
+      set("adapterVersion", `${diagnostics.adapterId}@${diagnostics.adapterVersion}`);
+      set("engineVersion", diagnostics.engineVersion);
+      $("empty").hidden = true;
+      $("data").hidden = false;
+      AnyClassShell.setDataState(true);
+    });
+  }).catch(() => {
+    $("empty").textContent = "无法读取本机课程数据。";
+    AnyClassShell.setStorageError("无法读取本机课程数据。");
+  });
+})();
+</script>
+</body>
+</html>

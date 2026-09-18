@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>从文件导入课表</title>
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
+  <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/product-shell.js"></script>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#14213d;background:#f4f7fb;color-scheme:light;--blue:#2563eb;--muted:#667085;--line:#dbe4f0}*{box-sizing:border-box}body{margin:0}.shell{max-width:880px;margin:auto;padding:24px}.brand{font-weight:850;margin-bottom:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 12px 36px #1c35570d;margin-bottom:16px}h1{margin:0 0 8px;font-size:26px}.muted{color:var(--muted)}.ok{color:#067647}.error{color:#b42318}.privacy{padding:12px 14px;border-radius:12px;background:#ecfdf3;color:#05603a}.file-box{display:block;margin:18px 0;padding:22px;border:2px dashed #b8c8dd;border-radius:16px;background:#f8fbff;text-align:center;font-weight:750}.file-box input{display:block;width:100%;margin-top:12px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:16px 0}.metric{padding:12px;background:#f4f7fb;border-radius:12px}.metric span{display:block;color:var(--muted);font-size:12px}.metric strong{display:block;margin-top:4px;font-size:18px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.button,button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:11px;padding:11px 15px;font-weight:750;text-decoration:none;cursor:pointer}.primary{background:var(--blue);color:#fff}.secondary{background:#e8eef8;color:#17315c}button:disabled{opacity:.5;cursor:not-allowed}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #edf1f6;white-space:nowrap}.links{display:flex;gap:16px;flex-wrap:wrap}.links a{color:#1d4ed8}.schema{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;overflow:auto;background:#101828;color:#e5e7eb;border-radius:14px;padding:16px}@media(max-width:680px){.shell{padding:14px}.panel{padding:17px;border-radius:17px}.summary{grid-template-columns:repeat(2,1fr)}th:nth-child(3),td:nth-child(3){display:none}.actions .button,.actions button{flex:1}}
+  </style>
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css">
+</head>
+<body data-shell-page="import-file">
+<main class="shell import-file-layout">
+  <section class="panel">
+    <h1>从文件导入课表</h1>
+    <p class="muted">选择一份 AnyClass 课表 JSON 文件，校验通过后先预览，再由你确认保存。</p>
+    <p class="privacy">文件只在此浏览器内读取，课程数据不会上传服务器。</p>
+    <label class="file-box">选择本机 JSON 文件<input id="fileInput" type="file" accept=".json,application/json"></label>
+    <p id="message" class="muted" aria-live="polite">尚未选择文件</p>
+  </section>
+
+  <section id="preview" class="panel" hidden>
+    <h2>导入预览</h2>
+    <div class="summary">
+      <div class="metric"><span>学校</span><strong id="school">—</strong></div>
+      <div class="metric"><span>学期</span><strong id="semester">—</strong></div>
+      <div class="metric"><span>课程安排</span><strong id="meetingCount">0</strong></div>
+      <div class="metric"><span>课程</span><strong id="courseCount">0</strong></div>
+    </div>
+    <div class="actions"><button id="save" class="primary">确认并保存到本机</button><button id="cancel" class="secondary">取消</button></div>
+    <div class="table-wrap"><table><thead><tr><th>课程名称</th><th>星期 / 节次</th><th>地点</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <p id="previewLimit" class="muted" hidden>为保持页面流畅，预览只显示前 50 条；保存仍包含全部已校验课程安排。</p>
+  </section>
+
+  <section class="panel import-schema-panel">
+    <h2>支持的文件结构</h2>
+    <pre class="schema">{
+  "schemaVersion": 1,
+  "school": {"id": "demo", "name": "Example University"},
+  "semester": {"academicYear": "2026-2027", "term": "1"},
+  "meetings": []
+}</pre>
+    <p class="muted">同一学校、同一学期再次导入时，仅替换该学期记录，不会追加重复数据。</p>
+  </section>
+  <div class="shell-secondary-actions"><a href="/import-mobile/">手机导入说明</a><a href="/import/">返回导入方式</a></div>
+</main>
+<script src="/import-file/core.js"></script>
+<script src="/assets/timetable/school-config.js"></script>
+<script src="/assets/adapters/zhengfang-v9.js"></script>
+<script src="/assets/adapters/adapter-registry.js"></script>
+<script src="/assets/adapters/system-detector.js"></script>
+<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/storage-v2.js"></script>
+<script src="/import-file/storage.js"></script>
+<script src="/import-file/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+.week-toolbar{display:flex;align-items:center;justify-content:center;gap:16px}.week-toolbar h1{font-size:22px;margin:0;min-width:110px;text-align:center}.week-toolbar button{border:0;background:#e8eef8;color:#17315c;border-radius:11px;padding:10px 14px;font-weight:850;cursor:pointer}.week-toolbar button:disabled{opacity:.35;cursor:not-allowed}.week-range{text-align:center;color:#667085;margin-top:7px}.grid-scroll{overflow-x:auto;padding-bottom:8px}.week-grid{display:grid;grid-template-columns:52px repeat(7,minmax(128px,1fr));grid-template-rows:42px repeat(11,58px);min-width:960px;position:relative}.corner,.day-head,.period-label{display:flex;align-items:center;justify-content:center;background:#f7f9fc;border-right:1px solid #e5eaf1;border-bottom:1px solid #e5eaf1;font-weight:750}.day-head.today{background:#eaf2ff;color:#1d4ed8}.period-label{font-variant-numeric:tabular-nums}.period-label small{display:block;color:#667085;font-weight:500}.day-column{display:grid;grid-template-rows:repeat(11,58px);position:relative;border-right:1px solid #e5eaf1;background:repeating-linear-gradient(to bottom,transparent 0,transparent 57px,#e5eaf1 57px,#e5eaf1 58px)}.course-card{z-index:2;text-align:left;border:1px solid #b8cdf8;border-left:4px solid #2563eb;background:#edf4ff;color:#14213d;border-radius:8px;padding:7px;overflow:hidden;font-size:12px;min-width:0;cursor:pointer}.course-card.adjusted{border-left-color:#f79009;background:#fff6ed}.course-card.conflicting{box-shadow:inset 0 0 0 2px #f79009}.course-card strong,.course-card span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.course-card span{color:#475467;margin-top:3px}.legend{display:flex;gap:12px;flex-wrap:wrap;color:#667085;font-size:13px;margin-top:10px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#2563eb;margin-right:5px}.dot.adjusted{background:#f79009}.mobile-week-list,.mobile-empty{display:none}.mobile-day{margin-bottom:18px}.mobile-day h2{display:flex;align-items:center;justify-content:space-between;font-size:17px;margin:0 0 8px}.mobile-day h2 span{color:#667085;font-size:13px;font-weight:600}.mobile-course{display:grid;width:100%;gap:3px;text-align:left;border:1px solid #dbe4f0;border-left:4px solid #2563eb;border-radius:13px;background:#fff;color:#14213d;padding:13px;margin-bottom:8px;cursor:pointer}.mobile-course.adjusted{border-left-color:#f79009;background:#fffaf5}.mobile-course strong{font-size:15px}.mobile-course span{color:#667085;font-size:13px}dialog{width:min(500px,calc(100% - 28px));border:0;border-radius:20px;padding:0;box-shadow:0 28px 80px #102a5666;color:#14213d}dialog::backdrop{background:#0b1f3a8c;backdrop-filter:blur(3px)}.dialog-body{padding:22px}.dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}.dialog-head h2{margin:0;font-size:23px}.dialog-close{border:0;border-radius:999px;width:36px;height:36px;background:#eef2f7;color:#344054;font-size:22px;cursor:pointer}.dialog-details{display:grid;margin:0}.dialog-row{display:grid;grid-template-columns:68px minmax(0,1fr);gap:12px;padding:11px 0;border-top:1px solid #edf1f6}.dialog-row:first-child{border-top:0}.dialog-row dt{color:#667085}.dialog-row dd{margin:0;font-weight:650;line-height:1.45}@media(max-width:700px){.grid-scroll,.legend{display:none}.mobile-week-list{display:block}.mobile-empty{display:block}.grid-panel{padding:15px}.week-toolbar{justify-content:space-between}.week-toolbar h1{font-size:19px}.dialog-body{padding:18px}}
+
+/* V2-D1 timetable card and mobile visual polish. */
+.week-toolbar button{transition:transform .18s ease,background-color .2s ease,box-shadow .2s ease;}
+.week-toolbar button:not(:disabled):hover{background:#dce8f9;box-shadow:0 7px 18px rgba(37,99,235,.12);transform:translateY(-1px);}
+.week-toolbar button:not(:disabled):active{transform:scale(.96);}
+.grid-scroll{scrollbar-color:#c6d6ed transparent;scrollbar-width:thin;}
+.week-grid{border-radius:14px;overflow:hidden;border:1px solid #e5eaf1;}
+.course-card{box-shadow:0 5px 14px rgba(37,99,235,.09);transition:transform .18s ease,box-shadow .22s ease,border-color .2s ease,filter .2s ease;}
+.course-card:hover{z-index:4;transform:translateY(-2px);box-shadow:0 11px 24px rgba(37,99,235,.17);border-color:#8db1f8;}
+.course-card:active{transform:scale(.985);}
+.course-card.adjusted{box-shadow:0 5px 14px rgba(247,144,9,.09);}
+.course-card.adjusted:hover{box-shadow:0 11px 24px rgba(247,144,9,.16);border-color:#f2a94b;}
+.course-card.conflicting{background-image:linear-gradient(135deg,rgba(247,144,9,.09) 25%,transparent 25%,transparent 50%,rgba(247,144,9,.09) 50%,rgba(247,144,9,.09) 75%,transparent 75%,transparent);background-size:12px 12px;}
+.day-head.today{box-shadow:inset 0 -3px 0 #2563eb;}
+.mobile-course{position:relative;box-shadow:0 7px 18px rgba(23,49,92,.07);transition:transform .18s ease,box-shadow .22s ease,border-color .2s ease;}
+.mobile-course::after{content:"›";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#9aabc1;font-size:21px;font-weight:700;}
+.mobile-course:hover{border-color:#b8cdf8;box-shadow:0 12px 26px rgba(37,99,235,.11);transform:translateY(-1px);}
+.mobile-course:active{transform:scale(.99);}
+dialog[open]{animation:v2d1-dialog-enter .24s cubic-bezier(.22,.8,.3,1) both;}
+dialog[open]::backdrop{animation:v2d1-backdrop-enter .2s ease both;}
+@keyframes v2d1-dialog-enter{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes v2d1-backdrop-enter{from{opacity:0}to{opacity:1}}
+@media(max-width:700px){
+  .grid-panel{padding:14px;}
+  .week-toolbar{gap:10px;}
+  .week-toolbar button{width:46px;height:44px;padding:0;font-size:24px;}
+  .week-range{font-size:13px;}
+  .mobile-day{margin-bottom:20px;}
+  .mobile-day h2{position:sticky;top:0;z-index:3;padding:9px 2px 7px;background:linear-gradient(180deg,rgba(244,247,251,.97),rgba(244,247,251,.88));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+  .mobile-course{min-height:76px;padding:14px 42px 14px 14px;border-radius:15px;}
+  dialog{border-radius:24px 24px 0 0;width:100%;max-width:none;margin:auto 0 0;}
+  .dialog-body{padding:20px 18px calc(20px + env(safe-area-inset-bottom));}
+  .dialog-close{width:40px;height:40px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .week-toolbar button,.course-card,.mobile-course{transition:none!important;}
+  dialog[open],dialog[open]::backdrop{animation:none!important;}
+}
+
+/* Current-release shared timetable geometry contract. */
+.grid-scroll{padding-top:10px}
+.week-grid{--axis-width:64px;--header-height:42px;--row-height:58px;--visible-period-count:11;grid-template-columns:var(--axis-width) repeat(7,minmax(128px,1fr));grid-template-rows:var(--header-height) repeat(var(--visible-period-count),var(--row-height));min-width:980px;overflow:visible;background:#fff}
+.day-column{grid-template-rows:repeat(var(--visible-period-count),var(--row-height));background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--row-height) - 1px),#e5eaf1 calc(var(--row-height) - 1px),#e5eaf1 var(--row-height))}
+.desktop-time{top:calc(var(--header-height) + var(--time-y));grid-template-columns:var(--axis-width) repeat(7,minmax(0,1fr))}
+.course-card{min-height:0}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <link rel="canonical" href="https://anyclass.heyaaron.asia/">
+  <title>今天的课程</title>
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
+  <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/product-shell.js"></script>
+  <link rel="stylesheet" href="/assets/timetable/common.css">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=public-source-candidate">
+</head>
+<body data-shell-page="today" data-build-id="v2f3.1-20260914">
+<main class="shell">
+  <section id="loading" class="panel empty" aria-live="polite">正在读取本机课表…</section>
+  <section id="emptyState" class="panel empty" hidden>
+    <div data-normal-empty data-online-empty><h1>还没有课程表</h1><p class="muted">课程数据只保存在此设备。</p></div>
+    <p data-offline-empty hidden>当前设备还没有课程表。<br>联网后可进行首次导入。</p>
+    <a class="button primary" href="/import/">导入课表</a>
+  </section>
+  <section id="storageError" class="panel empty runtime-error" hidden role="alert">
+    <h1>无法读取本机课程数据</h1>
+    <p class="muted">现有本机课表不会被清空。</p>
+    <button id="retryStorage" class="runtime-retry" type="button">重试</button>
+  </section>
+  <div id="app" hidden>
+    <p class="holiday-reminder" data-holiday-reminder hidden></p>
+    <section id="heroCard" class="panel hero-card" data-state="NO_CLASS">
+      <div class="date-bar">
+        <div id="datePrimary" class="date-primary"></div>
+        <div class="date-secondary"><span id="dateWeekday"></span><span id="dateWeek"></span></div>
+      </div>
+      <div class="hero-top"><div id="heroKicker" class="hero-kicker"></div><details id="heroConflict" class="conflict-help" hidden><summary class="pill">课程时间冲突 · 为什么会冲突？</summary><p>同一时间存在多个课程安排，可能来自调课、补课或教务系统中的重叠记录。</p></details></div>
+      <div id="heroContent" class="hero-content"></div>
+    </section>
+    <section class="panel">
+      <div class="section-title"><h2>今日课程</h2></div>
+      <p id="refreshNotice" class="refresh-notice" role="status" hidden></p>
+      <div class="stats" aria-label="今日课程统计">
+        <div class="stat"><strong id="statTotal">0</strong><span>今日课程</span></div>
+        <div class="stat"><strong id="statCompleted">0</strong><span>已完成</span></div>
+        <div class="stat"><strong id="statRemaining">0</strong><span>剩余</span></div>
+      </div>
+      <div id="todayList" class="course-list"></div>
+      <p id="todayEmpty" class="muted" hidden>今天没有课程。</p>
+    </section>
+    <div class="today-secondary-action"><a href="/export/">导出日历</a></div>
+    <p class="privacy-note">课程数据保存在此设备，不会上传服务器。</p>
+  </div>
+</main>
+<dialog class="welcome-dialog" data-onboarding-dialog aria-modal="true" aria-labelledby="welcomeTitle" aria-describedby="welcomeDescription">
+  <div class="dialog-body welcome-dialog-body glass-sheet">
+    <button class="dialog-close welcome-close" type="button" data-dismiss-onboarding aria-label="关闭欢迎介绍">×</button>
+    <img class="welcome-logo" src="/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass">
+    <h1 id="welcomeTitle">欢迎使用 AnyClass</h1>
+    <p class="welcome-tagline">今天有课吗？打开就知道。</p>
+    <p id="welcomeDescription" class="muted">导入课表，快速查看今天和本周的课程。课程数据默认仅保存在此设备。</p>
+    <div class="welcome-actions"><a class="button primary" data-onboarding-primary data-complete-onboarding href="/import/">开始导入</a><a class="button" data-complete-onboarding href="/import-file/">已有课表文件</a></div>
+  </div>
+</dialog>
+<script src="/assets/timetable/school-config.js"></script>
+<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/timetable-core.js"></script>
+<script src="/assets/timetable/current-time.js"></script>
+<script src="/assets/timetable/onboarding.js"></script>
+<script src="/assets/timetable/holiday-reminders.js"></script>
+<script src="/assets/timetable/storage-v2.js"></script>
+<script src="/assets/timetable/storage.js"></script>
+<script src="/assets/timetable/today-view-model.js"></script>
+<script src="/assets/timetable/today-page.js?v=public-source-candidate"></script>
+</body>
+</html>
