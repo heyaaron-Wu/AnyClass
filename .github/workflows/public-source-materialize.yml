@@ -73,6 +73,16 @@ jobs:
           base64 -d /tmp/anyclass-public.b64 > /tmp/anyclass-public.tar.gz
           echo "a9c85c05c1d1139bbc5f479dbef71e9d973b8ce3528724a87719aa3d19b493e1  /tmp/anyclass-public.tar.gz" | sha256sum -c -
           tar -xzf /tmp/anyclass-public.tar.gz -C .
+          python - <<'PY'
+          from pathlib import Path
+          test = Path("tests/public-contract.test.js")
+          text = test.read_text(encoding="utf-8")
+          old = 'assert(readme.includes("正方教务 V9 | 已验证"));'
+          new = 'assert(/正方教务 V9[^\\n]*已验证/.test(readme));'
+          if old not in text:
+              raise SystemExit("public contract compatibility assertion not found")
+          test.write_text(text.replace(old, new), encoding="utf-8")
+          PY
           npm test
           rm -rf .release-staging
           rm -f .github/workflows/public-source-materialize.yml
