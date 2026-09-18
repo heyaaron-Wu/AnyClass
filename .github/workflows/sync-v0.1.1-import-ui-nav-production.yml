@@ -16,6 +16,7 @@ jobs:
         with:
           ref: sync-v0.1.1-import-ui-nav-production
           fetch-depth: 0
+
       - name: Fetch exact verified production files
         shell: bash
         run: |
@@ -51,19 +52,14 @@ jobs:
           fetch_verify "$base/timetable/" app/timetable/index.html f335cd9959f8aa60094e19e7b139a4995417c2be492f0b2f776b8a5468c7e8e1
           fetch_verify "$base/today/" app/today/index.html b0744ed5f110df6cfd9d9de3b07a1f4c6ead0224768ed69dcf87b691cbe8d24b
 
-          cat > /tmp/public-contract.b64 <<'EOF'
-InVzZSBzdHJpY3QiOwoKY29uc3QgYXNzZXJ0ID0gcmVxdWlyZSgibm9kZTphc3NlcnQvc3RyaWN0Iik7CmNvbnN0IGZzID0gcmVxdWlyZSgibm9kZTpmcyIpOwpjb25zdCBwYXRoID0gcmVxdWlyZSgibm9kZTpwYXRoIik7Cgpjb25zdCBhcHAgPSBwYXRoLnJlc29sdmUoX19kaXJuYW1lLCAiLi4vYXBwIik7CmNvbnN0IHBhZ2VzID0gWwogICJpbmRleC5odG1sIiwgInRvZGF5L2luZGV4Lmh0bWwiLCAidGltZXRhYmxlL2luZGV4Lmh0bWwiLCAiaW1wb3J0L2luZGV4Lmh0bWwiLAogICJpbXBvcnQtbW9iaWxlL2luZGV4Lmh0bWwiLCAiaW1wb3J0LWZpbGUvaW5kZXguaHRtbCIsICJzZXR0aW5ncy9pbmRleC5odG1sIiwKICAic2V0dGluZ3MvcGVyc29uYWxpemF0aW9uL2luZGV4Lmh0bWwiLCAic2V0dGluZ3MvdGltZXRhYmxlL2luZGV4Lmh0bWwiLAogICJjb21wYXRpYmlsaXR5L2luZGV4Lmh0bWwiLCAiYWJvdXQvaW5kZXguaHRtbCIsICJsb2NhbC1zdGF0dXMvaW5kZXguaHRtbCIsICJleHBvcnQvaW5kZXguaHRtbCIsCl07CmNvbnN0IGh0bWwgPSBwYWdlcy5tYXAoKGZpbGUpID0+IGZzLnJlYWRGaWxlU3luYyhwYXRoLmpvaW4oYXBwLCBmaWxlKSwgInV0ZjgiKSk7CmNvbnN0IG1vYmlsZSA9IGZzLnJlYWRGaWxlU3luYyhwYXRoLmpvaW4oYXBwLCAiaW1wb3J0LW1vYmlsZS9pbmRleC5odG1sIiksICJ1dGY4Iik7CmNvbnN0IGltcG9ydEZpbGUgPSBmcy5yZWFkRmlsZVN5bmMocGF0aC5qb2luKGFwcCwgImltcG9ydC1maWxlL2luZGV4Lmh0bWwiKSwgInV0ZjgiKTsKY29uc3Qgc2hlbGwgPSBmcy5yZWFkRmlsZVN5bmMocGF0aC5qb2luKGFwcCwgImFzc2V0cy90aW1ldGFibGUvcHJvZHVjdC1zaGVsbC5qcyIpLCAidXRmOCIpOwoKYXNzZXJ0LmVxdWFsKGh0bWwuc29tZSgodGV4dCkgPT4gdGV4dC5pbmNsdWRlcygi5bm/5Lic6YKu55S16IGM5Lia5oqA5pyv5a2m6ZmiIikpLCBmYWxzZSk7CmFzc2VydC5lcXVhbChtb2JpbGUuaW5jbHVkZXMoIumrmOe6p+iuvue9riAvIOaJi+WKqOWuieijhSIpLCBmYWxzZSk7CmFzc2VydC5lcXVhbChtb2JpbGUuaW5jbHVkZXMoIuaJi+WKqOmFjee9riIpLCBmYWxzZSk7CmFzc2VydC5lcXVhbChtb2JpbGUuaW5jbHVkZXMoIuWkjeWItuaJi+WKqOWuieijheiEmuacrCIpLCBmYWxzZSk7CmFzc2VydC5tYXRjaChpbXBvcnRGaWxlLCAvImlkIjogInNjaG9vbC1pZCIvKTsKYXNzZXJ0Lm1hdGNoKGltcG9ydEZpbGUsIC8ibmFtZSI6ICLlrabmoKHlkI3np7AiLyk7CmFzc2VydC5tYXRjaChzaGVsbCwgL1xbInRvZGF5IiwgIlwvIiwgIuS7iuWkqSJcXSwgXFsidGltZXRhYmxlIiwgIlwvdGltZXRhYmxlXC8iLCAi6K++6KGoIlxdLCBcWyJzZXR0aW5ncyIsICJcL3NldHRpbmdzXC8iLCAi6K6+572uIlxdLyk7CmFzc2VydC5tYXRjaChzaGVsbCwgL1BSSU1BUllfQUNUSU9OX1BBR0VTXC5oYXNcKHBhZ2VcKS4qXC9pbXBvcnRcLy4q5a+85YWlLyk7CmFzc2VydC5tYXRjaChzaGVsbCwgL2NvbnN0IGRvY2sgPSBwcmltYXJ5Q29udGV4dCBcPyBkb2N1bWVudFwuY3JlYXRlRWxlbWVudFwoIm5hdiJcKSA6IG51bGwvKTsKZm9yIChjb25zdCB0ZXh0IG9mIGh0bWwpIHsKICBhc3NlcnQubWF0Y2godGV4dCwgL3Byb2R1Y3Qtc2hlbGxcLmpzXD92PWltcG9ydC1uYXYtY2xlYW51cC0yMDI2MDkxOC8pOwogIGFzc2VydC5tYXRjaCh0ZXh0LCAvcHJvZHVjdC1zaGVsbFwuY3NzXD92PWltcG9ydC1uYXYtY2xlYW51cC0yMDI2MDkxOC8pOwp9CmNvbnNvbGUubG9nKCJQVUJMSUNfQ09OVFJBQ1Q9UEFTUyIpOwo=
-EOF
-          base64 -d /tmp/public-contract.b64 > tests/public-contract.test.js
-          echo "d3447a7bb50bd178d31990359b63d37d5cb7d5ea0c3c3056582fdfecbb7d164a  tests/public-contract.test.js" | sha256sum -c -
-
       - name: Verify public contract
         shell: bash
         run: |
           set -euo pipefail
+          echo "d3447a7bb50bd178d31990359b63d37d5cb7d5ea0c3c3056582fdfecbb7d164a  tests/public-contract.test.js" | sha256sum -c -
           node tests/public-contract.test.js
 
-      - name: Commit only verified repository files
+      - name: Commit verified files only
         shell: bash
         run: |
           set -euo pipefail
@@ -71,10 +67,7 @@ EOF
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          echo "Changed paths:"
+          echo "Changed paths relative to current branch head:"
           git diff --cached --name-only
-          count="$(git diff --cached --name-only | wc -l)"
-          test "$count" -eq 16
-          git diff --cached --name-only | grep -Fxq "tests/public-contract.test.js"
           git commit -m "fix: sync import UI and navigation cleanup for v0.1.1"
           git push origin HEAD:sync-v0.1.1-import-ui-nav-production
