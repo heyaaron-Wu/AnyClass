@@ -111,4 +111,4 @@ See [SECURITY.md](SECURITY.md).
 
 ## License
 
-A license will be selected before the first public source Release.
+[Apache-2.0](LICENSE) · Copyright 2026 Aaron
