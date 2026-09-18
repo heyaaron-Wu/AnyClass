@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>导出课程表</title>
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
+  <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/product-shell.js"></script>
+  <link rel="stylesheet" href="/assets/timetable/common.css">
+  <link rel="stylesheet" href="/assets/timetable/export.css">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css">
+</head>
+<body data-shell-page="export">
+<main class="shell export-shell">
+  <div class="settings-page-heading"><a class="back-button" href="/settings/" aria-label="返回设置">← 设置</a><div><h1>导出课程表</h1><p class="muted">生成可导入日历 App 的课程文件。</p></div></div>
+  <section id="loading" class="panel empty">正在读取本机课表…</section>
+  <div id="app" hidden>
+    <section class="panel export-hero">
+      <div class="eyebrow">在此设备生成</div>
+      <h1>导出课程表</h1>
+      <p id="status" class="status">课表已就绪，文件将在此浏览器本地生成。</p>
+      <div class="metrics">
+        <div class="metric"><span>学期</span><strong id="semester">—</strong></div>
+        <div class="metric"><span>日历事件</span><strong id="eventCount">—</strong></div>
+      </div>
+      <div class="actions"><button id="download" class="button primary" disabled>下载课程表 ICS</button></div>
+      <div class="notice small">课表数据不会上传。导出文件完全在当前浏览器中生成。</div>
+    </section>
+    <section class="panel export-recommended">
+      <div class="section-title"><h2>导入 Apple 日历</h2></div>
+      <p>在 iPhone 或 iPad 上，点击“下载课程表 ICS”后，可直接将课程添加到 Apple 日历。</p>
+      <ol class="steps">
+        <li>点击上方“下载课程表 ICS”</li>
+        <li>Safari 打开日历导入界面</li>
+        <li>点击“全部加入”</li>
+        <li>选择要保存到的日历</li>
+      </ol>
+      <details class="shell-disclosure">
+      <summary>无法直接导入？</summary>
+      <div class="shell-disclosure-content">
+        <p>如果浏览器没有正常打开日历导入界面，可以使用快捷指令或从“文件”App 手动导入。</p>
+        <div class="shell-secondary-actions"><a href="https://www.icloud.com/shortcuts/de98e25371614480bc8bd7871415e050" target="_blank" rel="noopener">使用快捷指令导入</a></div>
+        <h3>其他方式</h3>
+        <p>从“文件”App 打开已下载的 .ics 文件。</p>
+      </div>
+      </details>
+      <div class="notice warning"><strong>避免重复课程</strong><br>重复导入同一份课表可能会产生重复事件。建议为 AnyClass 创建独立的“课程表”日历；更新整份课表时，可先清理旧课程，再导入新版。</div>
+    </section>
+  </div>
+</main>
+<script src="/assets/timetable/school-config.js"></script>
+<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/storage-v2.js"></script>
+<script src="/assets/timetable/storage.js"></script>
+<script src="/assets/timetable/ics-generator.js"></script>
+<script>
+(() => {"use strict";
+const $=id=>document.getElementById(id),config=TimetableSchoolConfigs.gupt;let dataset=null,prepared=null;
+const fail=message=>{const loading=$("loading");loading.hidden=false;loading.innerHTML="";const title=document.createElement("h1");title.textContent=message;const hint=document.createElement("p");hint.className="muted";hint.textContent="请先导入课表";const link=document.createElement("a");link.className="button primary";link.href="/import/";link.textContent="导入课表";loading.append(title,hint,link);$("app").hidden=true};
+const generate=value=>value.__phaseBGraph?TimetableIcs.generateFromFinal(value.__phaseBGraph,config):TimetableIcs.generate(value,config);
+const prepare=async value=>{dataset=value;prepared=await generate(dataset);if(prepared.expectedEvents!==prepared.generatedEvents)throw Error("EVENT_COUNT_MISMATCH");$("semester").textContent=`${dataset.semester.academicYear} 第${dataset.semester.term}学期`;$("eventCount").textContent=prepared.generatedEvents;$("download").disabled=false;$("loading").hidden=true;$("app").hidden=false};
+$("download").addEventListener("click",async()=>{const button=$("download");button.disabled=true;try{const result=await generate(dataset);if(!result.validation.ok||result.expectedEvents!==result.generatedEvents)throw Error("VALIDATION_FAILED");const blob=new Blob([result.ics],{type:"text/calendar;charset=utf-8"}),url=URL.createObjectURL(blob),anchor=document.createElement("a");anchor.href=url;anchor.download=TimetableIcs.fileName(dataset);anchor.hidden=true;document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$("status").textContent=`已生成 ${result.generatedEvents} 个日历事件`;$("status").className="status good"}catch(error){$("status").textContent="导出失败，未生成不完整文件";$("status").className="status error"}finally{button.disabled=false}});
+TimetableStorage.latestDataset("gupt").then(value=>value?prepare(value):fail("还没有课程表")).catch(()=>fail("无法读取本机课表"));
+})();
+</script>
+</body>
+</html>
