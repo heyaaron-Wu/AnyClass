@@ -21,9 +21,55 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .release-staging/part-* | tr -d '\r\n' > /tmp/anyclass-public.b64
-          test "$(wc -c < /tmp/anyclass-public.b64)" -eq 182184
-          echo "a7c8b6ef6772450e39a14d886485d8664a1d1ec582ed45857c4e3b8d09493875  /tmp/anyclass-public.b64" | sha256sum -c -
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          root = Path(".release-staging")
+          expected = {
+              "part-026": (8998, "c407156fc355532409c84840cc03386e5b4936d900e14c2f293051646d6f0ff2"),
+              "part-027": (8998, "269496c43e27494950cefdbfffa5730ab76829e28b68be62e92a89651a282200"),
+          }
+
+          def clean_bytes(path):
+              return path.read_bytes().replace(b"\r", b"").replace(b"\n", b"")
+
+          def sha256(data):
+              return hashlib.sha256(data).hexdigest()
+
+          def repair(name, data):
+              if name not in expected:
+                  return data
+              target_len, target_sha = expected[name]
+              if len(data) == target_len and sha256(data) == target_sha:
+                  return data
+              extra = len(data) - target_len
+              if extra < 0:
+                  raise SystemExit(f"{name}: too short ({len(data)} < {target_len})")
+              for i in range(target_len + 1):
+                  candidate = data[:i] + data[i + extra:]
+                  if len(candidate) == target_len and sha256(candidate) == target_sha:
+                      print(f"{name}: repaired by removing {extra} inserted byte(s) at offset {i}")
+                      return candidate
+              raise SystemExit(f"{name}: cannot repair to audited hash")
+
+          parts = []
+          for path in sorted(root.glob("part-*")):
+              data = clean_bytes(path)
+              data = repair(path.name, data)
+              parts.append(data)
+
+          merged = b"".join(parts)
+          if len(merged) != 182184:
+              raise SystemExit(f"unexpected base64 length: {len(merged)}")
+          digest = sha256(merged)
+          expected_digest = "a7c8b6ef6772450e39a14d886485d8664a1d1ec582ed45857c4e3b8d09493875"
+          if digest != expected_digest:
+              raise SystemExit(f"base64 hash mismatch: {digest}")
+          Path("/tmp/anyclass-public.b64").write_bytes(merged)
+          print("base64 bundle: VERIFIED")
+          PY
+
           base64 -d /tmp/anyclass-public.b64 > /tmp/anyclass-public.tar.gz
           echo "a9c85c05c1d1139bbc5f479dbef71e9d973b8ce3528724a87719aa3d19b493e1  /tmp/anyclass-public.tar.gz" | sha256sum -c -
           tar -xzf /tmp/anyclass-public.tar.gz -C .
