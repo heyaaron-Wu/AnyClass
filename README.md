@@ -1,8 +1,36 @@
-# AnyClass / 有课吗
+<div align="center">
 
-> 今天有课吗？打开就知道。
+<a href="https://anyclass.heyaaron.asia/">
+  <img src="assets/brand/anyclass-logo.svg" alt="AnyClass Logo" width="128" />
+</a>
 
-[English](README.en.md)
+<h1>AnyClass / 有课吗</h1>
+
+<p><strong>今天有课吗？打开就知道。</strong></p>
+
+<p>
+  <a href="https://anyclass.heyaaron.asia/"><strong>在线使用</strong></a>
+  ·
+  <a href="#功能">功能</a>
+  ·
+  <a href="#roadmap">Roadmap</a>
+  ·
+  <a href="CONTRIBUTING.md">参与贡献</a>
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/Web-AnyClass-1679F3?style=flat-square" alt="Web" />
+  <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
+  <img src="https://img.shields.io/badge/正方教务%20V9-已验证-2ea44f?style=flat-square" alt="正方教务 V9 已验证" />
+</p>
+
+<p>
+  简体中文 | <a href="README.en.md">English</a>
+</p>
+
+</div>
+
+---
 
 **AnyClass（有课吗）** 是一个面向学生的 Local-first 课程表工具。它帮助你快速查看今天的课程、浏览周课表、从教务系统导入课程，并将课表导出到系统日历。
 
