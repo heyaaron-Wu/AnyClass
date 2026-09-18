@@ -111,4 +111,4 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 ## License
 
-首个公开源码 Release 前将确定许可证。
+[Apache-2.0](LICENSE) · Copyright 2026 Aaron
