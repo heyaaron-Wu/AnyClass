@@ -1,0 +1,46 @@
+name: Materialize public source v0.1.0
+
+on:
+  push:
+    branches:
+      - public-source-v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct and verify audited source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .release-staging/part-* | tr -d '\r\n' > /tmp/anyclass-public.b64
+          test "$(wc -c < /tmp/anyclass-public.b64)" -eq 182184
+          echo "a7c8b6ef6772450e39a14d886485d8664a1d1ec582ed45857c4e3b8d09493875  /tmp/anyclass-public.b64" | sha256sum -c -
+          base64 -d /tmp/anyclass-public.b64 > /tmp/anyclass-public.tar.gz
+          echo "a9c85c05c1d1139bbc5f479dbef71e9d973b8ce3528724a87719aa3d19b493e1  /tmp/anyclass-public.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/anyclass-public.tar.gz -C .
+          npm test
+          rm -rf .release-staging
+          rm -f .github/workflows/public-source-materialize.yml
+
+      - name: Commit materialized public source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "feat: publish AnyClass v0.1.0 source"
+          git push
