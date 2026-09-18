@@ -15,154 +15,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Apply production spacing polish and verify
+      - name: Apply exact production spacing polish
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          import hashlib, json
-
-          css_path = Path("app/assets/timetable/product-shell.css")
-          css = css_path.read_text(encoding="utf-8")
-
-          vars_block = """  --page-max-width: 1240px;
-  --page-wide-max-width: 1400px;
-  --page-gutter-desktop: 32px;
-  --page-gutter-mobile: 12px;
-  --section-gap: 18px;
-  --panel-gap: 14px;
-  --panel-padding-desktop: 24px;
-  --hero-desktop-gap: 40px;
-"""
-
-          anchor = "  --safe-bottom-content: var(--app-dock-clearance, calc(var(--app-dock-height) + var(--app-dock-gap) + max(10px, env(safe-area-inset-bottom))));\n}\n"
-          if vars_block not in css:
-              if anchor not in css:
-                  raise SystemExit("root anchor not found")
-              css = css.replace(anchor, anchor[:-2] + vars_block + "}\n", 1)
-
-          desktop_block = """/* v0.1.0 desktop composition: one shared outer grid, with an intentional wide timetable variant. */
-@media(min-width:701px){
-  .shell-header,
-  .shell-network,
-  body[data-shell-page]>main.shell{
-    width:100%;
-    max-width:var(--page-max-width);
-    margin-inline:auto;
-    padding-left:var(--page-gutter-desktop);
-    padding-right:var(--page-gutter-desktop);
-  }
-  body[data-shell-page="timetable"] .shell-header,
-  body[data-shell-page="timetable"] .shell-network,
-  body[data-shell-page="timetable"]>main.shell{
-    max-width:var(--page-wide-max-width);
-  }
-  body[data-shell-page^="import"] main,
-  body[data-shell-page="export"] main,
-  body[data-shell-page="about"] main,
-  .export-shell,
-  .local-status-shell,
-  .settings-shell,
-  .settings-hub{
-    width:100%;
-    max-width:var(--page-max-width);
-  }
-  body[data-shell-page]>main.shell>.panel,
-  body[data-shell-page]>main.shell>.card{
-    padding:var(--panel-padding-desktop);
-    margin-bottom:var(--section-gap);
-  }
-  body[data-shell-page="today"] .hero-card{
-    display:grid;
-    grid-template-columns:minmax(0,780px) minmax(220px,1fr);
-    grid-template-areas:
-      "date meta"
-      "status meta"
-      "content meta";
-    column-gap:var(--hero-desktop-gap);
-    align-content:start;
-    min-height:224px;
-    padding:28px 32px;
-  }
-  body[data-shell-page="today"] .hero-card>.date-bar{display:contents}
-  body[data-shell-page="today"] .hero-card .date-primary{grid-area:date}
-  body[data-shell-page="today"] .hero-card .date-secondary{
-    grid-area:meta;
-    align-self:start;
-    justify-self:end;
-    justify-content:flex-end;
-    max-width:260px;
-  }
-  body[data-shell-page="today"] .hero-card .hero-top{grid-area:status;margin-top:14px}
-  body[data-shell-page="today"] .hero-card .hero-content{grid-area:content;margin-top:14px;max-width:760px}
-  body[data-shell-page="today"] .stats{
-    grid-template-columns:repeat(3,minmax(150px,220px));
-    justify-content:start;
-    gap:var(--panel-gap);
-    max-width:688px;
-  }
-  body[data-shell-page="today"] .course-row{
-    grid-template-columns:96px minmax(0,1fr) auto;
-    gap:18px;
-  }
-}
-
-@media(min-width:1000px){
-  .settings-hub{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:22px 24px;
-  }
-  .settings-hub>.settings-page-heading{grid-column:1/-1;margin-bottom:0}
-  .settings-hub>.settings-hub-section{margin-top:0}
-}
-"""
-
-          if desktop_block not in css:
-              css = css.rstrip("\n") + "\n\n" + desktop_block
-
-          digest = hashlib.sha256(css.encode("utf-8")).hexdigest()
-          expected = "8cb2ab065370b4c057ef4fe56d2168a0c1297b8fbc99f02c29969157f0d1e679"
-          print("CSS_SHA256=" + digest)
-          if digest != expected:
-              raise SystemExit("CSS SHA mismatch; refusing sync")
-          css_path.write_text(css, encoding="utf-8")
-
-          pkg_path = Path("package.json")
-          pkg = json.loads(pkg_path.read_text(encoding="utf-8"))
-          if pkg.get("version") not in ("0.1.0", "0.1.1"):
-              raise SystemExit(f"unexpected package version: {pkg.get('version')}")
-          pkg["version"] = "0.1.1"
-          pkg_path.write_text(json.dumps(pkg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-          changelog_path = Path("CHANGELOG.md")
-          changelog = changelog_path.read_text(encoding="utf-8")
-          entry = """## [0.1.1] - 2026-09-18
-
-### 改进
-
-- 优化桌面端页面宽度、留白与内容密度。
-- 统一 Header、主体内容和状态区域的桌面水平对齐。
-- Today 页面采用更适合桌面端的双栏信息布局。
-- Timetable 使用独立宽页面容器，同时保持课表内部横向滚动。
-- 保持 390px / 430px 移动端布局与 Dock 行为不变。
-
-"""
-          if "## [0.1.1] - 2026-09-18" not in changelog:
-              marker = "## [0.1.0] - 2026-09-18"
-              if marker not in changelog:
-                  raise SystemExit("CHANGELOG insertion marker not found")
-              changelog = changelog.replace(marker, entry + marker, 1)
-              changelog_path.write_text(changelog, encoding="utf-8")
-          PY
-
+          printf '%s' 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmltcG9ydCBoYXNobGliLCBqc29uCmNzc19wYXRoID0gUGF0aCgnYXBwL2Fzc2V0cy90aW1ldGFibGUvcHJvZHVjdC1zaGVsbC5jc3MnKQpjc3MgPSBjc3NfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9J3V0Zi04JykKdmFyc19ibG9jayA9ICcnJyAgLS1wYWdlLW1heC13aWR0aDogMTI0MHB4O1xuICAtLXBhZ2Utd2lkZS1tYXgtd2lkdGg6IDE0MDBweDtcbiAgLS1wYWdlLWd1dHRlci1kZXNrdG9wOiAzMnB4O1xuICAtLXBhZ2UtZ3V0dGVyLW1vYmlsZTogMTJweDtcbiAgLS1zZWN0aW9uLWdhcDogMThweDtcbiAgLS1wYW5lbC1nYXA6IDE0cHg7XG4gIC0tcGFuZWwtcGFkZGluZy1kZXNrdG9wOiAyNHB4O1xuICAtLWhlcm8tZGVza3RvcC1nYXA6IDQwcHg7XG4nJycKYW5jaG9yID0gJyAgLS1zYWZlLWJvdHRvbS1jb250ZW50OiB2YXIoLS1hcHAtZG9jay1jbGVhcmFuY2UsIGNhbGModmFyKC0tYXBwLWRvY2staGVpZ2h0KSArIHZhcigtLWFwcC1kb2NrLWdhcCkgKyBtYXgoMTBweCwgZW52KHNhZmUtYXJlYS1pbnNldC1ib3R0b20pKSkpO1xufVxuJwppZiB2YXJzX2Jsb2NrIG5vdCBpbiBjc3M6CiAgICBpZiBhbmNob3Igbm90IGluIGNzczoKICAgICAgICByYWlzZSBTeXN0ZW1FeGl0KCdyb290IGFuY2hvciBub3QgZm91bmQnKQogICAgY3NzID0gY3NzLnJlcGxhY2UoYW5jaG9yLCBhbmNob3JbOi0yXSArIHZhcnNfYmxvY2sgKyAnfVxuJywgMSkKZGVza3RvcF9ibG9jayA9ICcnJy8qIHYwLjEuMCBkZXNrdG9wIGNvbXBvc2l0aW9uOiBvbmUgc2hhcmVkIG91dGVyIGdyaWQsIHdpdGggYW4gaW50ZW50aW9uYWwgd2lkZSB0aW1ldGFibGUgdmFyaWFudC4gKi8KQG1lZGlhKG1pbi13aWR0aDo3MDFweCl7CiAgLnNoZWxsLWhlYWRlciwKICAuc2hlbGwtbmV0d29yaywKICBib2R5W2RhdGEtc2hlbGwtcGFnZV0+bWFpbi5zaGVsbHsKICAgIHdpZHRoOjEwMCU7CiAgICBtYXgtd2lkdGg6dmFyKC0tcGFnZS1tYXgtd2lkdGgpOwogICAgbWFyZ2luLWlubGluZTphdXRvOwogICAgcGFkZGluZy1sZWZ0OnZhcigtLXBhZ2UtZ3V0dGVyLWRlc2t0b3ApOwogICAgcGFkZGluZy1yaWdodDp2YXIoLS1wYWdlLWd1dHRlci1kZXNrdG9wKTsKICB9CiAgYm9keVtkYXRhLXNoZWxsLXBhZ2U9InRpbWV0YWJsZSJdIC5zaGVsbC1oZWFkZXIsCiAgYm9keVtkYXRhLXNoZWxsLXBhZ2U9InRpbWV0YWJsZSJdIC5zaGVsbC1uZXR3b3JrLAogIGJvZHlbZGF0YS1zaGVsbC1wYWdlPSJ0aW1ldGFibGUiXT5tYWluLnNoZWxsewogICAgbWF4LXdpZHRoOnZhcigtLXBhZ2Utd2lkZS1tYXgtd2lkdGgpOwogIH0KICBib2R5W2RhdGEtc2hlbGwtcGFnZV49ImltcG9ydCJdIG1haW4sCiAgYm9keVtkYXRhLXNoZWxsLXBhZ2U9ImV4cG9ydCJdIG1haW4sCiAgYm9keVtkYXRhLXNoZWxsLXBhZ2U9ImFib3V0Il0gbWFpbiwKICAuZXhwb3J0LXNoZWxsLAogIC5sb2NhbC1zdGF0dXMtc2hlbGwsCiAgLnNldHRpbmdzLXNoZWxsLAogIC5zZXR0aW5ncy1odWJ7CiAgICB3aWR0aDoxMDAlOwogICAgbWF4LXdpZHRoOnZhcigtLXBhZ2UtbWF4LXdpZHRoKTsKICB9CiAgYm9keVtkYXRhLXNoZWxsLXBhZ2VdPm1haW4uc2hlbGw+LnBhbmVsLAogIGJvZHlbZGF0YS1zaGVsbC1wYWdlXT5tYWluLnNoZWxsPi5jYXJkewogICAgcGFkZGluZzp2YXIoLS1wYW5lbC1wYWRkaW5nLWRlc2t0b3ApOwogICAgbWFyZ2luLWJvdHRvbTp2YXIoLS1zZWN0aW9uLWdhcCk7CiAgfQogIGJvZHlbZGF0YS1zaGVsbC1wYWdlPSJ0b2RheSJdIC5oZXJvLWNhcmR7CiAgICBkaXNwbGF5OmdyaWQ7CiAgICBncmlkLXRlbXBsYXRlLWNvbHVtbnM6bWlubWF4KDAsNzgwcHgpIG1pbm1heCgyMjBweCwxZnIpOwogICAgZ3JpZC10ZW1wbGF0ZS1hcmVhczoKICAgICAgImRhdGUgbWV0YSIKICAgICAgInN0YXR1cyBtZXRhIgogICAgICAiY29udGVudCBtZXRhIjsKICAgIGNvbHVtbi1nYXA6dmFyKC0taGVyby1kZXNrdG9wLWdhcCk7CiAgICBhbGlnbi1jb250ZW50OnN0YXJ0OwogICAgbWluLWhlaWdodDoyMjRweDsKICAgIHBhZGRpbmc6MjhweCAzMnB4OwogIH0KICBib2R5W2RhdGEtc2hlbGwtcGFnZT0idG9kYXkiXSAuaGVyby1jYXJkPi5kYXRlLWJhcntkaXNwbGF5OmNvbnRlbnRzfQogIGJvZHlbZGF0YS1zaGVsbC1wYWdlPSJ0b2RheSJdIC5oZXJvLWNhcmQgLmRhdGUtcHJpbWFyeXtncmlkLWFyZWE6ZGF0ZX0KICBib2R5W2RhdGEtc2hlbGwtcGFnZT0idG9kYXkiXSAuaGVyby1jYXJkIC5kYXRlLXNlY29uZGFyeXsKICAgIGdyaWQtYXJlYTptZXRhOwogICAgYWxpZ24tc2VsZjpzdGFydDsKICAgIGp1c3RpZnktc2VsZjplbmQ7CiAgICBqdXN0aWZ5LWNvbnRlbnQ6ZmxleC1lbmQ7CiAgICBtYXgtd2lkdGg6MjYwcHg7CiAgfQogIGJvZHlbZGF0YS1zaGVsbC1wYWdlPSJ0b2RheSJdIC5oZXJvLWNhcmQgLmhlcm8tdG9we2dyaWQtYXJlYTpzdGF0dXM7bWFyZ2luLXRvcDoxNHB4fQogIGJvZHlbZGF0YS1zaGVsbC1wYWdlPSJ0b2RheSJdIC5oZXJvLWNhcmQgLmhlcm8tY29udGVudHtncmlkLWFyZWE6Y29udGVudDttYXJnaW4tdG9wOjE0cHg7bWF4LXdpZHRoOjc2MHB4fQogIGJvZHlbZGF0YS1zaGVsbC1wYWdlPSJ0b2RheSJdIC5zdGF0c3sKICAgIGdyaWQtdGVtcGxhdGUtY29sdW1uczpyZXBlYXQoMyxtaW5tYXgoMTUwcHgsMjIwcHgpKTsKICAgIGp1c3RpZnktY29udGVudDpzdGFydDsKICAgIGdhcDp2YXIoLS1wYW5lbC1nYXApOwogICAgbWF4LXdpZHRoOjY4OHB4OwogIH0KICBib2R5W2RhdGEtc2hlbGwtcGFnZT0idG9kYXkiXSAuY291cnNlLXJvd3sKICAgIGdyaWQtdGVtcGxhdGUtY29sdW1uczo5NnB4IG1pbm1heCgwLDFmcikgYXV0bzsKICAgIGdhcDoxOHB4OwogIH0KfQoKQG1lZGlhKG1pbi13aWR0aDoxMDAwcHgpewogIC5zZXR0aW5ncy1odWJ7CiAgICBkaXNwbGF5OmdyaWQ7CiAgICBncmlkLXRlbXBsYXRlLWNvbHVtbnM6cmVwZWF0KDIsbWlubWF4KDAsMWZyKSk7CiAgICBnYXA6MjJweCAyNHB4OwogIH0KICAuc2V0dGluZ3MtaHViPi5zZXR0aW5ncy1wYWdlLWhlYWRpbmd7Z3JpZC1jb2x1bW46MS8tMTttYXJnaW4tYm90dG9tOjB9CiAgLnNldHRpbmdzLWh1Yj4uc2V0dGluZ3MtaHViLXNlY3Rpb257bWFyZ2luLXRvcDowfQp9CicnJwppZiBkZXNrdG9wX2Jsb2NrIG5vdCBpbiBjc3M6CiAgICBjc3MgPSBjc3MucnN0cmlwKCdcbicpICsgJ1xuXG4nICsgZGVza3RvcF9ibG9jawpkaWdlc3QgPSBoYXNobGliLnNoYTI1Nihjc3MuZW5jb2RlKCd1dGYtOCcpKS5oZXhkaWdlc3QoKQpleHBlY3RlZCA9ICc4Y2IyYWIwNjUzNzBiNGMwNTdlZjRmZTU2ZDIxNjhhMGMxMjk3YjhmYmM5OWYwMmMyOTk2OTE1N2YwZDFlNjc5JwpwcmludCgnQ1NTX1NIQTI1Nj0nICsgZGlnZXN0KQppZiBkaWdlc3QgIT0gZXhwZWN0ZWQ6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCdDU1MgU0hBIG1pc21hdGNoOyByZWZ1c2luZyBzeW5jJykKY3NzX3BhdGgud3JpdGVfdGV4dChjc3MsIGVuY29kaW5nPSd1dGYtOCcpCnBrZ19wYXRoID0gUGF0aCgncGFja2FnZS5qc29uJykKcGtnID0ganNvbi5sb2Fkcyhwa2dfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9J3V0Zi04JykpCmlmIHBrZy5nZXQoJ3ZlcnNpb24nKSBub3QgaW4gKCcwLjEuMCcsJzAuMS4xJyk6CiAgICByYWlzZSBTeXN0ZW1FeGl0KGYidW5leHBlY3RlZCBwYWNrYWdlIHZlcnNpb246IHtwa2cuZ2V0KCd2ZXJzaW9uJyl9IikKcGtnWyd2ZXJzaW9uJ10gPSAnMC4xLjEnCnBrZ19wYXRoLndyaXRlX3RleHQoanNvbi5kdW1wcyhwa2csIGVuc3VyZV9hc2NpaT1GYWxzZSwgaW5kZW50PTIpKydcbicsIGVuY29kaW5nPSd1dGYtOCcpCmNoYW5nZWxvZ19wYXRoID0gUGF0aCgnQ0hBTkdFTE9HLm1kJykKY2hhbmdlbG9nID0gY2hhbmdlbG9nX3BhdGgucmVhZF90ZXh0KGVuY29kaW5nPSd1dGYtOCcpCmVudHJ5ID0gJycnIyMgWzAuMS4xXSAtIDIwMjYtMDktMTgKCiMjIyDmlLnov5sKCi0g5LyY5YyW5qGM6Z2i56uv6aG16Z2i5a695bqm44CB55WZ55m95LiO5YaF5a655a+G5bqm44CCCi0g57uf5LiAIEhlYWRlcuOAgeS4u+S9k+WGheWuueWSjOeKtuaAgeWMuuWfn+eahOahjOmdouawtOW5s+Wvuem9kOOAggotIFRvZGF5IOmhtemdoumHh+eUqOabtOmAguWQiOahjOmdouerr+eahOWPjOagj+S/oeaBr+W4g+WxgOOAggotIFRpbWV0YWJsZSDkvb/nlKjni6znq4vlrr3pobXpnaLlrrnlmajvvIzlkIzml7bkv53mjIHor77ooajlhoXpg6jmqKrlkJHmu5rliqjjgIIKLSDkv53mjIEgMzkwcHggLyA0MzBweCDnp7vliqjnq6/luIPlsYDkuI4gRG9jayDooYzkuLrkuI3lj5jjgIIKCicnJwppZiAnIyMgWzAuMS4xXSAtIDIwMjYtMDktMTgnIG5vdCBpbiBjaGFuZ2Vsb2c6CiAgICBtYXJrZXIgPSAnIyMgWzAuMS4wXSAtIDIwMjYtMDktMTgnCiAgICBpZiBtYXJrZXIgbm90IGluIGNoYW5nZWxvZzoKICAgICAgICByYWlzZSBTeXN0ZW1FeGl0KCdDSEFOR0VMT0cgaW5zZXJ0aW9uIG1hcmtlciBub3QgZm91bmQnKQogICAgY2hhbmdlbG9nID0gY2hhbmdlbG9nLnJlcGxhY2UobWFya2VyLCBlbnRyeSttYXJrZXIsIDEpCiAgICBjaGFuZ2Vsb2dfcGF0aC53cml0ZV90ZXh0KGNoYW5nZWxvZywgZW5jb2Rpbmc9J3V0Zi04JykK' | base64 -d > /tmp/sync_v011.py
+          python /tmp/sync_v011.py
+          sha256sum app/assets/timetable/product-shell.css
           npm test
           rm -rf .sync-staging .sync-staging2
           rm -f .github/workflows/sync-v0.1.1-desktop-spacing.yml
-
-      - name: Commit exact v0.1.1 sync
+      - name: Commit verified v0.1.1 sync
         shell: bash
         run: |
           set -euo pipefail
