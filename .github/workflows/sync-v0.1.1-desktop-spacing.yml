@@ -1,0 +1,173 @@
+name: Sync AnyClass v0.1.1 desktop spacing
+
+on:
+  push:
+    branches:
+      - sync-v0.1.1-desktop-spacing
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply production spacing polish and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json
+
+          css_path = Path("app/assets/timetable/product-shell.css")
+          css = css_path.read_text(encoding="utf-8")
+
+          vars_block = """  --page-max-width: 1240px;
+  --page-wide-max-width: 1400px;
+  --page-gutter-desktop: 32px;
+  --page-gutter-mobile: 12px;
+  --section-gap: 18px;
+  --panel-gap: 14px;
+  --panel-padding-desktop: 24px;
+  --hero-desktop-gap: 40px;
+"""
+
+          anchor = "  --safe-bottom-content: var(--app-dock-clearance, calc(var(--app-dock-height) + var(--app-dock-gap) + max(10px, env(safe-area-inset-bottom))));\n}\n"
+          if vars_block not in css:
+              if anchor not in css:
+                  raise SystemExit("root anchor not found")
+              css = css.replace(anchor, anchor[:-2] + vars_block + "}\n", 1)
+
+          desktop_block = """/* v0.1.0 desktop composition: one shared outer grid, with an intentional wide timetable variant. */
+@media(min-width:701px){
+  .shell-header,
+  .shell-network,
+  body[data-shell-page]>main.shell{
+    width:100%;
+    max-width:var(--page-max-width);
+    margin-inline:auto;
+    padding-left:var(--page-gutter-desktop);
+    padding-right:var(--page-gutter-desktop);
+  }
+  body[data-shell-page="timetable"] .shell-header,
+  body[data-shell-page="timetable"] .shell-network,
+  body[data-shell-page="timetable"]>main.shell{
+    max-width:var(--page-wide-max-width);
+  }
+  body[data-shell-page^="import"] main,
+  body[data-shell-page="export"] main,
+  body[data-shell-page="about"] main,
+  .export-shell,
+  .local-status-shell,
+  .settings-shell,
+  .settings-hub{
+    width:100%;
+    max-width:var(--page-max-width);
+  }
+  body[data-shell-page]>main.shell>.panel,
+  body[data-shell-page]>main.shell>.card{
+    padding:var(--panel-padding-desktop);
+    margin-bottom:var(--section-gap);
+  }
+  body[data-shell-page="today"] .hero-card{
+    display:grid;
+    grid-template-columns:minmax(0,780px) minmax(220px,1fr);
+    grid-template-areas:
+      "date meta"
+      "status meta"
+      "content meta";
+    column-gap:var(--hero-desktop-gap);
+    align-content:start;
+    min-height:224px;
+    padding:28px 32px;
+  }
+  body[data-shell-page="today"] .hero-card>.date-bar{display:contents}
+  body[data-shell-page="today"] .hero-card .date-primary{grid-area:date}
+  body[data-shell-page="today"] .hero-card .date-secondary{
+    grid-area:meta;
+    align-self:start;
+    justify-self:end;
+    justify-content:flex-end;
+    max-width:260px;
+  }
+  body[data-shell-page="today"] .hero-card .hero-top{grid-area:status;margin-top:14px}
+  body[data-shell-page="today"] .hero-card .hero-content{grid-area:content;margin-top:14px;max-width:760px}
+  body[data-shell-page="today"] .stats{
+    grid-template-columns:repeat(3,minmax(150px,220px));
+    justify-content:start;
+    gap:var(--panel-gap);
+    max-width:688px;
+  }
+  body[data-shell-page="today"] .course-row{
+    grid-template-columns:96px minmax(0,1fr) auto;
+    gap:18px;
+  }
+}
+
+@media(min-width:1000px){
+  .settings-hub{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:22px 24px;
+  }
+  .settings-hub>.settings-page-heading{grid-column:1/-1;margin-bottom:0}
+  .settings-hub>.settings-hub-section{margin-top:0}
+}
+"""
+
+          if desktop_block not in css:
+              css = css.rstrip("\n") + "\n\n" + desktop_block
+
+          digest = hashlib.sha256(css.encode("utf-8")).hexdigest()
+          expected = "8cb2ab065370b4c057ef4fe56d2168a0c1297b8fbc99f02c29969157f0d1e679"
+          print("CSS_SHA256=" + digest)
+          if digest != expected:
+              raise SystemExit("CSS SHA mismatch; refusing sync")
+          css_path.write_text(css, encoding="utf-8")
+
+          pkg_path = Path("package.json")
+          pkg = json.loads(pkg_path.read_text(encoding="utf-8"))
+          if pkg.get("version") not in ("0.1.0", "0.1.1"):
+              raise SystemExit(f"unexpected package version: {pkg.get('version')}")
+          pkg["version"] = "0.1.1"
+          pkg_path.write_text(json.dumps(pkg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          changelog_path = Path("CHANGELOG.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          entry = """## [0.1.1] - 2026-09-18
+
+### 改进
+
+- 优化桌面端页面宽度、留白与内容密度。
+- 统一 Header、主体内容和状态区域的桌面水平对齐。
+- Today 页面采用更适合桌面端的双栏信息布局。
+- Timetable 使用独立宽页面容器，同时保持课表内部横向滚动。
+- 保持 390px / 430px 移动端布局与 Dock 行为不变。
+
+"""
+          if "## [0.1.1] - 2026-09-18" not in changelog:
+              marker = "## [0.1.0] - 2026-09-18"
+              if marker not in changelog:
+                  raise SystemExit("CHANGELOG insertion marker not found")
+              changelog = changelog.replace(marker, entry + marker, 1)
+              changelog_path.write_text(changelog, encoding="utf-8")
+          PY
+
+          npm test
+          rm -rf .sync-staging .sync-staging2
+          rm -f .github/workflows/sync-v0.1.1-desktop-spacing.yml
+
+      - name: Commit exact v0.1.1 sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: sync desktop spacing polish for v0.1.1"
+          git push
