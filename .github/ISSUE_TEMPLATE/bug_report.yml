@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible AnyClass problem
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug.
+
+        **Do not submit passwords, Cookies, Sessions, authentication tokens, student numbers, or private timetable data.**
+  - type: input
+    id: page
+    attributes:
+      label: Affected page or feature
+      placeholder: Today, Timetable, Import, Settings, Export...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: Safari on iPhone, Chrome on Windows...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Please use sanitized example data.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized screenshots or notes
+      description: Remove personal and school-account data before uploading.
