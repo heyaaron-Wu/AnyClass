@@ -1,0 +1,87 @@
+# AnyClass
+
+> Wondering if you have class today? Open AnyClass and know right away.
+
+[中文](README.md)
+
+**AnyClass** is a local-first timetable tool for students. It helps you quickly check today's classes, view your weekly timetable, import course data from academic systems, and export your schedule to your calendar.
+
+**Web app:** https://anyclass.heyaaron.asia/
+
+## Features
+
+- Today's classes and current / next class
+- Weekly timetable
+- Academic-system timetable import
+- Apple Calendar / iCalendar (ICS) export
+- Course reminders
+- Period and display-range settings
+- Local-first: timetable data is stored on the current device by default
+
+## Privacy
+
+AnyClass follows a **local-first** design.
+
+- Timetable data is stored locally in the browser by default.
+- The current product does not upload timetable data to the AnyClass server.
+- AnyClass does not require storing your school account password.
+- The current import flow does not upload Cookies, Sessions, or authentication tokens.
+
+See [PRIVACY.md](PRIVACY.md) for details.
+
+## Compatibility
+
+| Academic system | Status |
+| --- | --- |
+| ZhengFang V9 | ✅ Verified |
+| QiangZhi | Not supported |
+| Kingosoft | Not supported |
+| URP | Not supported |
+| Wisedu | Not supported |
+
+“Verified” means the import flow has been validated in a real environment. Public project documentation does not use a specific school as compatibility promotion.
+
+## Apple Calendar
+
+On iPhone or iPad, the recommended flow is:
+
+1. Export the timetable as an ICS file in AnyClass.
+2. Let Safari open the Apple Calendar import interface.
+3. Tap “Add All”.
+4. Choose the destination calendar.
+
+Shortcut and Files-app import remain fallback options.
+
+## Roadmap
+
+Planned areas include:
+
+- Universal Shortcut / Bookmarklet import architecture
+- Additional academic-system adapters
+- Android calendar experience
+- Custom courses
+- Schedule changes / make-up classes
+- Calendar Subscription
+- Multi-term management
+
+Roadmap items are plans, not currently available features.
+
+## Open-source status
+
+The public source package, contributor documentation, security policy, and first Release are being prepared.
+
+Until the public-source audit is complete, the hosted web app remains the recommended way to use AnyClass.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Please never submit school account passwords, Cookies, Sessions, authentication tokens, or private student data in Issues or Pull Requests.
+
+## Security
+
+See [SECURITY.md](SECURITY.md).
+
+## License
+
+A license will be selected before the first public source Release.
