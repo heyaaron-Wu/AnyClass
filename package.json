@@ -1,7 +1,7 @@
 {
   "name": "anyclass",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "AnyClass / 有课吗 — Local-first timetable web application",
   "scripts": {
     "test": "node tests/public-contract.test.js"
