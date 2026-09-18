@@ -42,6 +42,24 @@ const importFile = read("import-file/index.html");
 for (const value of ['"id": "school-id"', '"name": "学校名称"']) assert(importFile.includes(value), `generic schema: ${value}`);
 assert(!importFile.includes('"id": "gupt"'), "public schema profile id");
 
+const importPage = read("import/index.html");
+for (const obsolete of [
+  "高级诊断说明",
+  "等待从教务系统读取课表",
+  "书签脚本已复制。现在新建书签并粘贴到网址栏。",
+  "如果书签未运行"
+]) assert(!importPage.includes(obsolete), `obsolete desktop import copy: ${obsolete}`);
+for (const required of [
+  "复制“导入 AnyClass 课表”书签",
+  "✓ 已复制",
+  "课表已读取",
+  "重新选择导入方式",
+  "showInitial(false)",
+  "friendlyImportError"
+]) assert(importPage.includes(required), `desktop import flow: ${required}`);
+assert(importPage.includes('BOOKMARKLET_VERSION="3.0.0"'), "bookmarklet version unchanged");
+assert(importPage.includes('BOOKMARKLET_ID="anyclass-import"'), "bookmarklet id unchanged");
+
 const shell = read("assets/timetable/product-shell.js");
 for (const contract of [
   'const PRIMARY_PAGES = new Set(["today", "timetable", "import", "import-mobile", "import-file"])',
@@ -62,7 +80,7 @@ const shellPages = [
 for (const page of shellPages) {
   const html = read(page);
   assert(html.includes('product-shell.js?v=import-nav-cleanup-20260918'), `${page} versioned shell JS`);
-  assert(/product-shell\.css\?v=(?:import-nav-cleanup|v011-mobile-period-today)-20260918/.test(html), `${page} versioned shell CSS`);
+  assert(/product-shell\.css\?v=(?:(?:import-nav-cleanup|v011-mobile-period-today)-20260918|v011-import-flow-20260919)/.test(html), `${page} versioned shell CSS`);
 }
 
 for (const page of ["index.html", "today/index.html"]) {
