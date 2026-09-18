@@ -1,8 +1,36 @@
-# AnyClass
+<div align="center">
 
-> Wondering if you have class today? Open AnyClass and know right away.
+<a href="https://anyclass.heyaaron.asia/">
+  <img src="assets/brand/anyclass-logo.svg" alt="AnyClass Logo" width="128" />
+</a>
 
-[中文](README.md)
+<h1>AnyClass</h1>
+
+<p><strong>Wondering if you have class today? Open AnyClass and know right away.</strong></p>
+
+<p>
+  <a href="https://anyclass.heyaaron.asia/"><strong>Open AnyClass</strong></a>
+  ·
+  <a href="#features">Features</a>
+  ·
+  <a href="#roadmap">Roadmap</a>
+  ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/Web-AnyClass-1679F3?style=flat-square" alt="Web" />
+  <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
+  <img src="https://img.shields.io/badge/ZhengFang%20V9-Verified-2ea44f?style=flat-square" alt="ZhengFang V9 Verified" />
+</p>
+
+<p>
+  <a href="README.md">简体中文</a> | English
+</p>
+
+</div>
+
+---
 
 **AnyClass** is a local-first timetable tool for students. It helps you quickly check today's classes, view your weekly timetable, import course data from academic systems, and export your schedule to your calendar.
 
