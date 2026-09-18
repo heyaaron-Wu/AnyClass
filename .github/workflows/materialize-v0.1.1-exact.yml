@@ -20,6 +20,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo "7428ad8ecbcdedf87a9ec9ddf937f9332d26a9fdf8dd3ea875a059d2ea224eea  .sync-v011/part-00" | sha256sum -c -
+          echo "84c32b7f3e7aa63460d28d82fc27e9e3c970387f3bf8dafd4ec7601334ef051c  .sync-v011/part-01" | sha256sum -c -
+          echo "55ba14ab45279a8bae631286da3db219dfa5e09cfa31f70469a78e1af0d6f836  .sync-v011/part-02" | sha256sum -c -
+          echo "8fc93f81af0cb1010ee957f98878f43f8febdbeaf2aa7d438e04b1c51924473d  .sync-v011/part-03" | sha256sum -c -
+          echo "4515b03670574cc800f03acf564f357093592cae4d8a9d6f2e3b7d2b3caf06ce  .sync-v011/part-04" | sha256sum -c -
+          echo "a044f3f44b797a6490841a007674a1df1380a42f4ca381279b1ea3e0f4b4fc33  .sync-v011/part-05" | sha256sum -c -
+          echo "b9cda5a878bb5b71b3bc8abd9887f515a3abbb9cab7cda1870024d1556db6eda  .sync-v011/part-06" | sha256sum -c -
+          echo "072465eac11c350b1ddc7018a9c23dfdc65eb86947e0c552e1efa5d96b8129f1  .sync-v011/part-07" | sha256sum -c -
           cat .sync-v011/part-* | tr -d '\r\n' | base64 -d > /tmp/product-shell.css
           echo "8cb2ab065370b4c057ef4fe56d2168a0c1297b8fbc99f02c29969157f0d1e679  /tmp/product-shell.css" | sha256sum -c -
           cp /tmp/product-shell.css app/assets/timetable/product-shell.css
