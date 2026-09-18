@@ -1,0 +1,38 @@
+name: Academic-system compatibility request
+description: Request or help validate support for another academic system
+title: "[Compatibility] "
+labels: ["compatibility"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never submit school account passwords, Cookies, Sessions, authentication tokens, student numbers, or private timetable data.**
+
+        Sanitized technical evidence is preferred.
+  - type: input
+    id: system
+    attributes:
+      label: Academic system
+      placeholder: System family/name
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: If known
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized technical evidence
+      description: DOM structure, sanitized HTML, selectors, screenshots, or other non-sensitive evidence.
+  - type: dropdown
+    id: test
+    attributes:
+      label: Can you test an adapter in a real environment?
+      options:
+        - "Yes"
+        - "No"
+        - "Maybe"
+    validations:
+      required: true
