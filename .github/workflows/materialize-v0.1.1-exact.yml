@@ -1,0 +1,41 @@
+name: Materialize AnyClass v0.1.1 exact sync
+
+on:
+  push:
+    branches:
+      - sync-v0.1.1-exact
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct exact production CSS and update release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .sync-v011/part-* | tr -d '\r\n' | base64 -d > /tmp/product-shell.css
+          echo "8cb2ab065370b4c057ef4fe56d2168a0c1297b8fbc99f02c29969157f0d1e679  /tmp/product-shell.css" | sha256sum -c -
+          cp /tmp/product-shell.css app/assets/timetable/product-shell.css
+          echo "8cb2ab065370b4c057ef4fe56d2168a0c1297b8fbc99f02c29969157f0d1e679  app/assets/timetable/product-shell.css" | sha256sum -c -
+          python -c 'import json,pathlib; p=pathlib.Path("package.json"); d=json.loads(p.read_text(encoding="utf-8")); assert d.get("version")=="0.1.0"; d["version"]="0.1.1"; p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")'
+          python -c 'from pathlib import Path; p=Path("CHANGELOG.md"); s=p.read_text(encoding="utf-8"); e=Path(".sync-v011/changelog-entry.md").read_text(encoding="utf-8"); m="## [0.1.0] - 2026-09-18"; assert m in s and "## [0.1.1] - 2026-09-18" not in s; p.write_text(s.replace(m,e+m,1),encoding="utf-8")'
+          npm test
+          rm -rf .sync-v011
+          rm -f .github/workflows/materialize-v0.1.1-exact.yml
+
+      - name: Commit verified v0.1.1 sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: sync desktop spacing polish for v0.1.1"
+          git push
