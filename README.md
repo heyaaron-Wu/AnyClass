@@ -20,7 +20,7 @@
   <img src="https://img.shields.io/badge/Web-AnyClass-1679F3?style=flat-square" alt="Web" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/正方教务%20V9-已验证-2ea44f?style=flat-square" alt="正方教务 V9 已验证" />
-  <img src="https://img.shields.io/badge/Codex-assisted-111111?style=flat-square&logo=openai&logoColor=white" alt="Codex-assisted development" />
+  <img src="https://img.shields.io/badge/Codex-supported-9333ea?style=flat-square&labelColor=111827" alt="Codex supported" />
 </p>
 
 <p>
