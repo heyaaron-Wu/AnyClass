@@ -28,6 +28,14 @@
   --app-dock-height: 66px;
   --app-dock-gap: 22px;
   --safe-bottom-content: var(--app-dock-clearance, calc(var(--app-dock-height) + var(--app-dock-gap) + max(10px, env(safe-area-inset-bottom))));
+  --page-max-width: 1240px;
+  --page-wide-max-width: 1400px;
+  --page-gutter-desktop: 32px;
+  --page-gutter-mobile: 12px;
+  --section-gap: 18px;
+  --panel-gap: 14px;
+  --panel-padding-desktop: 24px;
+  --hero-desktop-gap: 40px;
 }
 *,*::before,*::after { box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
 html { min-width:100%; min-height:100%; background: var(--shell-page); scroll-behavior: smooth; }
@@ -226,7 +234,7 @@ body[data-shell-page^="import"] .card,body[data-shell-page^="import"] .panel,bod
   .shell-network { margin-inline:12px; }
   .shell-choice-grid { grid-template-columns:1fr; }
   .shell-choice { min-height:0; }
-  body[data-shell-page] .shell { padding:12px; }
+  body[data-shell-page] .shell { padding:var(--page-gutter-mobile); }
   .panel,.card { padding:17px; border-radius:20px; }
   .hero-card { min-height:252px; padding:20px 17px; }
   .date-secondary { gap:6px; }
@@ -398,3 +406,79 @@ body[data-shell-page="settings-timetable"] .period-preferences-panel{padding-bot
 .welcome-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
 .welcome-actions .button{display:flex;align-items:center;justify-content:center;min-height:48px}
 @media(max-width:700px){.welcome-dialog{width:100%;max-width:none;margin:auto 0 0}.welcome-dialog-body{padding:34px 18px calc(22px + env(safe-area-inset-bottom));border-radius:25px 25px 0 0}.welcome-actions{grid-template-columns:1fr}.welcome-dialog .welcome-logo{width:min(230px,70%)}}
+
+/* v0.1.0 desktop composition: one shared outer grid, with an intentional wide timetable variant. */
+@media(min-width:701px){
+  .shell-header,
+  .shell-network,
+  body[data-shell-page]>main.shell{
+    width:100%;
+    max-width:var(--page-max-width);
+    margin-inline:auto;
+    padding-left:var(--page-gutter-desktop);
+    padding-right:var(--page-gutter-desktop);
+  }
+  body[data-shell-page="timetable"] .shell-header,
+  body[data-shell-page="timetable"] .shell-network,
+  body[data-shell-page="timetable"]>main.shell{
+    max-width:var(--page-wide-max-width);
+  }
+  body[data-shell-page^="import"] main,
+  body[data-shell-page="export"] main,
+  body[data-shell-page="about"] main,
+  .export-shell,
+  .local-status-shell,
+  .settings-shell,
+  .settings-hub{
+    width:100%;
+    max-width:var(--page-max-width);
+  }
+  body[data-shell-page]>main.shell>.panel,
+  body[data-shell-page]>main.shell>.card{
+    padding:var(--panel-padding-desktop);
+    margin-bottom:var(--section-gap);
+  }
+  body[data-shell-page="today"] .hero-card{
+    display:grid;
+    grid-template-columns:minmax(0,780px) minmax(220px,1fr);
+    grid-template-areas:
+      "date meta"
+      "status meta"
+      "content meta";
+    column-gap:var(--hero-desktop-gap);
+    align-content:start;
+    min-height:224px;
+    padding:28px 32px;
+  }
+  body[data-shell-page="today"] .hero-card>.date-bar{display:contents}
+  body[data-shell-page="today"] .hero-card .date-primary{grid-area:date}
+  body[data-shell-page="today"] .hero-card .date-secondary{
+    grid-area:meta;
+    align-self:start;
+    justify-self:end;
+    justify-content:flex-end;
+    max-width:260px;
+  }
+  body[data-shell-page="today"] .hero-card .hero-top{grid-area:status;margin-top:14px}
+  body[data-shell-page="today"] .hero-card .hero-content{grid-area:content;margin-top:14px;max-width:760px}
+  body[data-shell-page="today"] .stats{
+    grid-template-columns:repeat(3,minmax(150px,220px));
+    justify-content:start;
+    gap:var(--panel-gap);
+    max-width:688px;
+  }
+  body[data-shell-page="today"] .course-row{
+    grid-template-columns:96px minmax(0,1fr) auto;
+    gap:18px;
+  }
+}
+
+@media(min-width:1000px){
+  .settings-hub{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:22px 24px;
+  }
+  .settings-hub>.settings-page-heading{grid-column:1/-1;margin-bottom:0}
+  .settings-hub>.settings-hub-section{margin-top:0}
+}
