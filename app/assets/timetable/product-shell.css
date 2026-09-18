@@ -112,6 +112,12 @@ html[data-connectivity="OFFLINE"] .shell-network[data-state="OFFLINE"] { display
 .shell-disclosure-content { padding:0 15px 15px; }
 .import-method-button { width:100%; border:0; text-align:left; font:inherit; cursor:pointer; }
 .import-method-button[aria-expanded="true"] { border-color:#7aa2f7; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+body[data-shell-page="import"] h1,body[data-shell-page="import"] h2,body[data-shell-page="import"] .card strong { color:var(--shell-ink); }
+.import-copy-status,.import-receiver-message { margin:10px 0 0; font-weight:700; }
+.import-preview-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.import-preview-heading h2 { margin:0; }
+.import-reselect { min-height:40px; padding:8px 4px; border:0; background:transparent; color:var(--shell-muted); font:inherit; font-size:13px; font-weight:700; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+.import-reselect:hover { color:var(--shell-ink); }
 .conflict-help { position:relative; }
 .conflict-help summary { list-style:none; cursor:pointer; }
 .conflict-help summary::-webkit-details-marker { display:none; }
@@ -405,6 +411,7 @@ body[data-shell-page="settings-timetable"] .period-preferences-panel{padding-bot
 .welcome-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
 .welcome-actions .button{display:flex;align-items:center;justify-content:center;min-height:48px}
 @media(max-width:700px){.welcome-dialog{width:100%;max-width:none;margin:auto 0 0}.welcome-dialog-body{padding:34px 18px calc(22px + env(safe-area-inset-bottom));border-radius:25px 25px 0 0}.welcome-actions{grid-template-columns:1fr}.welcome-dialog .welcome-logo{width:min(230px,70%)}}
+@media(max-width:540px){.import-preview-heading{align-items:flex-start;flex-direction:column;gap:5px}.import-reselect{min-height:36px}}
 
 /* v0.1.0 desktop composition: one shared outer grid, with an intentional wide timetable variant. */
 @media(min-width:701px){
