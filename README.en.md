@@ -14,14 +14,13 @@
   <a href="#features">Features</a>
   ·
   <a href="#roadmap">Roadmap</a>
-  ·
-  <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
 <p>
   <img src="https://img.shields.io/badge/Web-AnyClass-1679F3?style=flat-square" alt="Web" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/ZhengFang%20V9-Verified-2ea44f?style=flat-square" alt="ZhengFang V9 Verified" />
+  <img src="https://img.shields.io/badge/Codex-assisted-111111?style=flat-square&logo=openai&logoColor=white" alt="Codex-assisted development" />
 </p>
 
 <p>
