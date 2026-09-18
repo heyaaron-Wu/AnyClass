@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>周课表</title>
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
+  <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/product-shell.js"></script>
+  <link rel="stylesheet" href="/assets/timetable/common.css">
+  <link rel="stylesheet" href="/assets/timetable/timetable.css?v=public-source-candidate">
+  <link rel="stylesheet" href="/assets/timetable/dialog-fix.css">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=public-source-candidate">
+</head>
+<body data-shell-page="timetable">
+<main class="shell">
+  <section id="loading" class="panel empty" aria-live="polite">正在读取本机课表…</section>
+  <section id="emptyState" class="panel empty" hidden>
+    <div data-online-empty><h1>还没有课程表</h1><p class="muted">课程数据只保存在此设备。</p></div>
+    <p data-offline-empty hidden>当前设备还没有课程表。<br>联网后可进行首次导入。</p>
+    <a class="button primary" href="/import/">导入课表</a>
+  </section>
+  <section id="storageError" class="panel empty runtime-error" hidden role="alert">
+    <h1>无法读取本机课程数据</h1>
+    <p class="muted">现有本机课表不会被清空。</p>
+    <button id="retryStorage" class="runtime-retry" type="button">重试</button>
+  </section>
+  <div id="app" hidden>
+    <section class="panel"><div class="week-toolbar"><button id="previous" aria-label="上一周">‹</button><h1 id="weekTitle"></h1><button id="next" aria-label="下一周">›</button></div><div id="weekRange" class="week-range"></div><div class="timetable-actions"><button id="returnNow" class="return-now" type="button" hidden>回到现在</button></div><p id="refreshNotice" class="refresh-notice" role="status" hidden></p></section>
+    <section class="panel grid-panel">
+      <div class="section-title"><h2>课程安排</h2><span id="conflictCount" class="pill" hidden></span></div>
+      <div class="grid-scroll"><div id="weekGrid" class="week-grid"></div></div>
+      <div class="legend"><span><i class="dot"></i>课程</span><span><i class="dot adjusted"></i>调课</span><span>点击课程查看详情</span></div>
+      <div id="mobileWeekList" class="mobile-week-list"></div>
+      <p id="mobileEmpty" class="mobile-empty muted" hidden>本周没有课程。</p>
+    </section>
+    <p class="privacy-note">课程数据保存在此设备，不会上传服务器。</p>
+  </div>
+</main>
+<dialog id="courseDialog" aria-labelledby="dialogTitle">
+  <div class="dialog-body">
+    <div class="dialog-head"><div><span id="dialogAdjusted" class="pill" hidden>调课</span><h2 id="dialogTitle"></h2></div><button id="closeDialog" class="dialog-close" type="button" aria-label="关闭">×</button></div>
+    <dl id="dialogDetails" class="dialog-details"></dl>
+  </div>
+</dialog>
+<script src="/assets/timetable/school-config.js"></script>
+<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/timetable-core.js"></script>
+<script src="/assets/timetable/current-time.js?v=public-source-candidate"></script>
+<script src="/assets/timetable/period-preferences.js?v=public-source-candidate"></script>
+<script src="/assets/timetable/storage-v2.js"></script>
+<script src="/assets/timetable/storage.js"></script>
+<script src="/assets/timetable/today-view-model.js"></script>
+<script src="/assets/timetable/timetable-page.js?v=public-source-candidate"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>个性化 · AnyClass</title>
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
+  <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/product-shell.js"></script>
+  <link rel="stylesheet" href="/assets/timetable/common.css">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=public-source-candidate">
+</head>
+<body data-shell-page="settings-personalization">
+<main class="shell settings-shell">
+  <div class="settings-page-heading"><a class="back-button" href="/settings/" aria-label="返回设置">← 设置</a><h1>个性化</h1></div>
+  <section class="panel">
+    <h2>显示名称</h2>
+    <p class="muted">用于页面标题显示，例如“Aaron · AnyClass”。仅保存在此设备。</p>
+    <div class="name-editor"><label for="displayName">名称</label><input id="displayName" maxlength="20" autocomplete="off" inputmode="text"><button id="saveName" class="button primary" type="button">保存</button></div>
+    <p id="nameStatus" class="muted" role="status">留空保存可恢复默认“AnyClass”。</p>
+  </section>
+</main>
+<script>
+(() => {
+  const input=document.getElementById("displayName"),status=document.getElementById("nameStatus");
+  input.value=AnyClassShell.getDisplayName()||"";
+  document.getElementById("saveName").addEventListener("click",()=>{const name=AnyClassShell.setDisplayName(input.value);input.value=AnyClassShell.getDisplayName()||"";status.textContent=`已保存：${name}`;});
+})();
+</script>
+</body>
+</html>

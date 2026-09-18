@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Timetable import iframe test</title>
+</head>
+<body>
+  <main id="status">等待教务系统课表数据</main>
+  <script>
+  (() => {
+    "use strict";
+
+    const SOURCE_ORIGIN = "https://www.gupt.edu.cn";
+    const PROTOCOL = "timetable-import-v1";
+    const statusNode = document.getElementById("status");
+    const parentWindow = window.parent;
+    const random = new Uint32Array(4);
+    crypto.getRandomValues(random);
+    const nonce = Array.from(random, value => value.toString(16).padStart(8, "0")).join("");
+    let accepted = false;
+    let ephemeralMeetings = null;
+
+    const parseWeeks = expression => {
+      const warnings = [];
+      const weeks = [];
+      const normalized = String(expression || "")
+        .replace(/[（]/g, "(")
+        .replace(/[）]/g, ")")
+        .replace(/\s+/g, "")
+        .replace(/[，、；;]/g, ",");
+
+      if (!normalized) return {weeks: [], warnings: ["WEEK_PARSE_FAILED"]};
+
+      for (const token of normalized.split(",").filter(Boolean)) {
+        const match = token.match(/^(\d+)(?:[-—–~至](\d+))?周?(?:\((单|双)\))?$/);
+        if (!match) {
+          warnings.push("UNKNOWN_WEEK_TOKEN");
+          continue;
+        }
+        const start = Number(match[1]);
+        const end = Number(match[2] || match[1]);
+        const parity = match[3] || "";
+        if (!Number.isInteger(start) || !Number.isInteger(end) || start <= 0 || end < start) {
+          warnings.push("WEEK_PARSE_FAILED");
+          continue;
+        }
+        for (let week = start; week <= end; week += 1) {
+          if (parity === "单" && week % 2 === 0) continue;
+          if (parity === "双" && week % 2 !== 0) continue;
+          weeks.push(week);
+        }
+      }
+
+      const uniqueWeeks = [...new Set(weeks)].sort((a, b) => a - b);
+      if (uniqueWeeks.length === 0 && warnings.length === 0) warnings.push("WEEK_PARSE_FAILED");
+      return {weeks: uniqueWeeks, warnings};
+    };
+
+    const weekTests = [
+      ["1-5周", [1, 2, 3, 4, 5]],
+      ["11周", [11]],
+      ["1-3周,6-7周,10周", [1, 2, 3, 6, 7, 10]],
+      ["1-3周(单)", [1, 3]],
+      ["1-3周(单),7-8周,16周", [1, 3, 7, 8, 16]],
+      ["1-6周(双)", [2, 4, 6]]
+    ];
+    const weekUnitTestsPassed = weekTests.filter(([expression, expected]) => {
+      const result = parseWeeks(expression);
+      return result.warnings.length === 0 && JSON.stringify(result.weeks) === JSON.stringify(expected);
+    }).length;
+
+    const rejectActiveHtml = html => {
+      if (/<\s*\/?\s*(?:script|iframe|frame|img|link|style|object|embed|source|video|audio|form|input|button|meta|base)\b/i.test(html)) return true;
+      if (/\s(?:src|href|srcset|poster|background)\s*=/i.test(html)) return true;
+      if (/\son[a-z][a-z0-9_-]*\s*=/i.test(html)) return true;
+      return /javascript\s*:/i.test(html);
+    };
+
+    const textForIcon = (block, selector) => {
+      const icon = block.querySelector(selector);
+      const container = icon && (icon.closest("p") || icon.parentElement);
+      return container ? container.textContent.replace(/\s+/g, " ").trim() : "";
+    };
+
+    const parseTable = tableHtml => {
+      if (typeof tableHtml !== "string" || !tableHtml.trim() || tableHtml.length > 2_000_000) {
+        throw new Error("INVALID_TABLE_HTML");
+      }
+      if (rejectActiveHtml(tableHtml)) throw new Error("ACTIVE_HTML_REJECTED");
+
+      const offlineDocument = new DOMParser().parseFromString(tableHtml, "text/html");
+      const table = offlineDocument.querySelector("table#kbgrid_table_0");
+      if (!table || offlineDocument.querySelectorAll("table#kbgrid_table_0").length !== 1) {
+        throw new Error("TABLE_NOT_FOUND");
+      }
+
+      const blocks = [...table.querySelectorAll(".timetable_con")];
+      const meetings = [];
+      let blockIndex = 0;
+
+      for (const cell of table.querySelectorAll("td[id]")) {
+        let previousTitle = null;
+        for (const block of cell.querySelectorAll(".timetable_con")) {
+          const warnings = [];
+          const titleNode = block.querySelector(".title");
+          const rawTitle = titleNode ? titleNode.textContent.replace(/\s+/g, " ").trim() : "";
+          let courseName = rawTitle
+            ? rawTitle.replace(/【调】/g, "").replace(/[*&\s]+$/g, "").trim()
+            : null;
+
+          if (courseName) {
+            previousTitle = courseName;
+          } else if (previousTitle) {
+            courseName = previousTitle;
+            warnings.push("TITLE_INHERITED");
+          } else {
+            warnings.push("MISSING_TITLE");
+          }
+
+          const weekdayMatch = cell.id.match(/^(\d+)-(\d+)$/);
+          const weekdayCandidate = weekdayMatch ? Number(weekdayMatch[1]) : NaN;
+          const weekday = Number.isInteger(weekdayCandidate) && weekdayCandidate >= 1 && weekdayCandidate <= 7
+            ? weekdayCandidate
+            : null;
+          if (weekday === null) warnings.push("INVALID_WEEKDAY");
+
+          const timeText = textForIcon(block, ".glyphicon-time");
+          const periodMatch = timeText.match(/[（(]\s*(\d+)\s*[-—–~至]\s*(\d+)\s*节\s*[）)]/);
+          const startPeriod = periodMatch ? Number(periodMatch[1]) : null;
+          const endPeriod = periodMatch ? Number(periodMatch[2]) : null;
+          if (!periodMatch) warnings.push("PERIOD_PARSE_FAILED");
+
+          const weekExpressionRaw = timeText
+            .replace(/[（(]\s*\d+\s*[-—–~至]\s*\d+\s*节\s*[）)]/, "")
+            .replace(/^[^0-9]+/, "")
+            .trim();
+          const weekResult = parseWeeks(weekExpressionRaw);
+          warnings.push(...weekResult.warnings);
+
+          const adjustedNode = titleNode && titleNode.matches(".showJxbtkjl");
+          const idNode = titleNode && (titleNode.matches("[data-jxb_id]")
+            ? titleNode
+            : titleNode.querySelector("[data-jxb_id]"));
+
+          meetings.push({
+            courseName,
+            weekday,
+            startPeriod,
+            endPeriod,
+            weeks: weekResult.weeks,
+            weekExpressionRaw,
+            teacher: textForIcon(block, ".glyphicon-user") || null,
+            locationRaw: textForIcon(block, ".glyphicon-map-marker") || null,
+            classInfo: textForIcon(block, ".glyphicon-home") || null,
+            metadata: textForIcon(block, ".glyphicon-tower") || null,
+            isAdjusted: /【调】/.test(rawTitle) || Boolean(adjustedNode),
+            teachingClassId: idNode ? idNode.getAttribute("data-jxb_id") : null,
+            source: {cellId: cell.id, blockIndex},
+            warnings
+          });
+          blockIndex += 1;
+        }
+      }
+      return {domBlocks: blocks.length, meetings};
+    };
+
+    const validateMeeting = meeting => {
+      if (!meeting || typeof meeting !== "object") return false;
+      if (typeof meeting.courseName !== "string" || !meeting.courseName.trim()) return false;
+      if (!Number.isInteger(meeting.weekday) || meeting.weekday < 1 || meeting.weekday > 7) return false;
+      if (!Number.isInteger(meeting.startPeriod) || meeting.startPeriod <= 0) return false;
+      if (!Number.isInteger(meeting.endPeriod) || meeting.endPeriod < meeting.startPeriod) return false;
+      if (!Array.isArray(meeting.weeks) || meeting.weeks.length === 0) return false;
+      return meeting.weeks.every((week, index, weeks) =>
+        Number.isInteger(week) && week > 0 && (index === 0 || week > weeks[index - 1])
+      );
+    };
+
+    const summarize = parsed => {
+      const meetings = parsed.meetings;
+      const hasWarning = code => meeting => Array.isArray(meeting.warnings) && meeting.warnings.includes(code);
+      return {
+        domBlocks: parsed.domBlocks,
+        parsedMeetings: meetings.length,
+        validatedMeetings: meetings.filter(validateMeeting).length,
+        invalidWeekdays: meetings.filter(hasWarning("INVALID_WEEKDAY")).length,
+        periodFailures: meetings.filter(hasWarning("PERIOD_PARSE_FAILED")).length,
+        weekFailures: meetings.filter(meeting =>
+          !Array.isArray(meeting.weeks) || meeting.weeks.length === 0 ||
+          (Array.isArray(meeting.warnings) && meeting.warnings.some(warning =>
+            warning === "WEEK_PARSE_FAILED" || warning === "UNKNOWN_WEEK_TOKEN"
+          ))
+        ).length,
+        missingTitles: meetings.filter(hasWarning("MISSING_TITLE")).length,
+        inheritedTitles: meetings.filter(hasWarning("TITLE_INHERITED")).length,
+        adjustedBlocks: meetings.filter(meeting => meeting.isAdjusted === true).length,
+        warnings: meetings.reduce((sum, meeting) => sum + (Array.isArray(meeting.warnings) ? meeting.warnings.length : 0), 0),
+        nanValues: meetings.reduce((sum, meeting) =>
+          sum + [meeting.weekday, meeting.startPeriod, meeting.endPeriod, ...(Array.isArray(meeting.weeks) ? meeting.weeks : [])]
+            .filter(value => typeof value === "number" && Number.isNaN(value)).length, 0)
+      };
+    };
+
+    const render = (heading, summary) => {
+      const lines = [
+        heading,
+        `DOM Blocks: ${summary.domBlocks}`,
+        `Parsed Meetings: ${summary.parsedMeetings}`,
+        `Validated Meetings: ${summary.validatedMeetings}`,
+        `Invalid weekdays: ${summary.invalidWeekdays}`,
+        `Period failures: ${summary.periodFailures}`,
+        `Week failures: ${summary.weekFailures}`,
+        `Missing titles: ${summary.missingTitles}`,
+        `Inherited titles: ${summary.inheritedTitles}`,
+        `Adjusted blocks: ${summary.adjustedBlocks}`,
+        `Warnings: ${summary.warnings}`,
+        `Week unit tests: ${weekUnitTestsPassed}/6`
+      ];
+      statusNode.replaceChildren(...lines.flatMap((line, index) =>
+        index === 0 ? [document.createTextNode(line)] : [document.createElement("br"), document.createTextNode(line)]
+      ));
+    };
+
+    addEventListener("message", event => {
+      if (accepted || event.origin !== SOURCE_ORIGIN || event.source !== parentWindow) return;
+      const payload = event.data;
+      if (!payload || typeof payload !== "object") return;
+      if (payload.protocol !== PROTOCOL || payload.type !== "HTML_IMPORT" || payload.nonce !== nonce) return;
+      if (!payload.source || payload.source.system !== "zhengfang-v9" || payload.source.origin !== SOURCE_ORIGIN) return;
+
+      let summary = {
+        domBlocks: 0, parsedMeetings: 0, validatedMeetings: 0, invalidWeekdays: 0,
+        periodFailures: 0, weekFailures: 0, missingTitles: 0, inheritedTitles: 0,
+        adjustedBlocks: 0, warnings: 0, nanValues: 0
+      };
+      let failure = null;
+      try {
+        if (weekUnitTestsPassed !== 6) throw new Error("WEEK_UNIT_TEST_FAILED");
+        const parsed = parseTable(payload.tableHtml);
+        summary = summarize(parsed);
+        ephemeralMeetings = parsed.meetings;
+      } catch (error) {
+        failure = error instanceof Error ? error.message : "PARSER_ERROR";
+        ephemeralMeetings = null;
+      }
+
+      const passed = !failure &&
+        summary.domBlocks === summary.parsedMeetings &&
+        summary.validatedMeetings === summary.parsedMeetings &&
+        summary.weekFailures === 0 &&
+        summary.periodFailures === 0 &&
+        summary.missingTitles === 0 &&
+        summary.nanValues === 0;
+      accepted = passed;
+      render(passed ? "课表数据接收成功" : "课表数据接收失败", summary);
+
+      event.source.postMessage({
+        protocol: PROTOCOL,
+        type: "ACK",
+        nonce,
+        status: passed ? "PASS" : "VALIDATION_FAILED",
+        meetingCount: summary.parsedMeetings,
+        stats: summary,
+        errorCategory: failure
+      }, SOURCE_ORIGIN);
+    });
+
+    if (parentWindow !== window) {
+      parentWindow.postMessage({protocol: PROTOCOL, type: "READY", nonce}, SOURCE_ORIGIN);
+    }
+  })();
+  </script>
+</body>
+</html>
