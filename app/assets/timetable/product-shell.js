@@ -19,6 +19,8 @@
   const DEFAULT_DISPLAY_NAME = "AnyClass";
   const ALLOWED_BRANDS = new Set(["AnyClass", "有课吗"]);
   const LEGACY_DEFAULTS = new Set(["", "课程表", "HeyAaron", "AnyClass", "有课吗"]);
+  const PRIMARY_PAGES = new Set(["today", "timetable", "import", "import-mobile", "import-file"]);
+  const PRIMARY_ACTION_PAGES = new Set(["today", "timetable"]);
   const normalizeDisplayName = value => {
     const name = String(value || "").trim().slice(0, 20);
     return LEGACY_DEFAULTS.has(name) ? null : name;
@@ -174,10 +176,11 @@
       document.body.removeAttribute("data-shell-page");
       return;
     }
-    const active = page === "today" ? "today" : page === "timetable" ? "timetable" : page.startsWith("import") ? "import" : "";
+    const primaryContext = PRIMARY_PAGES.has(page);
+    const active = page === "today" ? "today" : page === "timetable" ? "timetable" : "";
     const header = document.createElement("header");
     header.className = "shell-header";
-    header.innerHTML = `<a class="shell-brand" data-timetable-brand href="/"></a><a class="shell-more-link" href="/settings/">更多</a>`;
+    header.innerHTML = `<a class="shell-brand" data-timetable-brand href="/"></a>${PRIMARY_ACTION_PAGES.has(page) ? '<a class="shell-more-link" href="/import/">导入</a>' : ""}`;
     const offline = document.createElement("p");
     offline.className = "shell-network";
     offline.dataset.state = STATES.OFFLINE;
@@ -188,22 +191,27 @@
     failure.setAttribute("role", "alert");
     failure.innerHTML = `<div class="glass-surface"><h1>页面加载失败</h1><p data-runtime-reason>关键页面资源未能加载。</p><button type="button" data-resource-retry>重新加载</button></div>`;
     failure.querySelector("[data-resource-retry]").addEventListener("click", () => location.reload());
-    const dock = document.createElement("nav");
-    dock.className = "shell-bottom-nav glass-dock";
-    dock.setAttribute("aria-label", "主要导航");
+    const dock = primaryContext ? document.createElement("nav") : null;
+    if (dock) {
+      dock.className = "shell-bottom-nav glass-dock";
+      dock.setAttribute("aria-label", "主要导航");
+    }
     const icons = {
       today: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M9.5 20v-6h5v6"/></svg>',
       timetable: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h2M14 14h2M8 17.5h2M14 17.5h2"/></svg>',
-      import: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"/><path d="M4 17v3h16v-3"/></svg>'
+      settings: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 9 19.37a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.63 15 1.7 1.7 0 0 0 3.08 14H3v-4h.08A1.7 1.7 0 0 0 4.63 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.63 1.7 1.7 0 0 0 10 3.08V3h4v.08A1.7 1.7 0 0 0 15 4.63a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.37 9 1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>'
     };
-    const activeIndex = {today: 0, timetable: 1, import: 2}[active] ?? 0;
-    dock.style.setProperty("--active-index", String(activeIndex));
-    dock.innerHTML = [["today", "/", "今天"], ["timetable", "/timetable/", "课表"], ["import", "/import/", "导入"]]
-      .map(([key, href, label]) => `<a href="${href}"${active === key ? ' aria-current="page"' : ""}><span class="shell-dock-icon" aria-hidden="true">${icons[key]}</span><span class="shell-dock-label">${label}</span></a>`).join("");
+    if (dock) {
+      const activeIndex = {today: 0, timetable: 1}[active] ?? 0;
+      dock.dataset.active = active || "none";
+      dock.style.setProperty("--active-index", String(activeIndex));
+      dock.innerHTML = [["today", "/", "今天"], ["timetable", "/timetable/", "课表"], ["settings", "/settings/", "设置"]]
+        .map(([key, href, label]) => `<a href="${href}"${active === key ? ' aria-current="page"' : ""}><span class="shell-dock-icon" aria-hidden="true">${icons[key]}</span><span class="shell-dock-label">${label}</span></a>`).join("");
+    }
     document.body.prepend(failure);
     document.body.prepend(offline);
     document.body.prepend(header);
-    document.body.append(dock);
+    if (dock) document.body.append(dock);
     const main = document.querySelector("main");
     if (main) main.classList.add("shell-page-enter");
     applyDisplayName();
@@ -215,10 +223,10 @@
       dockLayoutFrame = 0;
       const viewport = window.visualViewport;
       const viewportBottom = viewport ? viewport.offsetTop + viewport.height : innerHeight;
-      const dockTop = dock.getBoundingClientRect().top;
-      const clearance = Math.max(0, viewportBottom - dockTop) + 22;
+      const dockTop = dock ? dock.getBoundingClientRect().top : viewportBottom;
+      const clearance = dock ? Math.max(0, viewportBottom - dockTop) + 22 : 0;
       document.documentElement.style.setProperty("--app-dock-clearance", `${Math.ceil(clearance)}px`);
-      dock.dataset.keyboard = viewport && viewport.height < innerHeight * .72 ? "true" : "false";
+      if (dock) dock.dataset.keyboard = viewport && viewport.height < innerHeight * .72 ? "true" : "false";
     };
     const scheduleDockLayout = () => {
       if (!dockLayoutFrame) dockLayoutFrame = requestAnimationFrame(updateDockLayout);
