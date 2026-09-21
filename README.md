@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://anyclass.heyaaron.asia/">
-  <img src="assets/brand/anyclass-logo.svg" alt="AnyClass Logo" width="128" />
+  <img src="app/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass Logo" width="240" />
 </a>
 
 <h1>AnyClass / 有课吗</h1>
@@ -82,17 +82,19 @@ AnyClass 采用 **Local-first** 设计。
 
 ## Roadmap
 
-计划中的方向包括：
+AnyClass v0.2.0 已进入开发阶段，当前规划重点包括：
 
-- Universal Shortcut / Bookmarklet 导入架构
-- 更多教务系统 Adapter
-- Android 日历体验
-- 自定义课程
-- 调课 / 补课
-- Calendar Subscription
-- 多学期管理
+- Schema 3 课程数据模型与 EffectiveOccurrence 运行时
+- 课程详情、整门课程编辑与手动新增课程
+- 单次课程调整、停课与调课
+- 重新导入时保留用户修改的安全 Merge
+- 节假日 / 调休课程安排增强
+- ICS 导入与 AnyClass JSON / 剪贴板导入
+- Light Theme 2.0
 
-Roadmap 中的内容属于规划，并不代表当前版本已经提供。
+后续方向包括更多教务系统 Adapter、Android 日历体验、Calendar Subscription 与多学期管理。
+
+Roadmap 中的内容属于开发规划，并不代表当前正式版本已经提供。
 
 ## 开源状态
 

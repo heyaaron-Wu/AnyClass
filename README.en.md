@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://anyclass.heyaaron.asia/">
-  <img src="assets/brand/anyclass-logo.svg" alt="AnyClass Logo" width="128" />
+  <img src="app/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass Logo" width="240" />
 </a>
 
 <h1>AnyClass</h1>
@@ -82,17 +82,19 @@ Shortcut and Files-app import remain fallback options.
 
 ## Roadmap
 
-Planned areas include:
+AnyClass v0.2.0 is now in development. Current planned areas include:
 
-- Universal Shortcut / Bookmarklet import architecture
-- Additional academic-system adapters
-- Android calendar experience
-- Custom courses
-- Schedule changes / make-up classes
-- Calendar Subscription
-- Multi-term management
+- Schema 3 course data and the EffectiveOccurrence runtime
+- Course details, whole-course editing, and manually added courses
+- Single-occurrence changes, cancellations, and rescheduling
+- Safe re-import merge that preserves user changes
+- Holiday / make-up-workday timetable enhancements
+- ICS import and AnyClass JSON / clipboard import
+- Light Theme 2.0
 
-Roadmap items are plans, not currently available features.
+Later directions include additional academic-system adapters, Android calendar improvements, Calendar Subscription, and multi-term management.
+
+Roadmap items are development plans and are not necessarily available in the current stable release.
 
 ## Open-source status
 
