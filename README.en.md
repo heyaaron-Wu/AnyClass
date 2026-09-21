@@ -96,7 +96,7 @@ Roadmap items are plans, not currently available features.
 
 ## Open-source status
 
-**The public source for AnyClass v0.1.0 is now available in this repository.**
+**The public source for AnyClass v0.1.1 is now available in this repository.**
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 

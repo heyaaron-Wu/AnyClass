@@ -19,30 +19,30 @@ const collectHtml = directory => {
 collectHtml(site);
 assert.equal((publicHtml.join("\n").match(/Example University/g) || []).length, 0, "public static HTML school name");
 
-const mobile = read("import-mobile/index.html");
+const importPage = read("import/index.html");
 for (const obsolete of [
   "高级设置 / 手动安装",
   "手动配置",
   "在共享表单中显示",
   "在网页上运行 JavaScript",
   "JSResult",
-  "meetingCount",
   "复制手动安装脚本",
   "ios-shortcut-parser-shortcut.txt",
   "0 KB"
-]) assert(!mobile.includes(obsolete), `obsolete mobile copy: ${obsolete}`);
+]) assert(!importPage.includes(obsolete), `obsolete mobile copy: ${obsolete}`);
 for (const required of [
   "https://www.icloud.com/shortcuts/de98e25371614480bc8bd7871415e050",
   "已有文件，直接导入",
   "课程数据只在当前设备处理，不会上传服务器",
-  "仍需手动选择一次文件"
-]) assert(mobile.includes(required), `required mobile flow: ${required}`);
+  "手动选择一次生成的文件",
+  "https://anyclass.heyaaron.asia/import/?method=file"
+]) assert(importPage.includes(required), `required mobile flow: ${required}`);
 
-const importFile = read("import-file/index.html");
-for (const value of ['"id": "school-id"', '"name": "学校名称"']) assert(importFile.includes(value), `generic schema: ${value}`);
-assert(!importFile.includes('"id": "demo"'), "public schema profile id");
+for (const value of ['"id": "school-id"', '"name": "学校名称"']) assert(importPage.includes(value), `generic schema: ${value}`);
+assert(!importPage.includes('"id": "demo"'), "public schema profile id");
+assert(!fs.existsSync(path.join(site, "import-mobile")), "standalone mobile route removed");
+assert(!fs.existsSync(path.join(site, "import-file")), "standalone file route removed");
 
-const importPage = read("import/index.html");
 for (const obsolete of [
   "高级诊断说明",
   "等待从教务系统读取课表",
@@ -52,17 +52,21 @@ for (const obsolete of [
 for (const required of [
   "复制“导入 AnyClass 课表”书签",
   "✓ 已复制",
+  "显示或隐藏书签栏：Ctrl + Shift + B",
   "课表已读取",
   "重新选择导入方式",
   "showInitial(false)",
-  "friendlyImportError"
+  "friendlyImportError",
+  'data-import-panel="mobile"',
+  'data-import-panel="file"',
+  'new URL(location.href).searchParams.get("method")'
 ]) assert(importPage.includes(required), `desktop import flow: ${required}`);
 assert(importPage.includes('BOOKMARKLET_VERSION="3.0.0"'), "bookmarklet version unchanged");
 assert(importPage.includes('BOOKMARKLET_ID="anyclass-import"'), "bookmarklet id unchanged");
 
 const shell = read("assets/timetable/product-shell.js");
 for (const contract of [
-  'const PRIMARY_PAGES = new Set(["today", "timetable", "import", "import-mobile", "import-file"])',
+  'const PRIMARY_PAGES = new Set(["today", "timetable", "import"])',
   'const PRIMARY_ACTION_PAGES = new Set(["today", "timetable"])',
   '[["today", "/", "今天"], ["timetable", "/timetable/", "课表"], ["settings", "/settings/", "设置"]]',
   'href="/import/">导入</a>',
@@ -73,27 +77,26 @@ assert(!shell.includes('["import", "/import/", "导入"]'), "Import must not be 
 
 const shellPages = [
   "index.html", "today/index.html", "timetable/index.html", "import/index.html",
-  "import-mobile/index.html", "import-file/index.html", "settings/index.html",
-  "settings/personalization/index.html", "settings/timetable/index.html",
+  "settings/index.html", "settings/personalization/index.html", "settings/timetable/index.html",
   "compatibility/index.html", "about/index.html", "local-status/index.html", "export/index.html"
 ];
 for (const page of shellPages) {
   const html = read(page);
-  assert(html.includes('product-shell.js?v=import-nav-cleanup-20260918'), `${page} versioned shell JS`);
-  assert(/product-shell\.css\?v=(?:(?:import-nav-cleanup|v011-mobile-period-today)-20260918|v011-import-flow-20260919)/.test(html), `${page} versioned shell CSS`);
+  assert(/product-shell\.js\?v=(?:import-nav-cleanup-20260918|v011-unified-import-20260919)/.test(html), `${page} versioned shell JS`);
+  assert(/product-shell\.css\?v=(?:v011-settings-safety-20260921|v011-period-time-width-20260921)/.test(html), `${page} versioned shell CSS`);
 }
 
 for (const page of ["index.html", "today/index.html"]) {
   const html = read(page);
   assert(!html.includes("today-secondary-action"), `${page} obsolete Today export action`);
   assert(!html.includes(">导出日历</a>"), `${page} obsolete Today export link`);
-  assert(html.includes("product-shell.css?v=v011-mobile-period-today-20260918"), `${page} refreshed CSS marker`);
+  assert(html.includes("product-shell.css?v=v011-settings-safety-20260921"), `${page} refreshed CSS marker`);
 }
 const periodSettings = read("settings/timetable/index.html");
-assert(periodSettings.includes("product-shell.css?v=v011-mobile-period-today-20260918"), "period settings refreshed CSS marker");
+assert(periodSettings.includes("product-shell.css?v=v011-period-time-width-20260921"), "period settings refreshed CSS marker");
 assert(!read("assets/timetable/product-shell.css").includes(".today-secondary-action"), "unused Today action CSS");
 
-const docs = ["docs", "public-release-candidate/docs"]
+const docs = ["docs"]
   .flatMap(relative => {
     const directory = path.join(root, relative);
     if (!fs.existsSync(directory)) return [];

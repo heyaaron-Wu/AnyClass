@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const BUILD_ID = "public-source-candidate";
+  const BUILD_ID = "closure-reopen-20260918";
   window.__ANYCLASS_TIMETABLE_BUILD__ = BUILD_ID;
   document.documentElement.dataset.timetableBuild = BUILD_ID;
   const $ = id => document.getElementById(id);
@@ -16,9 +16,9 @@
   let refreshPending = false;
   let resizeFrame = null;
 
-  const syncVisiblePeriodConfig = () => {
+  const syncVisiblePeriodConfig = weekOccurrences => {
     if (!dataset) return;
-    const periodView = AnyClassPeriodPreferences.effective(baseConfig, dataset);
+    const periodView = AnyClassPeriodPreferences.effective(baseConfig, dataset, {weekOccurrences});
     config = {...baseConfig, periodTimes: periodView.periodTimes};
   };
 
@@ -197,9 +197,11 @@
   };
 
   const render = (options = {}) => {
-    syncVisiblePeriodConfig();
     document.querySelectorAll(".current-time-indicator").forEach(node => node.remove());
     selectedWeek = Math.max(1, Math.min(maxWeek, selectedWeek));
+    const fullConfig = {...baseConfig, periodTimes: AnyClassPeriodPreferences.definitions(baseConfig)};
+    const raw = TimetableCore.meetingsForWeek(dataset, selectedWeek, fullConfig);
+    syncVisiblePeriodConfig(raw);
     const now = new Date();
     currentState = TimetableCurrentTime.stateFor(now, config, selectedWeek, TimetableCore);
     $("weekTitle").textContent = `第 ${selectedWeek} 周`;
@@ -208,7 +210,6 @@
     $("weekRange").textContent = `${TimetableCore.formatDate(monday)} 至 ${TimetableCore.formatDate(sunday)}`;
     $("previous").disabled = selectedWeek <= 1;
     $("next").disabled = selectedWeek >= maxWeek;
-    const raw = TimetableCore.meetingsForWeek(dataset, selectedWeek, config);
     const layout = TimetableCore.layoutWeek(raw);
     const currentMeetings = currentState.visible
       ? new Set(TimetableCore.analyze(dataset, now, config).currentClasses.map(item => item.meeting))
@@ -217,7 +218,8 @@
     $("conflictCount").textContent = `${layout.scheduleConflictCount} 组冲突`;
     renderGrid(layout, currentState, currentMeetings);
     if (!currentState.visible) document.querySelectorAll(".current-time-indicator").forEach(node => node.remove());
-    renderMobile(layout.items, currentState, currentMeetings);
+    const visibleEndPeriod = Math.max(...Object.keys(config.periodTimes).map(Number));
+    renderMobile(layout.items.filter(item => item.meeting.startPeriod <= visibleEndPeriod), currentState, currentMeetings);
     updateReturnNow();
     if (options.scrollToNow || (initialScrollPending && currentState.visible)) {
       initialScrollPending = false;
@@ -274,7 +276,6 @@
         return;
       }
       dataset = nextDataset;
-      syncVisiblePeriodConfig();
       HeyAaronShell.setDataState(true);
       maxWeek = TimetableCore.maxDatasetWeek(dataset) || 1;
       selectedWeek = initial

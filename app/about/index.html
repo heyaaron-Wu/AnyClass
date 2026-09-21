@@ -3,34 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <title>关于 AnyClass</title>
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="stylesheet" href="/assets/timetable/common.css">
-  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=import-nav-cleanup-20260918">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-settings-safety-20260921">
 </head>
 <body data-shell-page="about">
-<main class="shell settings-shell">
+<main class="shell settings-shell about-shell">
   <div class="settings-page-heading"><a class="back-button" href="/settings/" aria-label="返回设置">← 设置</a><h1>关于 AnyClass</h1></div>
   <section class="panel about-intro">
-    <img class="about-logo" src="/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass">
+    <picture class="about-brand-lockup">
+      <source media="(max-width: 700px)" srcset="/assets/brand/AnyClass_Logo_Stacked.svg">
+      <img class="about-logo" src="/assets/brand/AnyClass_Logo_Horizontal.svg" alt="有课吗 AnyClass">
+    </picture>
     <p>AnyClass 是一个 Local-first 的个人课程工具，用于查看课程、导入课表并导出日历。</p>
   </section>
-  <section class="panel">
-    <h2>隐私</h2>
-    <div class="privacy-facts">
-      <p>课程数据默认保存在当前设备的浏览器中，不会上传到服务器。</p>
-      <p>AnyClass 不保存学校账号、Cookie、Session 或 Token。</p>
-      <p>导入工具只读取生成课表所需的课程表 DOM 和学期字段。</p>
-    </div>
-  </section>
-  <section class="panel">
-    <h2>版本信息</h2>
-    <dl class="product-version-list"><dt>产品</dt><dd>AnyClass 当前版本</dd><dt>本地数据格式</dt><dd>2</dd></dl>
-    <details class="shell-disclosure"><summary>高级信息</summary><dl><dt>Build</dt><dd>closure-reopen-20260918</dd></dl></details>
-  </section>
+  <div class="about-main-grid">
+    <section class="panel about-privacy">
+      <h2>隐私</h2>
+      <div class="privacy-facts">
+        <article><h3>本机保存</h3><p>课程数据默认保存在当前设备的浏览器中，不会上传到服务器。</p></article>
+        <article><h3>不保存登录凭据</h3><p>AnyClass 不保存学校账号、Cookie、Session 或 Token。</p></article>
+        <article><h3>最小读取范围</h3><p>导入工具只读取生成课表所需的课程表 DOM 和学期字段。</p></article>
+      </div>
+    </section>
+    <section class="panel about-version">
+      <h2>版本信息</h2>
+      <dl class="product-version-list"><dt>产品</dt><dd>AnyClass 当前版本</dd><dt>本地数据格式</dt><dd>2</dd></dl>
+      <details class="shell-disclosure about-advanced"><summary>高级信息</summary><dl><dt>Build</dt><dd>closure-reopen-20260918</dd></dl></details>
+    </section>
+  </div>
 </main>
 <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
 </body>

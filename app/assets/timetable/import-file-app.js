@@ -4,9 +4,9 @@
   const MAX_FILE_BYTES = 5 * 1024 * 1024;
   const $ = id => document.getElementById(id);
   const input = $("fileInput");
-  const message = $("message");
-  const preview = $("preview");
-  const save = $("save");
+  const message = $("fileMessage");
+  const preview = $("filePreview");
+  const save = $("fileSave");
   let pending = null;
 
   const setMessage = (text, kind = "muted") => {
@@ -21,14 +21,14 @@
   const resetPreview = () => {
     pending = null;
     preview.hidden = true;
-    $("rows").replaceChildren();
+    $("fileRows").replaceChildren();
   };
 
   const renderPreview = dataset => {
-    $("school").textContent = dataset.school.name;
-    $("semester").textContent = `${dataset.semester.academicYear} 第${dataset.semester.term}学期`;
-    $("meetingCount").textContent = dataset.meetings.length;
-    $("courseCount").textContent = new Set(dataset.meetings.map(meeting => meeting.courseName)).size;
+    $("fileSchool").textContent = dataset.school.name;
+    $("fileSemester").textContent = `${dataset.semester.academicYear} 第${dataset.semester.term}学期`;
+    $("fileMeetingCount").textContent = dataset.meetings.length;
+    $("fileCourseCount").textContent = new Set(dataset.meetings.map(meeting => meeting.courseName)).size;
     const fragment = document.createDocumentFragment();
     for (const meeting of dataset.meetings.slice(0, 50)) {
       const row = document.createElement("tr");
@@ -44,8 +44,8 @@
       }
       fragment.appendChild(row);
     }
-    $("rows").replaceChildren(fragment);
-    $("previewLimit").hidden = dataset.meetings.length <= 50;
+    $("fileRows").replaceChildren(fragment);
+    $("filePreviewLimit").hidden = dataset.meetings.length <= 50;
     preview.hidden = false;
   };
 
@@ -105,7 +105,7 @@
     }
   });
 
-  $("cancel").addEventListener("click", () => {
+  $("fileCancel").addEventListener("click", () => {
     resetPreview();
     input.value = "";
     setMessage("已取消，本次文件未保存。", "muted");

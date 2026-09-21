@@ -3,16 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <title>导入课表</title>
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
   <link rel="manifest" href="/site.webmanifest">
-  <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
+  <script src="/assets/timetable/product-shell.js?v=v011-unified-import-20260919"></script>
   <style>
-    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#f5f7fb}body{margin:0}main{max-width:880px;margin:auto;padding:24px}.card{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:20px;box-shadow:0 8px 30px #1e3a5f12}h1{margin:0 0 12px;font-size:24px}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0}.metric{padding:12px;background:#f4f7fb;border-radius:10px}.metric b{display:block;font-size:20px}.actions{display:flex;gap:10px;margin:18px 0}button,a.button{border:0;border-radius:9px;padding:10px 16px;font-weight:650;cursor:pointer;text-decoration:none}.primary{background:#2563eb;color:#fff}.secondary{background:#e8eef7;color:#172033}.danger{background:#fff1f2;color:#b42318;border:1px solid #fecdd3}button:disabled{opacity:.5;cursor:not-allowed}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #e5eaf1}.muted{color:#667085}.ok{color:#067647}.error{color:#b42318}@media(max-width:540px){main{padding:12px}.card{padding:14px}th:nth-child(4),td:nth-child(4){display:none}}
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#f5f7fb}body{margin:0}main{max-width:1180px;margin:auto;padding:24px}.card{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:20px;box-shadow:0 8px 30px #1e3a5f12;margin-bottom:16px}h1{margin:0 0 12px;font-size:24px}body[data-shell-page="import"] h1,body[data-shell-page="import"] h2,body[data-shell-page="import"] .card strong{color:var(--shell-ink,#14213d)}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0}.metric{padding:12px;background:#f4f7fb;border-radius:10px}.metric b,.metric strong{display:block;font-size:20px}.actions{display:flex;gap:10px;margin:18px 0;flex-wrap:wrap}button,a.button{border:0;border-radius:9px;padding:10px 16px;font-weight:650;cursor:pointer;text-decoration:none}.primary{background:#2563eb;color:#fff}.secondary{background:#e8eef7;color:#172033}.danger{background:#fff1f2;color:#b42318;border:1px solid #fecdd3}button:disabled{opacity:.5;cursor:not-allowed}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #e5eaf1}.muted{color:#667085}.ok{color:#067647}.error{color:#b42318}.bookmark-bar-hint{margin:8px 0 0}.import-panel[hidden]{display:none!important}.mobile-steps{padding-left:22px;line-height:1.7}.mobile-steps li+li{margin-top:8px}.privacy{padding:12px 14px;border-radius:12px;background:#ecfdf3;color:#05603a}.note{padding:12px 14px;border-radius:12px;background:#f6f8fb;color:#526174;line-height:1.6}.file-import-grid{display:grid;grid-template-columns:minmax(0,42fr) minmax(0,58fr);gap:18px;align-items:start}.file-import-column{min-width:0}.file-box{display:block;margin:18px 0;padding:22px;border:2px dashed #b8c8dd;border-radius:16px;background:#f8fbff;text-align:center;font-weight:750}.file-box input{display:block;width:100%;min-width:0;margin-top:12px}.file-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.table-wrap{overflow:auto}.schema{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;overflow:auto;background:#101828;color:#e5e7eb;border-radius:14px;padding:16px}.method-active{box-shadow:inset 0 0 0 2px var(--shell-accent,#2563eb)}@media(max-width:899px){.file-import-grid{grid-template-columns:1fr}}@media(max-width:700px){.bookmark-bar-hint{display:none}}@media(max-width:540px){main{padding:12px}.card{padding:14px}th:nth-child(4),td:nth-child(4){display:none}.file-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    .file-import-grid{width:100%;max-width:100%;min-width:0}.file-import-column,.import-schema-panel,.file-import-column>.card{width:100%;max-width:100%;min-width:0}.file-box,.file-box input,.schema{max-width:100%;min-width:0}.schema{width:100%;white-space:pre;overflow-x:auto}@media(max-width:899px){.file-import-grid{grid-template-columns:minmax(0,1fr)}}
   </style>
-  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-import-flow-20260919">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-settings-safety-20260921">
 </head>
 <body data-shell-page="import">
 <main class="shell">
@@ -21,12 +24,12 @@
   <h2>请选择方式</h2>
   <p class="muted">课程数据只在当前设备处理和保存。</p>
   <div class="shell-choice-grid">
-    <button id="chooseComputer" class="shell-choice import-method-button" type="button" aria-expanded="false" aria-controls="computer-import"><strong>电脑导入</strong><span>从电脑上的个人课表导入。</span></button>
-    <a class="shell-choice" href="/import-mobile/"><strong>手机 / iPad 导入</strong><span>通过 Safari 分享菜单导入。</span></a>
-    <a class="shell-choice" href="/import-file/"><strong>已有课程文件</strong><span>选择之前生成的课表文件。</span></a>
+    <button id="chooseComputer" class="shell-choice import-method-button" type="button" data-import-method="desktop" aria-expanded="false" aria-controls="computer-import"><strong>电脑导入</strong><span>从电脑上的个人课表导入。</span></button>
+    <button id="chooseMobile" class="shell-choice import-method-button" type="button" data-import-method="mobile" aria-expanded="false" aria-controls="mobile-import"><strong>手机 / iPad 导入</strong><span>通过 Safari 分享菜单导入。</span></button>
+    <button id="chooseFile" class="shell-choice import-method-button" type="button" data-import-method="file" aria-expanded="false" aria-controls="file-import"><strong>已有课程文件</strong><span>选择之前生成的课表文件。</span></button>
   </div>
 </section>
-<section id="computer-import" class="card" hidden>
+<section id="computer-import" class="card import-panel" data-import-panel="desktop" hidden>
   <div id="import-instructions" class="import-instructions"><h2>电脑导入</h2>
   <ol class="desktop-import-steps">
     <li>点击“复制书签”。</li>
@@ -36,6 +39,7 @@
     <li>点击“导入 AnyClass 课表”书签。</li>
   </ol>
   <div class="actions"><button id="copyBookmarklet" class="primary" type="button">复制“导入 AnyClass 课表”书签</button></div>
+  <p id="bookmarkBarHint" class="muted bookmark-bar-hint">显示或隐藏书签栏：Ctrl + Shift + B</p>
   <p id="copyBookmarkletStatus" class="muted import-copy-status" role="status" hidden></p>
   </div>
   <p id="message" class="muted import-receiver-message" role="status" hidden></p>
@@ -50,17 +54,74 @@
     <div class="actions"><button id="save" class="primary">保存到本机</button><button id="cancel" class="secondary">取消</button></div>
     <div class="import-table-wrap"><table><thead><tr><th>课程名称</th><th>星期 / 节次</th><th>地点</th><th>教师</th></tr></thead><tbody id="rows"></tbody></table></div>
   </div>
-</section></main>
+</section>
+<section id="mobile-import" class="card import-panel" data-import-panel="mobile" hidden>
+  <h2>手机 / iPad 导入</h2>
+  <p class="muted">添加一次快捷指令，以后即可从 Safari 分享菜单导入课表。</p>
+  <ol class="mobile-steps">
+    <li>添加现有兼容的课表导入快捷指令。</li>
+    <li>在 Safari 登录学校教务系统。</li>
+    <li>打开个人课表并点击分享。</li>
+    <li>在分享菜单中运行课表导入快捷指令。</li>
+    <li>在打开的 AnyClass 页面选择生成的课表文件。</li>
+  </ol>
+  <div class="actions"><a class="button primary" href="https://www.icloud.com/shortcuts/de98e25371614480bc8bd7871415e050" target="_blank" rel="noopener">添加课表导入快捷指令</a><button class="secondary" type="button" data-import-method="file">已有文件，直接导入</button></div>
+  <p class="note"><strong>快捷指令目标：</strong><span class="code">https://anyclass.heyaaron.asia/import/?method=file</span></p>
+  <p class="privacy"><strong>隐私保护：</strong>课程数据只在当前设备处理，不会上传服务器。</p>
+  <p class="muted">Safari 出于安全限制仍会要求手动选择一次生成的文件，这是预期行为。</p>
+</section>
+<section id="file-import" class="import-panel" data-import-panel="file" hidden>
+  <div class="file-import-grid">
+    <div class="file-import-column">
+      <section class="card">
+        <h2>从文件导入课表</h2>
+        <p class="muted">选择一份 AnyClass 课表 JSON 文件，校验通过后先预览，再由你确认保存。</p>
+        <p class="privacy">文件只在此浏览器内读取，课程数据不会上传服务器。</p>
+        <label class="file-box">选择本机 JSON 文件<input id="fileInput" type="file" accept=".json,application/json"></label>
+        <p id="fileMessage" class="muted" aria-live="polite">尚未选择文件</p>
+      </section>
+      <section id="filePreview" class="card" hidden>
+        <h2>导入预览</h2>
+        <div class="summary file-summary">
+          <div class="metric"><span>学校</span><strong id="fileSchool">—</strong></div>
+          <div class="metric"><span>学期</span><strong id="fileSemester">—</strong></div>
+          <div class="metric"><span>课程安排</span><strong id="fileMeetingCount">0</strong></div>
+          <div class="metric"><span>课程</span><strong id="fileCourseCount">0</strong></div>
+        </div>
+        <div class="actions"><button id="fileSave" class="primary">确认并保存到本机</button><button id="fileCancel" class="secondary">取消</button></div>
+        <div class="table-wrap"><table><thead><tr><th>课程名称</th><th>星期 / 节次</th><th>地点</th></tr></thead><tbody id="fileRows"></tbody></table></div>
+        <p id="filePreviewLimit" class="muted" hidden>为保持页面流畅，预览只显示前 50 条；保存仍包含全部已校验课程安排。</p>
+      </section>
+    </div>
+    <section class="card import-schema-panel">
+      <h2>支持的文件结构</h2>
+      <pre class="schema">{
+  "schemaVersion": 1,
+  "school": {"id": "school-id", "name": "学校名称"},
+  "semester": {"academicYear": "2026-2027", "term": "1"},
+  "meetings": []
+}</pre>
+      <p class="muted">同一学校、同一学期再次导入时，仅替换该学期记录，不会追加重复数据。</p>
+    </section>
+  </div>
+</section>
+</main>
+<script src="/assets/timetable/import-file-core.js?v=v011-unified-import-20260919"></script>
 <script src="/assets/timetable/school-config.js"></script>
 <script src="/assets/adapters/zhengfang-v9.js"></script>
 <script src="/assets/adapters/adapter-registry.js"></script>
 <script src="/assets/adapters/system-detector.js"></script>
 <script src="/assets/timetable/phaseb-engine.js"></script>
 <script src="/assets/timetable/storage-v2.js"></script>
+<script src="/assets/timetable/import-file-storage.js?v=v011-unified-import-20260919"></script>
+<script src="/assets/timetable/import-file-app.js?v=v011-unified-import-20260919"></script>
 <script>
 (()=>{"use strict";
 const SOURCE_ORIGIN="https://jw.example.edu",PROTOCOL="timetable-import-v1",BOOKMARKLET_ID="anyclass-import",BOOKMARKLET_VERSION="3.0.0";
 const $=id=>document.getElementById(id),message=$("message"),preview=$("preview"),save=$("save"),entry=$("import-entry"),instructions=$("import-instructions"),computer=$("computer-import");let pending=null,reply=null;
+const methodNames=new Set(["desktop","mobile","file"]);
+const methodButtons=()=>[...document.querySelectorAll("[data-import-method]")];
+const activateMethod=(method,{updateUrl=true}={})=>{const selected=methodNames.has(method)?method:null;for(const panel of document.querySelectorAll("[data-import-panel]"))panel.hidden=panel.dataset.importPanel!==selected;for(const button of methodButtons()){const active=button.dataset.importMethod===selected;button.classList.toggle("method-active",active);if(button.hasAttribute("aria-controls"))button.setAttribute("aria-expanded",String(active))}if(updateUrl){const url=new URL(location.href);if(selected)url.searchParams.set("method",selected);else url.searchParams.delete("method");history.replaceState({method:selected},"",url)}};
 const copyText=async text=>{if(navigator.clipboard&&isSecureContext)return navigator.clipboard.writeText(text);const area=document.createElement("textarea");area.value=text;area.setAttribute("readonly","");area.style.position="fixed";area.style.opacity="0";document.body.append(area);area.select();const ok=document.execCommand("copy");area.remove();if(!ok)throw Error("COPY_FAILED")};
 const setMessage=(text,kind="muted")=>{message.textContent=text;message.className=`import-receiver-message ${kind}`;message.hidden=!text;if(window.AnyClassShell){if(kind==="error")AnyClassShell.setImportError(text);else{AnyClassShell.setImportError(false);AnyClassShell.setStorageError(false)}}};
 const getDataset=(key,factory)=>AnyClassStorageV2.getLegacyDataset(key,factory);
@@ -72,16 +133,18 @@ const testPass=tests.every(([x,y])=>JSON.stringify(adapter.parseWeeks(x))===JSON
 const valid=m=>m&&typeof m.courseName==="string"&&m.courseName.trim()&&Number.isInteger(m.weekday)&&m.weekday>=1&&m.weekday<=7&&Number.isInteger(m.startPeriod)&&m.startPeriod>0&&Number.isInteger(m.endPeriod)&&m.endPeriod>=m.startPeriod&&Array.isArray(m.weeks)&&m.weeks.length>0&&m.weeks.every((w,i,a)=>Number.isInteger(w)&&w>0&&(!i||w>a[i-1]));
 const stableMeetings=meetings=>meetings.map(m=>({courseName:m.courseName,weekday:m.weekday,startPeriod:m.startPeriod,endPeriod:m.endPeriod,weeks:[...m.weeks],teacher:m.teacher,locationRaw:m.locationRaw,isAdjusted:m.isAdjusted})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
 const fingerprint=async(semester,meetings)=>{const canonical=JSON.stringify({semester,meetings:stableMeetings(meetings)}),digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical));return[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,"0")).join("")};
-const showInitial=clear=>{if(clear)pending=null;entry.hidden=false;computer.hidden=true;instructions.hidden=false;preview.hidden=true;$("chooseComputer").setAttribute("aria-expanded","false");setMessage("")};
-const renderPreview=data=>{entry.hidden=true;computer.hidden=false;instructions.hidden=true;$("chooseComputer").setAttribute("aria-expanded","true");$("semester").textContent=`${data.semester.academicYear} 第${data.semester.term}学期`;$('meetingCount').textContent=data.meetings.length;$('courseCount').textContent=new Set(data.meetings.map(m=>m.courseName)).size;$('adjustedCount').textContent=data.meetings.filter(m=>m.isAdjusted).length;const rows=document.createDocumentFragment();for(const m of data.meetings){const tr=document.createElement("tr");for(const value of [m.courseName,`周${m.weekday} / ${m.startPeriod}-${m.endPeriod}节`,m.locationRaw||"—",m.teacher||"—"]){const td=document.createElement("td");td.textContent=value;tr.appendChild(td)}rows.appendChild(tr)}$("rows").replaceChildren(rows);setMessage("");preview.hidden=false};
+const showInitial=clear=>{if(clear)pending=null;entry.hidden=false;instructions.hidden=false;preview.hidden=true;setMessage("");activateMethod(null)};
+const renderPreview=data=>{activateMethod("desktop");entry.hidden=false;computer.hidden=false;instructions.hidden=true;$("semester").textContent=`${data.semester.academicYear} 第${data.semester.term}学期`;$('meetingCount').textContent=data.meetings.length;$('courseCount').textContent=new Set(data.meetings.map(m=>m.courseName)).size;$('adjustedCount').textContent=data.meetings.filter(m=>m.isAdjusted).length;const rows=document.createDocumentFragment();for(const m of data.meetings){const tr=document.createElement("tr");for(const value of [m.courseName,`周${m.weekday} / ${m.startPeriod}-${m.endPeriod}节`,m.locationRaw||"—",m.teacher||"—"]){const td=document.createElement("td");td.textContent=value;tr.appendChild(td)}rows.appendChild(tr)}$("rows").replaceChildren(rows);setMessage("");preview.hidden=false};
 const friendlyImportError=error=>{const code=error?.code||error?.message||"";if(code==="LOW_CONFIDENCE_SYSTEM"||code==="AMBIGUOUS_SYSTEM"||code==="UNSUPPORTED_SYSTEM")return"没有识别到可导入的个人课表。请确认页面正确后重试。";return"没有收到有效的课表数据。请确认你是在个人课表页面运行书签，然后重试。"};
 addEventListener("message",async event=>{if(event.origin!==SOURCE_ORIGIN||event.source!==window.parent||pending)return;const p=event.data;if(!p||p.protocol!==PROTOCOL||p.type!=="HTML_IMPORT"||p.nonce!==nonce||p.source?.system!=="zhengfang-v9"||p.source?.origin!==SOURCE_ORIGIN)return;if(p.client?.id!==BOOKMARKLET_ID||p.client?.version!==BOOKMARKLET_VERSION){event.source.postMessage({protocol:PROTOCOL,type:"ACK",nonce:p.nonce,status:"FAIL",code:"OUTDATED_CAPTURE_CLIENT",meetingCount:0},SOURCE_ORIGIN);setMessage("书签版本已过期，请重新复制 AnyClass 导入书签。","error");return}let status="VALIDATION_FAILED",count=0,stats={};try{if(!testPass)throw Error("WEEK_UNIT_TEST_FAILED");const capture={captureVersion:1,sourceOrigin:p.source.origin,semesterSource:p.semesterSource,tableHtml:p.tableHtml};const detection=AnyClassSystemDetector.detect(adapter.captureSignals(capture));if(detection.outcome!=="MATCH")throw Error(detection.outcome==="LOW_CONFIDENCE"?"LOW_CONFIDENCE_SYSTEM":detection.outcome==="AMBIGUOUS"?"AMBIGUOUS_SYSTEM":"UNSUPPORTED_SYSTEM");const parsed=adapter.parse(capture,profile),meetings=parsed.meetings,validated=meetings.filter(valid).length;stats={domBlocks:meetings.length,parsedMeetings:meetings.length,validatedMeetings:validated,invalidWeekdays:0,periodFailures:0,weekFailures:0,missingTitles:0,inheritedTitles:parsed.diagnostics.inheritedTitles,adjustedBlocks:parsed.diagnostics.adjustedBlocks,adapterId:parsed.diagnostics.adapterId,adapterVersion:parsed.diagnostics.adapterVersion,profileVersion:parsed.diagnostics.profileVersion};if(validated!==meetings.length)throw Error("VALIDATION_FAILED");const semesterResult=adapter.extractSemester(capture,profile),semester={academicYear:semesterResult.academicYear,term:semesterResult.termCode,raw:[semesterResult.sourceCodes.xnm,semesterResult.sourceCodes.xqm].filter(Boolean).join("/")};const persisted=stableMeetings(meetings);pending={schemaVersion:1,key:`demo::${semester.academicYear}::${semester.term}`,school:{id:"demo",name:profile.name,sourceSystem:adapter.id},semester,meetings:persisted,importedAt:null,source:adapter.id,fingerprint:await fingerprint(semester,persisted),diagnostics:{inheritedTitles:stats.inheritedTitles,adapterId:adapter.id,adapterVersion:adapter.version,profileVersion:profile.profileVersion}};reply={window:event.source,nonce:p.nonce};count=meetings.length;status="PASS";renderPreview(pending)}catch(e){setMessage(friendlyImportError(e),"error")}event.source.postMessage({protocol:PROTOCOL,type:"ACK",nonce:p.nonce,status,meetingCount:count,stats},SOURCE_ORIGIN)});
 const random=new Uint32Array(4);crypto.getRandomValues(random);const nonce=[...random].map(x=>x.toString(16).padStart(8,"0")).join("");if(window.parent!==window)window.parent.postMessage({protocol:PROTOCOL,type:"READY",nonce},SOURCE_ORIGIN);
 save.addEventListener("click",async()=>{if(!pending)return;save.disabled=true;try{const factory=await persistenceFactory(),old=await getDataset(pending.key,factory);if(old?.fingerprint===pending.fingerprint){setMessage("课表没有变化","ok");return}const data={...pending,importedAt:new Date().toISOString()};await putDataset(data,factory);pending=data;dispatchEvent(new CustomEvent("anyclass:timetable-updated",{detail:{source:"bookmarklet"}}));setMessage(`${old?"课表已更新":"课表已保存到此设备"}\n${data.meetings.length} 个课程安排`,"ok")}catch(e){setMessage(e?.name==="NotAllowedError"?"保存需要允许此页面访问 AnyClass 的本机课表存储":"保存失败，原有课表未被修改","error");if(window.AnyClassShell){AnyClassShell.setImportError(false);AnyClassShell.setStorageError("无法写入本机课程数据。")}}finally{save.disabled=false}});
 $("cancel").addEventListener("click",()=>showInitial(true));
 $("reselectImport").addEventListener("click",()=>showInitial(false));
-$("chooseComputer").addEventListener("click",()=>{if(pending){renderPreview(pending);return}const show=computer.hidden;computer.hidden=!show;$("chooseComputer").setAttribute("aria-expanded",String(show));if(show)computer.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+for(const button of methodButtons())button.addEventListener("click",()=>{const method=button.dataset.importMethod;if(method==="desktop"&&pending)renderPreview(pending);else activateMethod(method);const panel=document.querySelector(`[data-import-panel="${method}"]`);panel?.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+addEventListener("popstate",()=>activateMethod(new URL(location.href).searchParams.get("method"),{updateUrl:false}));
 $("copyBookmarklet").addEventListener("click",async()=>{const status=$("copyBookmarkletStatus");try{const response=await fetch("/assets/timetable/bookmarklet.txt",{credentials:"same-origin"});if(!response.ok)throw Error("ASSET_UNAVAILABLE");const text=(await response.text()).trim();if(!text.startsWith("javascript:"))throw Error("INVALID_BOOKMARKLET");await copyText(text);status.textContent="✓ 已复制";status.className="ok import-copy-status";status.hidden=false}catch(_error){status.textContent="复制失败，请重试。";status.className="error import-copy-status";status.hidden=false}});
+const initialMethod=new URL(location.href).searchParams.get("method");activateMethod(initialMethod,{updateUrl:false});
 })();
 </script>
 </body></html>

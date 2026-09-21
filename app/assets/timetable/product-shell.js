@@ -19,7 +19,7 @@
   const DEFAULT_DISPLAY_NAME = "AnyClass";
   const ALLOWED_BRANDS = new Set(["AnyClass", "有课吗"]);
   const LEGACY_DEFAULTS = new Set(["", "课程表", "HeyAaron", "AnyClass", "有课吗"]);
-  const PRIMARY_PAGES = new Set(["today", "timetable", "import", "import-mobile", "import-file"]);
+  const PRIMARY_PAGES = new Set(["today", "timetable", "import"]);
   const PRIMARY_ACTION_PAGES = new Set(["today", "timetable"]);
   const normalizeDisplayName = value => {
     const name = String(value || "").trim().slice(0, 20);
