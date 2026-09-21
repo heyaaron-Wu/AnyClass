@@ -22,3 +22,11 @@ Dark background: #102A4E
 
 Note:
 The exported vector mark has been redrawn cleanly from the selected concept board so that it remains sharp at small sizes and is easy to maintain as SVG/PNG/ICO.
+
+
+v1.1 Centering correction
+- Fixed the icon artwork being visually left-shifted.
+- Transparent icon artwork moved +71px horizontally and +8px vertically on the 1024×1024 master canvas.
+- Horizontal lockup canvas was trimmed and re-centered.
+- Stacked lockup icon and wordmarks were re-aligned to the center axis.
+- PNG, ICO, favicon, light/dark App icons, and preview were all regenerated from the corrected SVG masters.

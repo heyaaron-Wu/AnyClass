@@ -1,215 +1,28 @@
 {
-  "manifestVersion": 1,
-  "approval": {
-    "status": "APPROVED",
-    "source": "AnyClass_Logo_Package_v1.zip",
-    "sourceSha256": "2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba",
-    "authority": "User supplied as authoritative approved official AnyClass brand package"
-  },
-  "validation": {
-    "svgParse": "PASS",
-    "svgExternalResources": 0,
-    "svgScriptsOrEventHandlers": 0,
-    "rasterOpen": "PASS",
-    "icoOpen": "PASS",
-    "duplicateHashes": 0,
-    "packagePathSafety": "PASS",
-    "suppliedCoverageNotes": [
-      "Combined Chinese and English lockups are supplied in horizontal and stacked variants.",
-      "Standalone 180px and 192px PNG exports are not supplied; no derivative was generated.",
-      "Standalone Chinese-only and English-only lockup files are not supplied; no derivative was generated."
-    ]
-  },
+  "manifestVersion": 2,
+  "approval": {"status":"APPROVED","source":"AnyClass_Logo_Package_v1.1_Centered.zip","sourceSha256":"30fee8e76737a29d6eb6dfdc7897a8da700c203b42bb5524cd6e91017e481416","authority":"User-supplied authoritative centered AnyClass v1.1 brand package"},
+  "validation": {"packageFileCount":21,"packagePathSafety":"PASS","svgParse":"PASS","svgExternalResources":0,"svgScriptsOrEventHandlers":0,"rasterDecode":"PASS","icoDecode":"PASS","duplicateHashes":0,"mainIconVisibleBounds":{"canvas":[1024,1024],"left":177,"top":136,"right":846,"bottom":888,"width":670,"height":753,"center":[511.5,512.0]}},
   "assets": [
-    {
-      "path": "site/assets/brand/AnyClass_AppIcon.ico",
-      "class": "app-icon",
-      "sha256": "e50b0568f3514cd06ce02fb8fdb4c9db10df15b413ea7801e2531712e02aee42",
-      "width": 256,
-      "height": 256,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_AppIcon_Dark.svg",
-      "class": "app-icon",
-      "sha256": "d281e8fe88f37d62c2ab5f742dc61754fdf174a62bfffff5fe5b192027717aa7",
-      "width": 1024,
-      "height": 1024,
-      "background": "dark",
-      "theme": "dark",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_AppIcon_Dark_1024.png",
-      "class": "app-icon",
-      "sha256": "4eaa7e4235d799c873941df9ac6dc4ec92b0fc4ca0d6ae051a7aa19a929d9dc6",
-      "width": 1024,
-      "height": 1024,
-      "background": "dark",
-      "theme": "dark",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_AppIcon_Light.svg",
-      "class": "app-icon",
-      "sha256": "81730d0a295cd16cae320c53eed44f2b621a979baaf2a0c632e2bf7902cc9aae",
-      "width": 1024,
-      "height": 1024,
-      "background": "light",
-      "theme": "light",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_AppIcon_Light_1024.png",
-      "class": "app-icon",
-      "sha256": "d8a643c622805fedef670179e6ef340abbd70eaacfcca21e1c968ad2f4f952ad",
-      "width": 1024,
-      "height": 1024,
-      "background": "light",
-      "theme": "light",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Favicon.ico",
-      "class": "favicon",
-      "sha256": "dba3ddd616f61d818109126630444a303047c75f8b4fb4234b90bca227f1ff93",
-      "width": 64,
-      "height": 64,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon.svg",
-      "class": "mark-svg",
-      "sha256": "c09e51de88384c126f354ae5140b5d701bfbc452f137bdb9b834fbeec8f40e91",
-      "width": 1024,
-      "height": 1024,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon_1024.png",
-      "class": "png",
-      "sha256": "61b89d3097f7de11baaa5dd0d57cf389c4c00166b0e5e3136031870ffd93dd5f",
-      "width": 1024,
-      "height": 1024,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon_128.png",
-      "class": "png",
-      "sha256": "bc73a3b2b8847dff27c9f8d668548ac24fed50699adaf1074f7c0ec74ff00976",
-      "width": 128,
-      "height": 128,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon_16.png",
-      "class": "png",
-      "sha256": "cd550dccd4d33f5b0bb1005043414f2e4fa2e8f929fdd4f8bfe1cf202e40a917",
-      "width": 16,
-      "height": 16,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon_256.png",
-      "class": "png",
-      "sha256": "493b647971794da66d8583a54fd826ff7fbbf8f8d33b0cba1be6194e945b3abe",
-      "width": 256,
-      "height": 256,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon_32.png",
-      "class": "png",
-      "sha256": "432341a14a38c6014c541d8a552e0046d40e1f5e9629d2657072682cdd76b167",
-      "width": 32,
-      "height": 32,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon_512.png",
-      "class": "png",
-      "sha256": "cb366a0535422da96375b8f5bacc6191864884370ff74dbf3ae94bb5020237d9",
-      "width": 512,
-      "height": 512,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Icon_64.png",
-      "class": "png",
-      "sha256": "78f26f2768466fda64dace2b9e61db5b0df316d39f78cfe63f9db13b51d85449",
-      "width": 64,
-      "height": 64,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Logo_Horizontal.svg",
-      "class": "lockup-combined",
-      "sha256": "ebf3a82f9ee05aa9480e84a0bd6e8eccda940b507f9d9d8192d0963d5f243c83",
-      "width": 2200,
-      "height": 720,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Logo_Horizontal_2400.png",
-      "class": "lockup-combined",
-      "sha256": "d7877b1b343d3b89a5b843dc7d05d5439f045f9f22f1e3dfb1c57a5716041062",
-      "width": 2400,
-      "height": 785,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Logo_Preview.png",
-      "class": "png",
-      "sha256": "95e2a51d1e1716c7e342359f9aba6a3e3edc701cea23055580036214a7d13f39",
-      "width": 1600,
-      "height": 1100,
-      "background": "preview",
-      "theme": "preview",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Logo_Stacked.svg",
-      "class": "lockup-combined",
-      "sha256": "f6a384c2ca9419a927638ace756fe22cdf089f3f67d845f58de4f18068fcde1d",
-      "width": 1400,
-      "height": 1500,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    },
-    {
-      "path": "site/assets/brand/AnyClass_Logo_Stacked_1600.png",
-      "class": "lockup-combined",
-      "sha256": "7279851be756cd35ea18f8bc3edc6d6f116b718118175e7b5211e760a14a3d26",
-      "width": 1493,
-      "height": 1600,
-      "background": "transparent",
-      "theme": "transparent",
-      "provenance": "AnyClass_Logo_Package_v1.zip sha256:2f766a49a46d7821d9705db1d63e3d19d8d62e9c6c8fb80d83d268d20e32f7ba"
-    }
+    {"path":"app/assets/brand/AnyClass_AppIcon.ico","class":"app-icon","sha256":"2467a395f02811e4c684c48f0a65d55c532bebeb1c1ab5566f2a29e36245b631","width":256,"height":256,"frames":[16,24,32,48,64,128,256]},
+    {"path":"app/assets/brand/AnyClass_AppIcon_Dark.svg","class":"app-icon","sha256":"87e75e1b30c94b13f3c80af2327d6902150be00f3f29a7dc2c24b69c7c3614c2","width":1024,"height":1024,"theme":"dark"},
+    {"path":"app/assets/brand/AnyClass_AppIcon_Dark_1024.png","class":"app-icon","sha256":"b46f39f6ff547c97d673033ec7fc5b2fbc7bffa225d951cdb4bab4cba7009a30","width":1024,"height":1024,"theme":"dark"},
+    {"path":"app/assets/brand/AnyClass_AppIcon_Light.svg","class":"app-icon","sha256":"9469f415524c89a219b8d3140148fc32e6ccc2f7d107eeafc3bac9ad4f35682f","width":1024,"height":1024,"theme":"light"},
+    {"path":"app/assets/brand/AnyClass_AppIcon_Light_1024.png","class":"app-icon","sha256":"734bddf8abb90851ba2764e6d972fa20fe213c3096347c3d6db6617eeba7fdc4","width":1024,"height":1024,"theme":"light"},
+    {"path":"app/assets/brand/AnyClass_Favicon.ico","class":"favicon","sha256":"20090a3feee582878899587bcfd4ca96e5bad06812ed73bf6101e0dcb3e115f1","width":64,"height":64,"frames":[16,24,32,48,64]},
+    {"path":"app/assets/brand/AnyClass_Icon.svg","class":"mark","sha256":"6885461d73e30be1e3ea751339e1dc4c7755b11422f22f6f5f1591edcd37e015","width":1024,"height":1024},
+    {"path":"app/assets/brand/AnyClass_Icon_1024.png","class":"mark","sha256":"fc0fd18d37158230f9a1dbcde3064eaf1b31c276aea6208bbafe2de5636eb871","width":1024,"height":1024},
+    {"path":"app/assets/brand/AnyClass_Icon_128.png","class":"mark","sha256":"5bd750e47e52d0394486636625110ee657a8ca8e8da02c200b16fa63d8c32bb3","width":128,"height":128},
+    {"path":"app/assets/brand/AnyClass_Icon_16.png","class":"mark","sha256":"2a51d67134aac5862876ddc3fd71c7a5fe6ecb8008a84349a2afd7c4b92ce20a","width":16,"height":16},
+    {"path":"app/assets/brand/AnyClass_Icon_256.png","class":"mark","sha256":"aad4b8e8675a009571ba20084227283fec5b19382e96c194a099e93e63c7afeb","width":256,"height":256},
+    {"path":"app/assets/brand/AnyClass_Icon_32.png","class":"mark","sha256":"3f603f5d14122fb6d1413e0e883e7494d95674dea1584761ce2e0c11fb4162f1","width":32,"height":32},
+    {"path":"app/assets/brand/AnyClass_Icon_512.png","class":"mark","sha256":"e6f92ac2dd73a1d3a7c73c0ddaa3da7aab7c22daba097cb5074fa7cd2471b8ca","width":512,"height":512},
+    {"path":"app/assets/brand/AnyClass_Icon_64.png","class":"mark","sha256":"b7a130848109f80d2a2f89f1a66969d0001d10e24506ec16e18c87d611106a68","width":64,"height":64},
+    {"path":"app/assets/brand/AnyClass_Logo_Horizontal.svg","class":"lockup","sha256":"16f978bab652d5e8a6aeddf486067d62d723c13566e7995a628cbd57a27c01a2","width":1680,"height":720},
+    {"path":"app/assets/brand/AnyClass_Logo_Horizontal_2400.png","class":"lockup","sha256":"7546300b5eda1deae3a3038ea0feba738b91989f830fc583cb9935badbbe846f","width":2400,"height":1029},
+    {"path":"app/assets/brand/AnyClass_Logo_Preview.png","class":"preview","sha256":"95e2a51d1e1716c7e342359f9aba6a3e3edc701cea23055580036214a7d13f39","width":1600,"height":1100},
+    {"path":"app/assets/brand/AnyClass_Logo_Preview_Centered.png","class":"preview","sha256":"ac8c1b4726367242ca3a7f7b0a0f50fbf9c8a89e4f44a6f84f383aefe7789d68","width":1800,"height":1200},
+    {"path":"app/assets/brand/AnyClass_Logo_Stacked.svg","class":"lockup","sha256":"2c0e26e6e1f426841dc66e95918a2c80d0d517dae3dcfb3bfc53de91511030cc","width":1400,"height":1500},
+    {"path":"app/assets/brand/AnyClass_Logo_Stacked_1600.png","class":"lockup","sha256":"6588b61a53f88c94a6de331c86821d9a13250833ad7f086821684b37f9a12fb5","width":1493,"height":1600},
+    {"path":"app/assets/brand/README.txt","class":"documentation","sha256":"583464c0ee7ab51ac3f623b5dc50ce3c17d6e81cc2a18d67755c9dbe81a28f35","width":null,"height":null}
   ]
 }
