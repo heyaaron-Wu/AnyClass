@@ -28,7 +28,8 @@
 
   const createTodayModel = (dataset, config, nowOverride) => {
     const now = resolveNow(nowOverride);
-    if (!dataset || !Array.isArray(dataset.meetings) || !dataset.meetings.length) {
+    if (dataset?.__courseModel && !Array.isArray(dataset.__effectiveOccurrences)) throw new Error("SCHEMA3_EFFECTIVE_OCCURRENCES_REQUIRED");
+    if (!dataset || (!dataset.__courseModel && (!Array.isArray(dataset.meetings) || !dataset.meetings.length))) {
       return {hasDataset: false, now, heroState: "NO_TIMETABLE", today: [], stats: {total: 0, completed: 0, remaining: 0}};
     }
 

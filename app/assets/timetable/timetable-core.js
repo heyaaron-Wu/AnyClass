@@ -4,6 +4,45 @@
   const DAY_MS = 86400000;
   const meetingCache = new WeakMap();
   const graphOf = dataset => dataset && dataset.__phaseBGraph && dataset.__phaseBGraph.schemaVersion === 2 ? dataset.__phaseBGraph : null;
+  const effectiveOf = dataset => {
+    if (!dataset || !dataset.__courseModel) return null;
+    if (!Array.isArray(dataset.__effectiveOccurrences)) throw new Error("SCHEMA3_EFFECTIVE_OCCURRENCES_REQUIRED");
+    return dataset.__effectiveOccurrences;
+  };
+
+  const schema3Occurrences = dataset => {
+    if (meetingCache.has(dataset)) return meetingCache.get(dataset);
+    const rows = effectiveOf(dataset);
+    if (!rows) return null;
+    const mapped = rows.map(item => {
+      const meeting = {
+        courseName: item.title,
+        weekday: item.weekday,
+        startPeriod: item.startPeriod,
+        endPeriod: item.endPeriod,
+        weeks: [...item.courseWeeks],
+        teacher: item.teacher || null,
+        locationRaw: item.location || null,
+        isAdjusted: item.adjusted === true,
+        baseMeetingId: item.sourceMeetingId,
+        courseId: item.courseId,
+        campus: item.campus || null,
+        notes: item.notes || null
+      };
+      return {
+        meeting, week: item.week, weekday: item.weekday,
+        date: new Date(`${item.effectiveDate}T00:00:00+08:00`),
+        dateKey: item.effectiveDate,
+        start: new Date(`${item.effectiveDate}T${item.startTime}:00+08:00`),
+        end: new Date(`${item.effectiveDate}T${item.endTime}:00+08:00`),
+        startText: item.startTime, endText: item.endTime,
+        finalOccurrenceId: item.occurrenceId,
+        effectiveOccurrence: item
+      };
+    });
+    meetingCache.set(dataset, mapped);
+    return mapped;
+  };
 
   const legacyMeetingMap = graph => {
     if (meetingCache.has(graph)) return meetingCache.get(graph);
@@ -98,11 +137,15 @@
   };
 
   const maxDatasetWeek = dataset => {
+    const effective = effectiveOf(dataset);
+    if (effective) return Number.isInteger(dataset.__effectiveContext?.totalWeeks) ? dataset.__effectiveContext.totalWeeks : Math.max(0, ...effective.map(item => item.week));
     const graph = graphOf(dataset);
     return graph ? graph.term.totalWeeks : Math.max(0, ...((dataset && dataset.meetings) || []).flatMap(m => Array.isArray(m.weeks) ? m.weeks : []));
   };
 
   const allOccurrences = (dataset, config) => {
+    const effective = schema3Occurrences(dataset);
+    if (effective) return [...effective].sort((a, b) => a.start - b.start || a.end - b.end);
     const graph = graphOf(dataset);
     if (graph) return phaseBOccurrences(graph).sort((a, b) => a.start - b.start || a.end - b.end);
     if (!dataset || !Array.isArray(dataset.meetings)) return [];
@@ -134,6 +177,10 @@
   };
 
   const meetingsForWeek = (dataset, week, config) => {
+    const effective = schema3Occurrences(dataset);
+    if (effective) return effective
+      .filter(item => item.week === week)
+      .sort((a, b) => a.weekday - b.weekday || a.meeting.startPeriod - b.meeting.startPeriod || a.meeting.endPeriod - b.meeting.endPeriod);
     const graph = graphOf(dataset);
     if (graph) return phaseBOccurrences(graph)
       .filter(item => item.week === week)
@@ -173,7 +220,7 @@
   const minutesUntil = (later, now) => Math.max(0, Math.ceil((later - now) / 60000));
   const durationText = minutes => minutes < 60 ? `${minutes} 分钟` : `${Math.floor(minutes / 60)} 小时${minutes % 60 ? ` ${minutes % 60} 分钟` : ""}`;
 
-  const api = {analyze, allOccurrences, currentWeek, durationText, formatDate, graphOf, layoutWeek, maxDatasetWeek, meetingTimes, meetingsForWeek, minutesUntil, occurrence, occurrenceDate, weekday};
+  const api = {analyze, allOccurrences, currentWeek, durationText, effectiveOf, formatDate, graphOf, layoutWeek, maxDatasetWeek, meetingTimes, meetingsForWeek, minutesUntil, occurrence, occurrenceDate, weekday};
   root.TimetableCore = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

@@ -86,25 +86,26 @@
     }, 0);
   };
 
-  const eventLines = async ({dataset, meeting, week, config, dtstamp, duplicateOrdinal}) => {
+  const eventLines = async ({dataset, meeting, week, config, dtstamp, duplicateOrdinal, explicitDate = null, explicitStart = null, explicitEnd = null, uidIdentity = null}) => {
     validateMeeting(meeting, config);
-    const date = occurrenceDate(config.semesterStartDate, week, meeting.weekday);
-    const start = config.periodTimes[meeting.startPeriod].start;
-    const end = config.periodTimes[meeting.endPeriod].end;
+    const date = explicitDate ? parseDate(explicitDate) : occurrenceDate(config.semesterStartDate, week, meeting.weekday);
+    const start = explicitStart || config.periodTimes[meeting.startPeriod].start;
+    const end = explicitEnd || config.periodTimes[meeting.endPeriod].end;
     const location = normalizeLocation(meeting.locationRaw, config);
     const teacher = String(meeting.teacher || "").trim();
     const summary = `${String(meeting.courseName).trim()}${meeting.isAdjusted ? "（调）" : ""}`;
     const school = dataset.school && (dataset.school.id || dataset.school.name) || "unknown-school";
     const semester = dataset.semester || {};
+    const identity = uidIdentity || meeting;
     const canonicalKey = canonicalize({
       school,
       semester: {academicYear: semester.academicYear || "", term: semester.term || ""},
-      courseName: String(meeting.courseName).trim(),
-      weekday: meeting.weekday,
+      courseName: String(identity.courseName).trim(),
+      weekday: identity.weekday,
       week,
-      startPeriod: meeting.startPeriod,
-      endPeriod: meeting.endPeriod,
-      locationRaw: String(meeting.locationRaw || "").trim(),
+      startPeriod: identity.startPeriod,
+      endPeriod: identity.endPeriod,
+      locationRaw: String(identity.locationRaw || "").trim(),
       duplicateOrdinal
     });
     const uid = `${await digestHex(canonicalKey)}@course.heyaaron.asia`;
@@ -210,6 +211,41 @@
     return {...result, finalOccurrenceCount: finals.length, engineVersion: engine.ENGINE_VERSION};
   };
 
+  const generateFromEffective = async (dataset, effectiveOccurrences, config, options = {}) => {
+    if (!dataset || !Array.isArray(effectiveOccurrences) || !config?.periodTimes) throw new Error("INVALID_SCHEMA3_EFFECTIVE_INPUT");
+    if (!effectiveOccurrences.length) throw new Error("NO_EVENTS");
+    const now = options.now instanceof Date ? options.now : new Date(), dtstamp = utcStamp(now);
+    const lines = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//AnyClass//Timetable//ZH-CN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+      "BEGIN:VTIMEZONE", "TZID:Asia/Shanghai", "X-LIC-LOCATION:Asia/Shanghai", "BEGIN:STANDARD", "TZOFFSETFROM:+0800",
+      "TZOFFSETTO:+0800", "TZNAME:CST", "DTSTART:19700101T000000", "END:STANDARD", "END:VTIMEZONE"
+    ];
+    const duplicateCounts = new Map();
+    const ordered = [...effectiveOccurrences].sort((a, b) => a.sourceOrdinal - b.sourceOrdinal || a.week - b.week || a.occurrenceId.localeCompare(b.occurrenceId));
+    for (const item of ordered) {
+      const meeting = {
+        courseName: item.title,
+        weekday: item.weekday,
+        startPeriod: item.startPeriod,
+        endPeriod: item.endPeriod,
+        weeks: [item.week],
+        teacher: item.teacher || null,
+        locationRaw: item.location || null,
+        isAdjusted: item.adjusted === true
+      };
+      if (!item.uidIdentity) throw new Error("EFFECTIVE_UID_IDENTITY_REQUIRED");
+      const base = canonicalize([item.uidIdentity.courseName, item.uidIdentity.weekday, item.uidIdentity.week, item.uidIdentity.startPeriod, item.uidIdentity.endPeriod, item.uidIdentity.locationRaw || ""]);
+      const duplicateOrdinal = duplicateCounts.get(base) || 0;
+      duplicateCounts.set(base, duplicateOrdinal + 1);
+      lines.push(...await eventLines({dataset, meeting, week: item.week, config, dtstamp, duplicateOrdinal, explicitDate: item.effectiveDate, explicitStart: item.startTime, explicitEnd: item.endTime, uidIdentity: item.uidIdentity}));
+    }
+    lines.push("END:VCALENDAR");
+    const ics = lines.map(foldLine).join("\r\n") + "\r\n";
+    const validation = validate(ics, {expectedEvents: ordered.length});
+    if (!validation.ok) throw new Error(`ICS_VALIDATION_FAILED:${validation.errors.join(",")}`);
+    return {ics, expectedEvents: ordered.length, generatedEvents: validation.eventCount, finalOccurrenceCount: ordered.length, validation};
+  };
+
   const unfold = ics => String(ics).replace(/\r\n[ \t]/g, "");
   const validate = (ics, options = {}) => {
     const errors = [];
@@ -243,7 +279,7 @@
     return `课程表_${year}${term ? `_第${term}学期` : ""}.ics`;
   };
 
-  const api = {escapeText, expectedEventCount, fileName, foldLine, generate, generateFromFinal, normalizeCampusLocation, normalizeLocation, occurrenceDate, unfold, utf8Length, validate};
+  const api = {escapeText, expectedEventCount, fileName, foldLine, generate, generateFromEffective, generateFromFinal, normalizeCampusLocation, normalizeLocation, occurrenceDate, unfold, utf8Length, validate};
   root.TimetableIcs = Object.freeze(api);
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

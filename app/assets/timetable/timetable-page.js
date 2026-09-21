@@ -268,7 +268,8 @@
     try {
       const nextDataset = await TimetableStorage.latestDataset("demo");
       $("loading").hidden = true;
-      if (!nextDataset || !Array.isArray(nextDataset.meetings) || !nextDataset.meetings.length) {
+      if (nextDataset?.__courseModel && !Array.isArray(nextDataset.__effectiveOccurrences)) throw new Error("SCHEMA3_EFFECTIVE_OCCURRENCES_REQUIRED");
+      if (!nextDataset || (!nextDataset.__courseModel && (!Array.isArray(nextDataset.meetings) || !nextDataset.meetings.length))) {
         dataset = null;
         HeyAaronShell.setDataState(false);
         $("emptyState").hidden = false;

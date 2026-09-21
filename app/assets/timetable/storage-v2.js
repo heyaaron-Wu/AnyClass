@@ -72,7 +72,7 @@
     for (const item of previous) if (!currentIds.has(item.courseId)) courses.put({...item, suppressed: true});
     transaction.objectStore(STORES.importSnapshots).put(model.snapshot);
     for (const course of model.courses) courses.put(course);
-    transaction.objectStore(STORES.schema3Migrations).put({migrationId, status: "VERIFIED", sourceKey: model.snapshot.sourceKey, sourceCanonical, snapshotId: model.snapshot.snapshotId, courseCount: model.courses.length, updatedAt: new Date().toISOString()});
+    transaction.objectStore(STORES.schema3Migrations).put({migrationId, modelVersion: root.AnyClassCourseModel.COURSE_MODEL_VERSION, status: "VERIFIED", sourceKey: model.snapshot.sourceKey, sourceCanonical, snapshotId: model.snapshot.snapshotId, courseCount: model.courses.length, updatedAt: new Date().toISOString()});
     return model;
   };
 
@@ -87,7 +87,7 @@
       const existing = await requestValue(db.transaction(STORES.migrations, "readonly").objectStore(STORES.migrations).get(migrationId));
       const schema3Id = `v2-to-v3:${root.AnyClassCourseModel.sourceKey(dataset)}`;
       const existingSchema3 = await requestValue(db.transaction(STORES.schema3Migrations, "readonly").objectStore(STORES.schema3Migrations).get(schema3Id));
-      if (existing && existing.sourceCanonical === canonicalLegacy(dataset) && existing.status === "VERIFIED" && existingSchema3 && existingSchema3.sourceCanonical === canonicalLegacy(dataset) && existingSchema3.status === "VERIFIED") return {status: "UNCHANGED", graph};
+      if (existing && existing.sourceCanonical === canonicalLegacy(dataset) && existing.status === "VERIFIED" && existingSchema3 && existingSchema3.sourceCanonical === canonicalLegacy(dataset) && existingSchema3.status === "VERIFIED" && existingSchema3.modelVersion === root.AnyClassCourseModel.COURSE_MODEL_VERSION) return {status: "UNCHANGED", graph};
       if (hooks.beforeWrite) await hooks.beforeWrite(graph);
       const priorRows = await requestValue(db.transaction(STORES.baseMeetings, "readonly").objectStore(STORES.baseMeetings).index("termId").getAll(graph.term.termId));
       const prior = priorRows.filter(item => item.sourceType === "academic").map(item => item.baseMeetingId);
@@ -139,7 +139,7 @@
     try {
       const transaction = db.transaction([STORES.importSnapshots, STORES.courses, STORES.courseOverrides, STORES.occurrenceOverrides, STORES.scheduleOverrides], "readonly");
       const snapshots = await requestValue(transaction.objectStore(STORES.importSnapshots).index("sourceKey").getAll(sourceKey));
-      const courses = await requestValue(transaction.objectStore(STORES.courses).index("sourceKey").getAll(sourceKey));
+      const courses = (await requestValue(transaction.objectStore(STORES.courses).index("sourceKey").getAll(sourceKey))).filter(item => item.suppressed !== true);
       const courseOverrides = await requestValue(transaction.objectStore(STORES.courseOverrides).getAll());
       const occurrenceOverrides = await requestValue(transaction.objectStore(STORES.occurrenceOverrides).getAll());
       const scheduleOverrides = await requestValue(transaction.objectStore(STORES.scheduleOverrides).getAll());

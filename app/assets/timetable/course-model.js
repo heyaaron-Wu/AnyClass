@@ -1,6 +1,8 @@
 (function (root) {
   "use strict";
 
+  const COURSE_MODEL_VERSION = 2;
+
   const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
   const text = value => String(value == null ? "" : value).trim();
 
@@ -19,6 +21,7 @@
     const importedAt = dataset.importedAt || graph.term?.updatedAt || new Date().toISOString();
     const snapshot = {
       snapshotId,
+      modelVersion: COURSE_MODEL_VERSION,
       sourceType: type,
       sourceKey: key,
       importedAt,
@@ -33,6 +36,8 @@
       if (!start || !end) throw new Error("SCHEMA3_PERIOD_MISSING");
       return {
         courseId: `course:${encode([key, base.baseMeetingId])}`,
+        modelVersion: COURSE_MODEL_VERSION,
+        sourceOrdinal: index,
         sourceType: type,
         sourceKey: key,
         sourceSnapshotId: snapshotId,
@@ -58,7 +63,7 @@
     return {schemaVersion: 3, snapshot, courses};
   };
 
-  const api = Object.freeze({build, clone, snapshotIdentity, sourceKey, sourceType});
+  const api = Object.freeze({COURSE_MODEL_VERSION, build, clone, snapshotIdentity, sourceKey, sourceType});
   root.AnyClassCourseModel = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
