@@ -1,8 +1,8 @@
 (function (root) {
   "use strict";
 
-  const DB_NAME = "course-app", DB_VERSION = 2;
-  const STORES = Object.freeze({legacy: "timetables", timetables: "v2Timetables", terms: "terms", baseMeetings: "baseMeetings", snapshots: "v1Snapshots", migrations: "v2Migrations"});
+  const DB_NAME = "course-app", DB_VERSION = 3;
+  const STORES = Object.freeze({legacy: "timetables", timetables: "v2Timetables", terms: "terms", baseMeetings: "baseMeetings", snapshots: "v1Snapshots", migrations: "v2Migrations", importSnapshots: "importSnapshots", courses: "courses", courseOverrides: "courseOverrides", occurrenceOverrides: "occurrenceOverrides", scheduleOverrides: "scheduleOverrides", schema3Migrations: "schema3Migrations"});
 
   const requestValue = request => new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result);
@@ -30,7 +30,23 @@
       }
       if (!db.objectStoreNames.contains(STORES.snapshots)) db.createObjectStore(STORES.snapshots, {keyPath: "snapshotId"});
       if (!db.objectStoreNames.contains(STORES.migrations)) db.createObjectStore(STORES.migrations, {keyPath: "migrationId"});
-      if (event.oldVersion > 1 && event.oldVersion !== DB_VERSION) request.transaction.abort();
+      if (!db.objectStoreNames.contains(STORES.importSnapshots)) {
+        const store = db.createObjectStore(STORES.importSnapshots, {keyPath: "snapshotId"});
+        store.createIndex("sourceKey", "sourceKey", {unique: false});
+      }
+      if (!db.objectStoreNames.contains(STORES.courses)) {
+        const store = db.createObjectStore(STORES.courses, {keyPath: "courseId"});
+        store.createIndex("sourceKey", "sourceKey", {unique: false});
+        store.createIndex("sourceSnapshotId", "sourceSnapshotId", {unique: false});
+      }
+      if (!db.objectStoreNames.contains(STORES.courseOverrides)) db.createObjectStore(STORES.courseOverrides, {keyPath: "courseId"});
+      if (!db.objectStoreNames.contains(STORES.occurrenceOverrides)) {
+        const store = db.createObjectStore(STORES.occurrenceOverrides, {keyPath: "occurrenceId"});
+        store.createIndex("courseId", "courseId", {unique: false});
+      }
+      if (!db.objectStoreNames.contains(STORES.scheduleOverrides)) db.createObjectStore(STORES.scheduleOverrides, {keyPath: "scheduleOverrideId"});
+      if (!db.objectStoreNames.contains(STORES.schema3Migrations)) db.createObjectStore(STORES.schema3Migrations, {keyPath: "migrationId"});
+      if (event.oldVersion > DB_VERSION) request.transaction.abort();
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error || new Error("INDEXEDDB_OPEN_FAILED"));
@@ -42,6 +58,24 @@
     meetings: dataset.meetings, fingerprint: dataset.fingerprint || null
   });
 
+  const schema3Model = (dataset, graph) => {
+    if (!root.AnyClassCourseModel) throw new Error("COURSE_MODEL_REQUIRED");
+    return root.AnyClassCourseModel.build(dataset, graph);
+  };
+
+  const writeSchema3 = async (transaction, dataset, graph) => {
+    const model = schema3Model(dataset, graph), sourceCanonical = canonicalLegacy(dataset);
+    const migrationId = `v2-to-v3:${model.snapshot.sourceKey}`;
+    const courses = transaction.objectStore(STORES.courses);
+    const previous = await requestValue(courses.index("sourceKey").getAll(model.snapshot.sourceKey));
+    const currentIds = new Set(model.courses.map(item => item.courseId));
+    for (const item of previous) if (!currentIds.has(item.courseId)) courses.put({...item, suppressed: true});
+    transaction.objectStore(STORES.importSnapshots).put(model.snapshot);
+    for (const course of model.courses) courses.put(course);
+    transaction.objectStore(STORES.schema3Migrations).put({migrationId, status: "VERIFIED", sourceKey: model.snapshot.sourceKey, sourceCanonical, snapshotId: model.snapshot.snapshotId, courseCount: model.courses.length, updatedAt: new Date().toISOString()});
+    return model;
+  };
+
   const migrateDataset = async (dataset, config, factory = indexedDB, hooks = {}) => {
     if (!root.AnyClassPhaseB) throw new Error("PHASE_B_ENGINE_REQUIRED");
     const graph = root.AnyClassPhaseB.convertV1Dataset(dataset, config);
@@ -51,11 +85,13 @@
     const db = await openDb(factory);
     try {
       const existing = await requestValue(db.transaction(STORES.migrations, "readonly").objectStore(STORES.migrations).get(migrationId));
-      if (existing && existing.sourceCanonical === canonicalLegacy(dataset) && existing.status === "VERIFIED") return {status: "UNCHANGED", graph};
+      const schema3Id = `v2-to-v3:${root.AnyClassCourseModel.sourceKey(dataset)}`;
+      const existingSchema3 = await requestValue(db.transaction(STORES.schema3Migrations, "readonly").objectStore(STORES.schema3Migrations).get(schema3Id));
+      if (existing && existing.sourceCanonical === canonicalLegacy(dataset) && existing.status === "VERIFIED" && existingSchema3 && existingSchema3.sourceCanonical === canonicalLegacy(dataset) && existingSchema3.status === "VERIFIED") return {status: "UNCHANGED", graph};
       if (hooks.beforeWrite) await hooks.beforeWrite(graph);
       const priorRows = await requestValue(db.transaction(STORES.baseMeetings, "readonly").objectStore(STORES.baseMeetings).index("termId").getAll(graph.term.termId));
       const prior = priorRows.filter(item => item.sourceType === "academic").map(item => item.baseMeetingId);
-      const names = [STORES.timetables, STORES.terms, STORES.baseMeetings, STORES.snapshots, STORES.migrations];
+      const names = [STORES.timetables, STORES.terms, STORES.baseMeetings, STORES.snapshots, STORES.migrations, STORES.importSnapshots, STORES.courses, STORES.schema3Migrations];
       const transaction = db.transaction(names, "readwrite");
       const timetableStore = transaction.objectStore(STORES.timetables);
       const termStore = transaction.objectStore(STORES.terms);
@@ -68,6 +104,7 @@
       for (const key of prior) meetingStore.delete(key);
       for (const meeting of graph.baseMeetings) meetingStore.put(meeting);
       migrationStore.put({migrationId, status: "VERIFIED", sourceKey: dataset.key, sourceCanonical: canonicalLegacy(dataset), meetingCount: graph.baseMeetings.length, updatedAt: new Date().toISOString()});
+      await writeSchema3(transaction, dataset, graph);
       if (hooks.beforeCommit) {
         try { hooks.beforeCommit({transaction, graph}); }
         catch (error) {
@@ -80,6 +117,7 @@
       const ordered = value => [...value].sort((a, b) => a.baseMeetingId.localeCompare(b.baseMeetingId));
       const academicReadback = readback && readback.baseMeetings.filter(item => item.sourceType === "academic");
       if (!readback || academicReadback.length !== graph.baseMeetings.length || root.AnyClassPhaseB.canonical(ordered(academicReadback)) !== root.AnyClassPhaseB.canonical(ordered(graph.baseMeetings))) throw new Error("MIGRATION_READBACK_FAILED");
+      await verifySchema3(dataset, graph, factory);
       return {status: existing ? "REPLACED" : "VERIFIED", graph: readback};
     } finally { db.close(); }
   };
@@ -94,6 +132,27 @@
       const baseMeetings = await requestValue(db.transaction(STORES.baseMeetings, "readonly").objectStore(STORES.baseMeetings).index("termId").getAll(term.termId));
       return {schemaVersion: 2, timetable, term, baseMeetings};
     } finally { db.close(); }
+  };
+
+  const readCourseModel = async (sourceKey, factory = indexedDB) => {
+    const db = await openDb(factory);
+    try {
+      const transaction = db.transaction([STORES.importSnapshots, STORES.courses, STORES.courseOverrides, STORES.occurrenceOverrides, STORES.scheduleOverrides], "readonly");
+      const snapshots = await requestValue(transaction.objectStore(STORES.importSnapshots).index("sourceKey").getAll(sourceKey));
+      const courses = await requestValue(transaction.objectStore(STORES.courses).index("sourceKey").getAll(sourceKey));
+      const courseOverrides = await requestValue(transaction.objectStore(STORES.courseOverrides).getAll());
+      const occurrenceOverrides = await requestValue(transaction.objectStore(STORES.occurrenceOverrides).getAll());
+      const scheduleOverrides = await requestValue(transaction.objectStore(STORES.scheduleOverrides).getAll());
+      return {schemaVersion: 3, snapshots, courses, courseOverrides: courseOverrides.filter(item => courses.some(course => course.courseId === item.courseId)), occurrenceOverrides: occurrenceOverrides.filter(item => courses.some(course => course.courseId === item.courseId)), scheduleOverrides};
+    } finally { db.close(); }
+  };
+
+  const verifySchema3 = async (dataset, graph, factory = indexedDB) => {
+    const expected = schema3Model(dataset, graph), actual = await readCourseModel(expected.snapshot.sourceKey, factory);
+    const ordered = value => [...value].sort((a, b) => a.courseId.localeCompare(b.courseId));
+    const active = actual.courses.filter(item => item.suppressed !== true);
+    if (!actual.snapshots.some(item => item.snapshotId === expected.snapshot.snapshotId) || active.length !== expected.courses.length || root.AnyClassPhaseB.canonical(ordered(active)) !== root.AnyClassPhaseB.canonical(ordered(expected.courses))) throw new Error("SCHEMA3_MIGRATION_READBACK_FAILED");
+    return actual;
   };
 
   const latestLegacyDataset = async (schoolId, factory = indexedDB) => {
@@ -131,7 +190,7 @@
     const db = await openDb(factory);
     try {
       const priorRows = await requestValue(db.transaction(STORES.baseMeetings, "readonly").objectStore(STORES.baseMeetings).index("termId").getAll(graph.term.termId));
-      const transaction = db.transaction([STORES.legacy, STORES.timetables, STORES.terms, STORES.baseMeetings, STORES.snapshots, STORES.migrations], "readwrite");
+      const transaction = db.transaction([STORES.legacy, STORES.timetables, STORES.terms, STORES.baseMeetings, STORES.snapshots, STORES.migrations, STORES.importSnapshots, STORES.courses, STORES.schema3Migrations], "readwrite");
       transaction.objectStore(STORES.legacy).put(dataset);
       transaction.objectStore(STORES.timetables).put(graph.timetable);
       transaction.objectStore(STORES.terms).put(graph.term);
@@ -140,6 +199,7 @@
       for (const meeting of graph.baseMeetings) meetings.put(meeting);
       transaction.objectStore(STORES.snapshots).put({snapshotId, sourceKey: dataset.key, capturedAt: new Date().toISOString(), dataset});
       transaction.objectStore(STORES.migrations).put({migrationId, status: "VERIFIED", sourceKey: dataset.key, sourceCanonical: canonicalLegacy(dataset), meetingCount: graph.baseMeetings.length, updatedAt: new Date().toISOString()});
+      await writeSchema3(transaction, dataset, graph);
       if (hooks.beforeCommit) {
         try { hooks.beforeCommit({transaction, graph}); }
         catch (error) { transaction.abort(); throw error; }
@@ -149,9 +209,10 @@
     const readback = await readGraph(graph.timetable.timetableId, factory);
     const academic = readback.baseMeetings.filter(item => item.sourceType === "academic");
     if (academic.length !== graph.baseMeetings.length) throw new Error("MIGRATION_READBACK_FAILED");
+    await verifySchema3(dataset, graph, factory);
     return {status: "VERIFIED", graph: readback};
   };
 
-  root.AnyClassStorageV2 = Object.freeze({DB_NAME, DB_VERSION, STORES, countLegacyKey, ensureLatest, getLegacyDataset, latestLegacyDataset, migrateDataset, openDb, putLegacyAndMigrate, readGraph});
+  root.AnyClassStorageV2 = Object.freeze({DB_NAME, DB_VERSION, STORES, countLegacyKey, ensureLatest, getLegacyDataset, latestLegacyDataset, migrateDataset, openDb, putLegacyAndMigrate, readCourseModel, readGraph, verifySchema3});
   if (typeof module === "object" && module.exports) module.exports = root.AnyClassStorageV2;
 })(typeof globalThis !== "undefined" ? globalThis : this);

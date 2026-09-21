@@ -1,9 +1,10 @@
 (function (root) {
   "use strict";
 
-  const attachGraph = (dataset, graph) => {
+  const attachGraph = (dataset, graph, courseModel) => {
     if (!dataset || !graph) return dataset;
     Object.defineProperty(dataset, "__phaseBGraph", {value: graph, enumerable: false, configurable: false, writable: false});
+    Object.defineProperty(dataset, "__courseModel", {value: courseModel, enumerable: false, configurable: false, writable: false});
     return dataset;
   };
 
@@ -12,13 +13,15 @@
     const config = root.TimetableSchoolConfigs[schoolId];
     if (!config) throw new Error("SCHOOL_CONFIG_MISSING");
     const result = await root.AnyClassStorageV2.ensureLatest(schoolId, config);
-    return result ? attachGraph(result.dataset, result.graph) : null;
+    if (!result) return null;
+    const courseModel = await root.AnyClassStorageV2.readCourseModel(root.AnyClassCourseModel.sourceKey(result.dataset));
+    return attachGraph(result.dataset, result.graph, courseModel);
   };
 
   const diagnostics = async schoolId => {
     const result = await root.AnyClassStorageV2.ensureLatest(schoolId, root.TimetableSchoolConfigs[schoolId]);
     return result ? {
-      schemaVersion: 2,
+      schemaVersion: 3,
       activeTermId: result.graph.term.termId,
       profileSnapshotVersion: result.graph.term.schoolProfileSnapshot.schoolProfileVersion,
       adapterId: result.graph.term.schoolProfileSnapshot.adapterId,
