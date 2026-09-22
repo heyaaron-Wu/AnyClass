@@ -7,4 +7,6 @@ assert.equal(adapter.detect({tableSignature:false,blockSignature:false,semesterS
 assert.equal(adapter.detect({tableSignature:true,blockSignature:true,semesterSelectors:true,cellSignature:true,iconSignature:true,origin:"https://untrusted.example.org"}).outcome,"MATCH");
 assert.equal(profileApi.registry.matchOrigin("https://untrusted.example.org",adapter.id).length,0);
 assert.equal(profileApi.registry.matchOrigin("https://jw.example.edu",adapter.id)[0],profile);
+assert.throws(()=>profileApi.create({...profile,id:"insecure-demo",knownOrigins:["http://jw.example.edu"]}),/SCHOOL_PROFILE_ORIGIN_INVALID/);
+assert.doesNotThrow(()=>profileApi.create({...profile,id:"loopback-demo",knownOrigins:["http://127.0.0.1"]}));
 console.log(JSON.stringify({publicProfiles:1,genericAdapter:"PASS",unsupportedOrigin:"FAIL_CLOSED",result:"PASS"},null,2));

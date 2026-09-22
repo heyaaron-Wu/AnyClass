@@ -2,7 +2,7 @@
   "use strict";
   const requiredText = (value, field) => { const text = String(value == null ? "" : value).trim(); if (!text) throw new TypeError(`SCHOOL_PROFILE_${field.toUpperCase()}_REQUIRED`); return text; };
   const clone = value => JSON.parse(JSON.stringify(value));
-  const normalizeOrigin = value => { const url = new URL(requiredText(value, "origin")); if (!/^https?:$/.test(url.protocol) || url.username || url.password || url.pathname !== "/" || url.search || url.hash) throw new TypeError("SCHOOL_PROFILE_ORIGIN_INVALID"); return url.origin; };
+  const normalizeOrigin = value => { const url = new URL(requiredText(value, "origin")),loopback=["localhost","127.0.0.1","[::1]"].includes(url.hostname); if (!(url.protocol === "https:" || (url.protocol === "http:" && loopback)) || url.username || url.password || url.pathname !== "/" || url.search || url.hash) throw new TypeError("SCHOOL_PROFILE_ORIGIN_INVALID"); return url.origin; };
   const create = definition => {
     if (!definition || typeof definition !== "object" || Array.isArray(definition)) throw new TypeError("SCHOOL_PROFILE_REQUIRED");
     const id = requiredText(definition.id, "id"), displayName = requiredText(definition.displayName || definition.name, "displayName");
