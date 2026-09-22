@@ -43,7 +43,7 @@ function serve() {
   const server = await serve();
   const origin = `http://127.0.0.1:${server.address().port}`;
   const browser = await chromium.launch({ executablePath, headless: true, args: ["--disable-background-networking"] });
-  const routes = ["/", "/today/", "/timetable/", "/about/"];
+  const routes = ["/", "/today/", "/timetable/", "/import/", "/about/"];
   const viewports = [[390, 844], [430, 932], [1024, 768], [1440, 900]];
   const report = {};
   try {

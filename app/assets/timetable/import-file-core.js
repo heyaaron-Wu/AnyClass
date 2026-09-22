@@ -91,15 +91,8 @@
     if (!input.meetings.length) fail("EMPTY_MEETINGS", "课程安排不能为空");
     if (input.meetings.length > MAX_MEETINGS) fail("TOO_MANY_MEETINGS", "课程安排数量超出限制");
     const semester = {academicYear, term};
-    return {
-      schemaVersion: 1,
-      key: `${profile.id}::${academicYear}::${term}`,
-      school: {id: profile.id, name: profile.name, sourceSystem: "file"},
-      semester,
-      meetings: normalized.meetings.map(normalizeMeeting),
-      importedAt: null,
-      source: "file"
-    };
+    if (!root.AnyClassNormalizedImport) fail("NORMALIZATION_UNAVAILABLE", "导入规范化组件不可用");
+    return root.AnyClassNormalizedImport.create({profile, adapter, semester, meetings: normalized.meetings.map(normalizeMeeting), source: "file"});
   };
 
   const parseText = text => {

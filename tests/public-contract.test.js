@@ -3,11 +3,15 @@ const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("n
 const root=path.resolve(__dirname,".."),site=path.join(root,"app"),read=relative=>fs.readFileSync(path.join(site,relative),"utf8");
 const allFiles=(directory,out=[])=>{for(const entry of fs.readdirSync(directory,{withFileTypes:true})){const absolute=path.join(directory,entry.name);entry.isDirectory()?allFiles(absolute,out):out.push(absolute)}return out};
 const publicText=allFiles(site).filter(file=>/\.(?:html|js|json|txt|md|css)$/i.test(file)).map(file=>fs.readFileSync(file,"utf8")).join("\n");
-const config=read("assets/timetable/school-config.js"),contract=read("assets/timetable/school-profile.js"),adapter=read("assets/adapters/zhengfang-v9.js"),importPage=read("import/index.html"),shell=read("assets/timetable/product-shell.js");
+const config=read("assets/timetable/school-config.js"),contract=read("assets/timetable/school-profile.js"),adapter=read("assets/adapters/zhengfang-v9.js"),bookmarklet=read("assets/timetable/bookmarklet.txt"),importPage=read("import/index.html"),shell=read("assets/timetable/product-shell.js"),normalizedImport=read("assets/timetable/normalized-import.js");
 assert(config.includes('id:"school-demo"')&&config.includes('displayName:"Example University"')&&config.includes('"https://jw.example.edu"'),"synthetic profile");
 assert(contract.includes("AnyClassSchoolProfileRegistry")&&contract.includes("matchOrigin"),"SchoolProfile contract");
 assert(!/AnyClassSchoolProfiles\.[A-Za-z0-9_-]+|TimetableSchoolConfigs\.[A-Za-z0-9_-]+/.test(adapter),"adapter imports concrete profile");
 assert(adapter.includes("schoolProfileCandidates: []"),"generic adapter detection");
+assert(bookmarklet.includes("SOURCE_ORIGIN=location.origin")&&!bookmarklet.includes("jw.example.edu"),"generic bookmarklet source boundary");
+assert(importPage.includes("profileRegistry.matchOrigin(event.origin,p.source?.system)"),"receiver profile negotiation");
+assert(normalizedImport.includes("AnyClassNormalizedImport")&&importPage.includes("AnyClassNormalizedImport.create"),"normalized bookmarklet boundary");
+assert(read("assets/timetable/import-file-core.js").includes("AnyClassNormalizedImport.create"),"normalized file boundary");
 assert(!fs.existsSync(path.join(site,"import-mobile"))&&!fs.existsSync(path.join(site,"import-file")),"retired routes remain absent");
 for(const value of ["高级设置 / 手动安装","手动配置","ios-shortcut-parser-shortcut.txt"])assert(!importPage.includes(value),`obsolete import copy ${value}`);
 for(const value of ['data-import-panel="mobile"','data-import-panel="file"','new URL(location.href).searchParams.get("method")'])assert(importPage.includes(value),`unified import ${value}`);
