@@ -39,6 +39,7 @@
     </div>
   </section>
 </main>
+<script src="/assets/timetable/school-profile.js"></script>
 <script src="/assets/timetable/school-config.js"></script>
 <script src="/assets/timetable/phaseb-engine.js"></script>
 <script src="/assets/timetable/course-model.js"></script>
@@ -55,7 +56,8 @@
     $("advancedToggle").setAttribute("aria-expanded", String(!expanded));
     $("advancedPanel").hidden = expanded;
   });
-  TimetableStorage.latestDataset("demo").then(dataset => {
+  const profile=AnyClassSchoolProfileRegistry.getActive();
+  TimetableStorage.latestDataset(profile.id).then(dataset => {
     if (!dataset) { $("empty").textContent = "此设备尚未保存课程表。"; AnyClassShell.setDataState(false); return; }
     const set = (id, value) => { $(id).textContent = String(value ?? "—"); };
     const graph = dataset.__phaseBGraph;
@@ -67,7 +69,7 @@
     const imported = new Date(dataset.importedAt);
     set("time", Number.isNaN(imported.getTime()) ? "—" : imported.toLocaleString("zh-CN", {hour12:false}));
     set("fingerprint", dataset.fingerprint ? String(dataset.fingerprint).slice(0, 12) : "—");
-    return TimetableStorage.diagnostics("demo").then(diagnostics => {
+    return TimetableStorage.diagnostics(profile.id).then(diagnostics => {
       set("schemaVersion", diagnostics.schemaVersion);
       set("activeTerm", diagnostics.activeTermId);
       set("profileVersion", diagnostics.profileSnapshotVersion);

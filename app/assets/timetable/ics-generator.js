@@ -57,7 +57,7 @@
   const utcStamp = date => `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`;
 
   const normalizeLocation = (value, profile) => typeof profile?.normalizeLocation === "function" ? profile.normalizeLocation(value) : String(value || "").trim().replace(/\s+/g, " ");
-  const normalizeCampusLocation = (value, profile = root.AnyClassSchoolProfiles?.demo || root.TimetableSchoolConfigs?.demo) => normalizeLocation(value, profile);
+  const normalizeCampusLocation = (value, profile = root.AnyClassSchoolProfileRegistry?.getActive()) => normalizeLocation(value, profile);
 
   const canonicalize = value => JSON.stringify(value);
   const digestHex = async value => {

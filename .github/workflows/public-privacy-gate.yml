@@ -1,0 +1,22 @@
+name: Public repository privacy gate
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  privacy-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Load external denylist
+        env:
+          DENYLIST_B64: ${{ secrets.ANYCLASS_PUBLIC_PRIVACY_DENYLIST_B64 }}
+        run: |
+          test -n "$DENYLIST_B64"
+          printf '%s' "$DENYLIST_B64" | base64 --decode > "$RUNNER_TEMP/anyclass-private-denylist.json"
+      - name: Verify proposed public history
+        env:
+          ANYCLASS_PUBLIC_PRIVACY_DENYLIST: ${{ runner.temp }}/anyclass-private-denylist.json
+        run: node tools/public-repository-privacy-gate.js --repo . --history

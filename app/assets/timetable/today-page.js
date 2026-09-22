@@ -5,7 +5,7 @@
   document.documentElement.dataset.todayBuild = BUILD_ID;
   console.info(`[AnyClass] Today build: ${BUILD_ID}`);
   const $ = id => document.getElementById(id);
-  const config = TimetableSchoolConfigs.demo;
+  const config = AnyClassSchoolProfileRegistry.getActive();
   let dataset = null;
   let renderTimer = null;
   let refreshPending = false;
@@ -103,8 +103,8 @@
     $("loading").hidden = true;
     $("storageError").hidden = true;
     $("emptyState").hidden = false;
-    HeyAaronShell.setStorageError(false);
-    HeyAaronShell.setDataState(false);
+    AnyClassShell.setStorageError(false);
+    AnyClassShell.setDataState(false);
   };
 
   const refreshTimetableData = async (options = {}) => {
@@ -121,16 +121,16 @@
       $("storageError").hidden = true;
       $("app").hidden = true;
     }
-    HeyAaronShell.setStorageError(false);
+    AnyClassShell.setStorageError(false);
     try {
-      const nextDataset = await TimetableStorage.latestDataset("demo");
+      const nextDataset = await TimetableStorage.latestDataset(config.id);
       if (!nextDataset || !Array.isArray(nextDataset.meetings) || !nextDataset.meetings.length) {
         dataset = null;
         showEmptyState();
         return;
       }
       dataset = nextDataset;
-      HeyAaronShell.setDataState(true);
+      AnyClassShell.setDataState(true);
       $("loading").hidden = true;
       $("emptyState").hidden = true;
       $("storageError").hidden = true;
@@ -145,7 +145,7 @@
       } else {
         $("loading").hidden = true;
         $("storageError").hidden = false;
-        HeyAaronShell.setStorageError("无法读取本机课程数据。");
+        AnyClassShell.setStorageError("无法读取本机课程数据。");
       }
     } finally {
       refreshPending = false;
@@ -156,7 +156,7 @@
   window.refreshTimetableData = refreshTimetableData;
   $("retryStorage").addEventListener("click", refreshTimetableData);
   $("refreshTimetable")?.addEventListener("click", refreshTimetableData);
-  addEventListener("heyaaron:timetable-updated", refreshTimetableData);
+  addEventListener("anyclass:timetable-updated", refreshTimetableData);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && dataset) refreshTimetableData({silent: true});
   });

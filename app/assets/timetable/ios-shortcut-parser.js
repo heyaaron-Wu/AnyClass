@@ -178,7 +178,7 @@
 
   try {
     if (window.location.origin !== EXPECTED_ORIGIN) {
-      fail("UNSUPPORTED_ORIGIN", "请在Example University教务系统中运行此快捷指令");
+      fail("UNSUPPORTED_ORIGIN", "请在已配置的教务系统中运行此快捷指令");
     }
     const tables = document.querySelectorAll(TABLE_SELECTOR);
     if (tables.length !== 1) fail("TABLE_NOT_FOUND", "请先打开并完整显示个人课表");
@@ -189,7 +189,7 @@
     const dataset = {
       schemaVersion: 1,
       school: {
-        id: "demo",
+        id: "school-demo",
         name: "Example University"
       },
       semester: {

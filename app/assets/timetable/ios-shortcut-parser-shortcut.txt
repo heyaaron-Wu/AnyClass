@@ -178,7 +178,7 @@
 
   try {
     if (window.location.origin !== EXPECTED_ORIGIN) {
-      fail("UNSUPPORTED_ORIGIN", "\u8bf7\u5728Example University\u6559\u52a1\u7cfb\u7edf\u4e2d\u8fd0\u884c\u6b64\u5feb\u6377\u6307\u4ee4");
+      fail("UNSUPPORTED_ORIGIN", "\u8bf7\u5728\u5df2\u914d\u7f6e\u7684\u6559\u52a1\u7cfb\u7edf\u4e2d\u8fd0\u884c\u6b64\u5feb\u6377\u6307\u4ee4");
     }
     const tables = document.querySelectorAll(TABLE_SELECTOR);
     if (tables.length !== 1) fail("TABLE_NOT_FOUND", "\u8bf7\u5148\u6253\u5f00\u5e76\u5b8c\u6574\u663e\u793a\u4e2a\u4eba\u8bfe\u8868");
@@ -189,7 +189,7 @@
     const dataset = {
       schemaVersion: 1,
       school: {
-        id: "demo",
+        id: "school-demo",
         name: "Example University"
       },
       semester: {

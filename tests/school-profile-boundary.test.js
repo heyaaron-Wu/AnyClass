@@ -1,0 +1,10 @@
+"use strict";
+const assert=require("node:assert/strict"),path=require("node:path");
+const root=path.resolve(__dirname,"../app/assets"),profileApi=require(path.join(root,"timetable/school-profile.js")),profiles=require(path.join(root,"timetable/school-config.js")),adapter=require(path.join(root,"adapters/zhengfang-v9.js"));
+const profile=profiles["school-demo"];
+assert.equal(profileApi.registry.list().length,1);assert.equal(profileApi.registry.getActive(),profile);assert(profile.allowsOrigin("https://jw.example.edu"));assert(!profile.allowsOrigin("https://untrusted.example.org"));
+assert.equal(adapter.detect({tableSignature:false,blockSignature:false,semesterSelectors:false,cellSignature:false,iconSignature:false,origin:"https://untrusted.example.org"}).outcome,"UNSUPPORTED");
+assert.equal(adapter.detect({tableSignature:true,blockSignature:true,semesterSelectors:true,cellSignature:true,iconSignature:true,origin:"https://untrusted.example.org"}).outcome,"MATCH");
+assert.equal(profileApi.registry.matchOrigin("https://untrusted.example.org",adapter.id).length,0);
+assert.equal(profileApi.registry.matchOrigin("https://jw.example.edu",adapter.id)[0],profile);
+console.log(JSON.stringify({publicProfiles:1,genericAdapter:"PASS",unsupportedOrigin:"FAIL_CLOSED",result:"PASS"},null,2));

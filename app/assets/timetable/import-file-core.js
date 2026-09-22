@@ -77,7 +77,7 @@
     if (!isObject(input)) fail("INVALID_ROOT", "文件根节点必须是对象");
     if (input.schemaVersion !== 1) fail("UNSUPPORTED_SCHEMA", "仅支持 schemaVersion 1");
     if (!isObject(input.school)) fail("INVALID_SCHOOL", "缺少学校信息");
-    const profile = root.AnyClassSchoolProfiles?.[input.school.id];
+    const profile = root.AnyClassSchoolProfileRegistry?.get(input.school.id);
     const adapter = profile && root.AnyClassAdapterRegistry?.get(profile.adapterId);
     if (!profile || !adapter || input.school.name !== profile.name) fail("INVALID_SCHOOL", "该文件不属于受支持的学校");
     let normalized;
@@ -93,7 +93,7 @@
     const semester = {academicYear, term};
     return {
       schemaVersion: 1,
-      key: `demo::${academicYear}::${term}`,
+      key: `${profile.id}::${academicYear}::${term}`,
       school: {id: profile.id, name: profile.name, sourceSystem: "file"},
       semester,
       meetings: normalized.meetings.map(normalizeMeeting),
@@ -133,6 +133,7 @@
   };
 
   const api = Object.freeze({TimetableFileError, parseText, validateAndNormalize, fingerprint});
+  root.AnyClassTimetableFile = api;
   root.HeyAaronTimetableFile = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

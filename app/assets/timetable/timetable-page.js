@@ -4,7 +4,7 @@
   window.__ANYCLASS_TIMETABLE_BUILD__ = BUILD_ID;
   document.documentElement.dataset.timetableBuild = BUILD_ID;
   const $ = id => document.getElementById(id);
-  const baseConfig = TimetableSchoolConfigs.demo;
+  const baseConfig = AnyClassSchoolProfileRegistry.getActive();
   let config = baseConfig;
   const days = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
   let dataset = null;
@@ -264,20 +264,20 @@
       $("storageError").hidden = true;
       $("app").hidden = true;
     }
-    HeyAaronShell.setStorageError(false);
+    AnyClassShell.setStorageError(false);
     try {
-      const nextDataset = await TimetableStorage.latestDataset("demo");
+      const nextDataset = await TimetableStorage.latestDataset(baseConfig.id);
       $("loading").hidden = true;
       if (nextDataset?.__courseModel && !Array.isArray(nextDataset.__effectiveOccurrences)) throw new Error("SCHEMA3_EFFECTIVE_OCCURRENCES_REQUIRED");
       if (!nextDataset || (!nextDataset.__courseModel && (!Array.isArray(nextDataset.meetings) || !nextDataset.meetings.length))) {
         dataset = null;
-        HeyAaronShell.setDataState(false);
+        AnyClassShell.setDataState(false);
         $("emptyState").hidden = false;
         $("app").hidden = true;
         return;
       }
       dataset = nextDataset;
-      HeyAaronShell.setDataState(true);
+      AnyClassShell.setDataState(true);
       maxWeek = TimetableCore.maxDatasetWeek(dataset) || 1;
       selectedWeek = initial
         ? Math.max(1, Math.min(maxWeek, TimetableCore.currentWeek(new Date(), config)))
@@ -298,7 +298,7 @@
       } else {
         $("loading").hidden = true;
         $("storageError").hidden = false;
-        HeyAaronShell.setStorageError("无法读取本机课程数据。");
+        AnyClassShell.setStorageError("无法读取本机课程数据。");
       }
     } finally {
       refreshPending = false;
@@ -309,7 +309,7 @@
   window.refreshTimetableData = refreshTimetableData;
   $("retryStorage").addEventListener("click", refreshTimetableData);
   $("refreshTimetable")?.addEventListener("click", refreshTimetableData);
-  addEventListener("heyaaron:timetable-updated", refreshTimetableData);
+  addEventListener("anyclass:timetable-updated", refreshTimetableData);
   window.addEventListener("scroll", updateReturnNow, {passive: true});
   window.addEventListener("resize", () => {
     updateReturnNow();

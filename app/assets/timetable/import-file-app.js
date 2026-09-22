@@ -12,9 +12,9 @@
   const setMessage = (text, kind = "muted") => {
     message.textContent = text;
     message.className = kind;
-    if (window.HeyAaronShell) {
-      if (kind === "error") HeyAaronShell.setImportError(text);
-      else HeyAaronShell.setImportError(false);
+    if (window.AnyClassShell) {
+      if (kind === "error") AnyClassShell.setImportError(text);
+      else AnyClassShell.setImportError(false);
     }
   };
 
@@ -69,8 +69,8 @@
       return;
     }
     try {
-      const dataset = HeyAaronTimetableFile.parseText(await file.text());
-      dataset.fingerprint = await HeyAaronTimetableFile.fingerprint(dataset);
+      const dataset = AnyClassTimetableFile.parseText(await file.text());
+      dataset.fingerprint = await AnyClassTimetableFile.fingerprint(dataset);
       pending = dataset;
       renderPreview(dataset);
       setMessage("文件校验通过，请确认预览后保存。", "ok");
@@ -82,23 +82,23 @@
   save.addEventListener("click", async () => {
     if (!pending) return;
     save.disabled = true;
-    if (window.HeyAaronShell) HeyAaronShell.setStorageError(false);
+    if (window.AnyClassShell) AnyClassShell.setStorageError(false);
     try {
       const dataset = {...pending, importedAt: new Date().toISOString()};
-      await HeyAaronTimetableFileStorage.putDataset(dataset);
-      const stored = await HeyAaronTimetableFileStorage.getDataset(dataset.key);
-      const keyCount = await HeyAaronTimetableFileStorage.countKey(dataset.key);
+      await AnyClassTimetableFileStorage.putDataset(dataset);
+      const stored = await AnyClassTimetableFileStorage.getDataset(dataset.key);
+      const keyCount = await AnyClassTimetableFileStorage.countKey(dataset.key);
       if (!stored || stored.fingerprint !== dataset.fingerprint || keyCount !== 1) {
         throw new Error("SAVE_VERIFICATION_FAILED");
       }
       pending = dataset;
-      dispatchEvent(new CustomEvent("heyaaron:timetable-updated", {detail: {source: "file"}}));
+      AnyClassShell.dispatchTimetableUpdated({source:"file"});
       setMessage(`已保存到此设备：${dataset.meetings.length} 个课程安排。同一学期再次导入会原子替换，不会追加重复记录。`, "ok");
     } catch (_error) {
       setMessage("保存失败，原有课表未被修改。", "error");
-      if (window.HeyAaronShell) {
-        HeyAaronShell.setImportError(false);
-        HeyAaronShell.setStorageError("无法写入本机课程数据。");
+      if (window.AnyClassShell) {
+        AnyClassShell.setImportError(false);
+        AnyClassShell.setStorageError("无法写入本机课程数据。");
       }
     } finally {
       save.disabled = false;

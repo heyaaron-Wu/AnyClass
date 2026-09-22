@@ -11,10 +11,11 @@
   });
   const flags = {hasTimetable: undefined, resourceError: null, importError: null, storageError: null};
   const stateListeners = new Set();
-  const DISPLAY_NAME_KEY = "anyclass.displayName";
+  const DISPLAY_NAME_KEY = "anyclass.timetable.displayName";
+  const PREVIOUS_DISPLAY_NAME_KEY = "anyclass.displayName";
   const BRAND_LABEL_KEY = "anyclass.brandLabel";
   const DISPLAY_NAME_VERSION_KEY = "anyclass.preferenceVersion";
-  const DISPLAY_NAME_VERSION = "1";
+  const DISPLAY_NAME_VERSION = "2";
   const LEGACY_NAME_KEY = "heyaaron.timetable.displayName";
   const DEFAULT_DISPLAY_NAME = "AnyClass";
   const ALLOWED_BRANDS = new Set(["AnyClass", "有课吗"]);
@@ -29,8 +30,9 @@
     try {
       if (localStorage.getItem(DISPLAY_NAME_VERSION_KEY) === DISPLAY_NAME_VERSION) return;
       const current = normalizeDisplayName(localStorage.getItem(DISPLAY_NAME_KEY));
+      const previous = normalizeDisplayName(localStorage.getItem(PREVIOUS_DISPLAY_NAME_KEY));
       const legacy = normalizeDisplayName(localStorage.getItem(LEGACY_NAME_KEY));
-      const selected = current || legacy;
+      const selected = current || previous || legacy;
       if (selected) localStorage.setItem(DISPLAY_NAME_KEY, selected);
       else localStorage.removeItem(DISPLAY_NAME_KEY);
       if (!localStorage.getItem(BRAND_LABEL_KEY)) localStorage.setItem(BRAND_LABEL_KEY, DEFAULT_DISPLAY_NAME);
@@ -124,6 +126,7 @@
     },
     retryResource() { location.reload(); },
     retryImport() { location.assign("/import/"); },
+    dispatchTimetableUpdated(detail = {}) { dispatchEvent(new CustomEvent("anyclass:timetable-updated", {detail})); },
     getDisplayName,
     getBrandLabel,
     setDisplayName(value) {
@@ -159,6 +162,10 @@
   });
   window.AnyClassShell = shellApi;
   window.HeyAaronShell = shellApi;
+  addEventListener("heyaaron:timetable-updated", event => {
+    if (event.detail && event.detail.__anyclassCompatibilityBridge) return;
+    dispatchEvent(new CustomEvent("anyclass:timetable-updated", {detail: {...(event.detail || {}), legacyEvent: true, __anyclassCompatibilityBridge: true}}));
+  });
 
   addEventListener("online", publishState);
   addEventListener("offline", publishState);
@@ -241,6 +248,6 @@
   };
   if (document.readyState === "loading") addEventListener("DOMContentLoaded", mount, {once: true});
   else mount();
-  addEventListener("storage", event => { if (event.key === DISPLAY_NAME_KEY) applyDisplayName(); });
+  addEventListener("storage", event => { if ([DISPLAY_NAME_KEY, PREVIOUS_DISPLAY_NAME_KEY, LEGACY_NAME_KEY].includes(event.key)) applyDisplayName(); });
   publishState();
 })();

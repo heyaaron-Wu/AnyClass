@@ -1,41 +1,12 @@
 (function (root) {
   "use strict";
-  const periodTimes = Object.freeze({
-    1: Object.freeze({start: "08:00", end: "08:45"}), 2: Object.freeze({start: "08:55", end: "09:40"}),
-    3: Object.freeze({start: "10:00", end: "10:45"}), 4: Object.freeze({start: "10:55", end: "11:40"}),
-    5: Object.freeze({start: "14:30", end: "15:15"}), 6: Object.freeze({start: "15:25", end: "16:10"}),
-    7: Object.freeze({start: "16:25", end: "17:10"}), 8: Object.freeze({start: "17:15", end: "18:00"}),
-    9: Object.freeze({start: "19:15", end: "20:00"}), 10: Object.freeze({start: "20:01", end: "20:45"}),
-    11: Object.freeze({start: "20:46", end: "21:30"})
-  });
-  const campusAliases = Object.freeze({"本部": "Main Campus", "广州校区": "Main Campus"});
-  const normalizeLocation = value => {
-    const input = String(value == null ? "" : value).trim().replace(/\s+/g, " ");
-    for (const [alias, canonical] of Object.entries(campusAliases)) {
-      if (input === alias) return canonical;
-      if (input.startsWith(`${alias} `)) return `${canonical}${input.slice(alias.length)}`;
-    }
-    return input;
-  };
-  const demo = Object.freeze({
-    id: "demo", name: "Example University", profileVersion: "demo-v1",
-    adapterId: "zhengfang-v9", adapterVersion: "legacy-v1",
-    knownOrigins: Object.freeze(["https://jw.example.edu"]), timezone: "Asia/Shanghai",
-    semesterMapping: Object.freeze({termCodes: Object.freeze({"3": "1", "12": "2"})}),
-    semesterStartDate: "2026-08-31", totalWeeks: null, weekStart: 1, periodTimes, campusAliases,
-    locationNormalizationVersion: "demo-location-v1", normalizeLocation,
-    snapshot(totalWeeks) {
-      return Object.freeze({schoolId: this.id, schoolName: this.name, schoolProfileVersion: this.profileVersion,
-        adapterId: this.adapterId, adapterVersion: this.adapterVersion, timezone: this.timezone,
-        semesterStartDate: this.semesterStartDate, totalWeeks, weekStart: this.weekStart,
-        periodTimes: JSON.parse(JSON.stringify(this.periodTimes)),
-        semesterSourceMapping: JSON.parse(JSON.stringify(this.semesterMapping)),
-        campusAliases: JSON.parse(JSON.stringify(this.campusAliases)),
-        locationNormalizationVersion: this.locationNormalizationVersion});
-    }
-  });
-  const profiles = Object.freeze({demo});
-  root.AnyClassSchoolProfiles = profiles;
-  root.TimetableSchoolConfigs = profiles;
-  if (typeof module === "object" && module.exports) module.exports = profiles;
-})(typeof globalThis !== "undefined" ? globalThis : this);
+  const profileApi = root.AnyClassSchoolProfile || (typeof require === "function" ? require("./school-profile.js") : null);
+  const registry = root.AnyClassSchoolProfileRegistry || profileApi?.registry;
+  if (!profileApi || !registry) throw new Error("SCHOOL_PROFILE_CONTRACT_MISSING");
+  const periodTimes = {1:{start:"08:00",end:"08:45"},2:{start:"08:55",end:"09:40"},3:{start:"10:00",end:"10:45"},4:{start:"10:55",end:"11:40"},5:{start:"14:00",end:"14:45"},6:{start:"14:55",end:"15:40"},7:{start:"16:00",end:"16:45"},8:{start:"16:55",end:"17:40"},9:{start:"18:30",end:"19:15"},10:{start:"19:25",end:"20:10"},11:{start:"20:20",end:"21:05"}};
+  const demo = registry.register(profileApi.create({id:"school-demo",displayName:"Example University",profileVersion:"demo-v1",adapterId:"zhengfang-v9",adapterVersion:"legacy-v1",knownOrigins:["https://jw.example.edu"],timezone:"Asia/Shanghai",semesterMapping:{termCodes:{"3":"1","12":"2"}},semesterStartDate:"2026-08-31",totalWeeks:null,weekStart:1,periodDefinitions:periodTimes,campusAliases:{"Main Campus":"Main Campus","North Campus":"North Campus"},locationNormalizationVersion:"demo-location-v1"}));
+  registry.setActive(demo.id);
+  const profiles = Object.freeze({[demo.id]:demo});
+  root.AnyClassDefaultSchoolProfileId=demo.id; root.AnyClassSchoolProfiles=profiles; root.TimetableSchoolConfigs=profiles;
+  if(typeof module==="object"&&module.exports)module.exports=profiles;
+})(typeof globalThis!=="undefined"?globalThis:this);

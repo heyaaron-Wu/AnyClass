@@ -4,7 +4,8 @@
   "version": "0.2.0-dev.0",
   "description": "AnyClass / 有课吗 — Local-first timetable web application",
   "scripts": {
-    "test": "node tests/public-contract.test.js && node tests/brand-assets.test.js && node tests/schema3-course-model.test.js && node tests/effective-occurrences.test.js && node tests/effective-ics.test.js && node tests/schema3-period-preferences.test.js"
+    "test": "node tests/public-contract.test.js && node tests/privacy-gate.test.js && node tests/school-profile-boundary.test.js && node tests/brand-assets.test.js && node tests/schema3-course-model.test.js && node tests/effective-occurrences.test.js && node tests/effective-ics.test.js && node tests/schema3-period-preferences.test.js && node tests/effective-cutover-canonical.test.js",
+    "privacy:gate": "node tools/public-repository-privacy-gate.js --repo . --history"
   },
   "engines": {
     "node": ">=20"
