@@ -8,12 +8,13 @@ body:
       value: |
         Thanks for reporting a bug.
 
-        **Do not submit passwords, Cookies, Sessions, authentication tokens, student numbers, or private timetable data.**
+        **Do not submit passwords, Cookies, Sessions, authentication tokens, student numbers, private timetable data, or private school-specific integration details.**
+        Prefer synthetic or sanitized example data.
   - type: input
     id: page
     attributes:
       label: Affected page or feature
-      placeholder: Today, Timetable, Import, Settings, Export...
+      placeholder: Today, Timetable, Import, Settings, Local Data, Export...
     validations:
       required: true
   - type: input
@@ -23,11 +24,22 @@ body:
       placeholder: Safari on iPhone, Chrome on Windows...
     validations:
       required: true
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Which site/channel are you using?
+      options:
+        - Production / Stable (anyclass.heyaaron.asia)
+        - Beta (beta.anyclass.heyaaron.asia)
+        - Local development
+        - Not sure
+    validations:
+      required: true
   - type: textarea
     id: steps
     attributes:
       label: Steps to reproduce
-      description: Please use sanitized example data.
+      description: Please use sanitized or synthetic example data.
     validations:
       required: true
   - type: textarea
@@ -45,5 +57,5 @@ body:
   - type: textarea
     id: evidence
     attributes:
-      label: Sanitized screenshots or notes
-      description: Remove personal and school-account data before uploading.
+      label: Sanitized screenshots, console output, or notes
+      description: Remove personal data, credentials, school-account data, private integration details, and local file paths before uploading.
