@@ -31,6 +31,8 @@ When proposing support for another academic system, please provide only sanitize
 
 Do not submit real account credentials.
 
+Compatibility claims should be evidence-based. Public compatibility documentation should describe the academic-system family and validation status without exposing private school-specific integration details.
+
 ## Pull requests
 
 A pull request should:
@@ -41,7 +43,22 @@ A pull request should:
 - preserve local-first behavior unless the change explicitly introduces a reviewed opt-in capability
 - avoid unrelated refactors
 - avoid adding a compatibility claim without evidence
+- preserve the separation between public generic adapters and private school-specific integrations
+- avoid introducing Beta / Stable channel cross-links or unintended endpoint changes
+
+## Import and data-model changes
+
+Changes to import behavior should preserve the current product contracts unless the change is explicitly reviewed:
+
+- the selected timetable is the default import target
+- generic imports must not fabricate a school ID
+- imported data should pass through Unified Preview before save
+- AI-assisted import produces AnyClass Course data only
+- ICS import is not part of the current product; ICS export remains supported
+- duplicate and conflict handling should operate on logical Course semantics rather than treating every Meeting as a separate course
 
 ## Development notes
 
-Detailed local-development instructions will be added with the first complete public source release.
+The repository currently contains the published v0.1.1 source release while the hosted Production app is on v0.2.0. The matching v0.2.0 GitHub source release will be published separately after repository release maintenance is complete.
+
+When working on current code, keep public documentation, tests, release-channel configuration, and privacy boundaries aligned with the actual target environment.
