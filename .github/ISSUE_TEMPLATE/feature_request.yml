@@ -7,6 +7,8 @@ body:
     attributes:
       value: |
         Describe the user problem first. Roadmap items are not guaranteed until implemented and released.
+
+        Please do not include private student data, credentials, or private school-specific integration details.
   - type: textarea
     id: problem
     attributes:
@@ -19,7 +21,28 @@ body:
       label: Proposed behavior
     validations:
       required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Product area
+      options:
+        - Today
+        - Timetable
+        - Import
+        - Course editing
+        - Multi-timetable
+        - Calendar export
+        - Settings / Local Data
+        - Compatibility
+        - Other
+    validations:
+      required: true
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy or data-flow impact
+      description: If the feature needs network access, cloud storage, credentials, or new data collection, describe that here. Otherwise write "None".
