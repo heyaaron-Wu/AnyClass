@@ -13,14 +13,15 @@
   ·
   <a href="#功能">功能</a>
   ·
+  <a href="#兼容性">兼容性</a>
+  ·
   <a href="#roadmap">Roadmap</a>
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Web-AnyClass-1679F3?style=flat-square" alt="Web" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.0-1679F3?style=flat-square" alt="Hosted v0.2.0" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/正方教务%20V9-已验证-2ea44f?style=flat-square" alt="正方教务 V9 已验证" />
-  <img src="https://img.shields.io/badge/Codex-supported-9333ea?style=flat-square&labelColor=111827" alt="Codex supported" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
 </p>
 
@@ -32,19 +33,37 @@
 
 ---
 
-**AnyClass（有课吗）** 是一个面向学生的 Local-first 课程表工具。它帮助你快速查看今天的课程、浏览周课表、从教务系统导入课程，并将课表导出到系统日历。
+**AnyClass（有课吗）** 是一个面向学生的 Local-first 课程表工具。它帮助你快速查看今天的课程、浏览周课表、导入课程、管理多个课表，并将课表导出到系统日历。
 
 **在线使用：** https://anyclass.heyaaron.asia/
+
+> 当前线上 Production 已部署 **v0.2.0**。GitHub 中已经正式发布的源码 Release 目前仍为 **v0.1.1**；对应的 v0.2.0 源码 Release 会在仓库发布维护完成后单独发布。
 
 ## 功能
 
 - 今日课程与当前 / 下一节课程
 - 周课表
-- 教务系统课表导入
+- 多课表管理与当前课表切换
+- 课程编辑与本地课表信息编辑
+- 统一导入预览（Unified Preview）
+- 教务系统 / Bookmark / 文件 / 剪贴板 / AI 辅助导入流程
+- 当前选中课表作为默认导入目标
+- 重复课程与冲突检查
 - Apple 日历 / iCalendar（ICS）导出
 - 课程提醒
 - 节次与显示范围设置
 - Local-first：课表数据默认保存在当前设备
+
+## 导入说明
+
+AnyClass v0.2.0 的导入流程以 **Course 课程数据** 为核心：
+
+- 导入结果会先进入统一预览，再由用户确认保存。
+- 当前选中的课表是默认导入目标，不会仅凭来源信息静默切换到其他课表。
+- 通用导入不会为了通过校验而伪造学校 ID。
+- 缺失学校名称等必要信息时，会在保存前要求用户确认或补充。
+- AI 辅助导入只负责整理为 AnyClass 课程数据，不直接创建系统日历事件。
+- **ICS 导入已移除；ICS 导出保留。**
 
 ## 隐私
 
@@ -71,35 +90,31 @@ AnyClass 采用 **Local-first** 设计。
 
 ## Apple 日历
 
-在 iPhone 或 iPad 上，推荐流程是：
+AnyClass 当前保留 **ICS 导出**。
 
-1. 在 AnyClass 中导出课程表 ICS。
-2. Safari 打开 Apple 日历导入界面。
-3. 点击“全部加入”。
-4. 选择目标日历。
-
-快捷指令与“文件”App 导入作为备用方式保留。
+在 iPhone 或 iPad 上，可将 AnyClass 导出的 ICS 文件交给系统日历导入；AnyClass 不再提供 ICS 文件反向导入到课表的功能。
 
 ## Roadmap
 
 计划中的方向包括：
 
-- Universal Shortcut / Bookmarklet 导入架构
 - 更多教务系统 Adapter
 - Android 日历体验
-- 自定义课程
 - 调课 / 补课
+- 考试安排
 - Calendar Subscription
-- 多学期管理
+- 更完整的多学期管理
+- 校园地图 / 教室导航等学生工具能力
 
 Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 ## 开源状态
 
-**AnyClass v0.1.1 的公开源码已经发布在本仓库。**
+**AnyClass v0.1.1 的公开源码 Release 已经发布。**
+
+**AnyClass v0.2.0 已部署到线上 Production；对应 GitHub 源码 Release 尚未发布。**
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
-
 
 ## 贡献
 
