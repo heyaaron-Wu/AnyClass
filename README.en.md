@@ -13,14 +13,15 @@
   ·
   <a href="#features">Features</a>
   ·
+  <a href="#compatibility">Compatibility</a>
+  ·
   <a href="#roadmap">Roadmap</a>
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Web-AnyClass-1679F3?style=flat-square" alt="Web" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.0-1679F3?style=flat-square" alt="Hosted v0.2.0" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/ZhengFang%20V9-Verified-2ea44f?style=flat-square" alt="ZhengFang V9 Verified" />
-  <img src="https://img.shields.io/badge/Codex-supported-9333ea?style=flat-square&labelColor=111827" alt="Codex supported" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
 </p>
 
@@ -32,19 +33,37 @@
 
 ---
 
-**AnyClass** is a local-first timetable tool for students. It helps you quickly check today's classes, view your weekly timetable, import course data from academic systems, and export your schedule to your calendar.
+**AnyClass** is a local-first timetable tool for students. It helps you check today's classes, view weekly schedules, import course data, manage multiple timetables, and export schedules to the system calendar.
 
 **Web app:** https://anyclass.heyaaron.asia/
+
+> The hosted Production app is currently **v0.2.0**. The latest source release published on GitHub remains **v0.1.1**; the matching v0.2.0 source release will be published separately after repository release maintenance is complete.
 
 ## Features
 
 - Today's classes and current / next class
 - Weekly timetable
-- Academic-system timetable import
+- Multiple timetable management and active timetable switching
+- Course editing and local timetable metadata editing
+- Unified Preview for imports
+- Academic-system / Bookmark / file / clipboard / AI-assisted import flows
+- The currently selected timetable is the default import target
+- Duplicate-course and conflict checks
 - Apple Calendar / iCalendar (ICS) export
 - Course reminders
 - Period and display-range settings
 - Local-first: timetable data is stored on the current device by default
+
+## Import behavior
+
+AnyClass v0.2.0 treats **Course data** as the core import model:
+
+- Imported data enters Unified Preview before being saved.
+- The currently selected timetable is the default destination; source identity does not silently redirect to another timetable.
+- Generic imports do not fabricate school IDs just to satisfy validation.
+- Required missing metadata, such as school name, must be confirmed before save.
+- AI-assisted import produces AnyClass course data only; it does not directly create system calendar events.
+- **ICS import has been removed; ICS export remains available.**
 
 ## Privacy
 
@@ -71,35 +90,31 @@ See [PRIVACY.md](PRIVACY.md) for details.
 
 ## Apple Calendar
 
-On iPhone or iPad, the recommended flow is:
+AnyClass currently keeps **ICS export**.
 
-1. Export the timetable as an ICS file in AnyClass.
-2. Let Safari open the Apple Calendar import interface.
-3. Tap “Add All”.
-4. Choose the destination calendar.
-
-Shortcut and Files-app import remain fallback options.
+On iPhone or iPad, the ICS file exported by AnyClass can be handed off to the system calendar for import. AnyClass no longer provides ICS-file import back into the timetable.
 
 ## Roadmap
 
 Planned areas include:
 
-- Universal Shortcut / Bookmarklet import architecture
 - Additional academic-system adapters
 - Android calendar experience
-- Custom courses
 - Schedule changes / make-up classes
+- Exam arrangements
 - Calendar Subscription
-- Multi-term management
+- More complete multi-term management
+- Student utilities such as campus maps / classroom navigation
 
 Roadmap items are plans, not currently available features.
 
 ## Open-source status
 
-**The public source for AnyClass v0.1.1 is now available in this repository.**
+**The public source release for AnyClass v0.1.1 is available in this repository.**
+
+**AnyClass v0.2.0 is deployed to the hosted Production app; the corresponding GitHub source release has not been published yet.**
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
-
 
 ## Contributing
 
