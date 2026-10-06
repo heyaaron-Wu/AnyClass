@@ -19,7 +19,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Hosted-v0.2.0-1679F3?style=flat-square" alt="Hosted v0.2.0" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.1-1679F3?style=flat-square" alt="Hosted v0.2.1" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/ZhengFang%20V9-Verified-2ea44f?style=flat-square" alt="ZhengFang V9 Verified" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
@@ -37,7 +37,7 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> The hosted Production app is currently **v0.2.0**. The latest source release published on GitHub remains **v0.1.1**; the matching v0.2.0 source release will be published separately after repository release maintenance is complete.
+> The hosted Production app is currently **v0.2.1**. The latest source release published on GitHub remains **v0.1.1**. The current `main` branch still contains an older public source baseline and is not yet source-equivalent to hosted v0.2.1; the v0.2.x source release will follow repository-history cleanup and source-baseline reconciliation.
 
 ## Features
 
@@ -56,7 +56,7 @@
 
 ## Import behavior
 
-AnyClass v0.2.0 treats **Course data** as the core import model:
+AnyClass v0.2.1 treats **Course data** as the core import model:
 
 - Imported data enters Unified Preview before being saved.
 - The currently selected timetable is the default destination; source identity does not silently redirect to another timetable.
@@ -112,9 +112,11 @@ Roadmap items are plans, not currently available features.
 
 **The public source release for AnyClass v0.1.1 is available in this repository.**
 
-**AnyClass v0.2.0 is deployed to the hosted Production app; the corresponding GitHub source release has not been published yet.**
+**AnyClass v0.2.1 is deployed to the hosted Production app; the corresponding GitHub source release has not been published yet.**
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
+
+> **Repository source status:** the current `main` branch should not be treated as an exact source snapshot of hosted v0.2.1 Production. Until source-baseline reconciliation is complete, do not infer the exact Production implementation solely from the current checkout.
 
 ## Contributing
 
