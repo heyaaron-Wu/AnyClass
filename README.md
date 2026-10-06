@@ -19,7 +19,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Hosted-v0.2.0-1679F3?style=flat-square" alt="Hosted v0.2.0" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.1-1679F3?style=flat-square" alt="Hosted v0.2.1" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/正方教务%20V9-已验证-2ea44f?style=flat-square" alt="正方教务 V9 已验证" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
@@ -37,7 +37,7 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 当前线上 Production 已部署 **v0.2.0**。GitHub 中已经正式发布的源码 Release 目前仍为 **v0.1.1**；对应的 v0.2.0 源码 Release 会在仓库发布维护完成后单独发布。
+> 当前线上 Production 已部署 **v0.2.1**。GitHub 中已经正式发布的源码 Release 目前仍为 **v0.1.1**。当前 `main` 仍是较早的公开源码基线，尚未与线上 v0.2.1 做源码等价同步；v0.2.x 源码 Release 会在仓库历史清理与源码基线对齐完成后单独发布。
 
 ## 功能
 
@@ -56,7 +56,7 @@
 
 ## 导入说明
 
-AnyClass v0.2.0 的导入流程以 **Course 课程数据** 为核心：
+AnyClass v0.2.1 的导入流程以 **Course 课程数据** 为核心：
 
 - 导入结果会先进入统一预览，再由用户确认保存。
 - 当前选中的课表是默认导入目标，不会仅凭来源信息静默切换到其他课表。
@@ -112,9 +112,11 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 **AnyClass v0.1.1 的公开源码 Release 已经发布。**
 
-**AnyClass v0.2.0 已部署到线上 Production；对应 GitHub 源码 Release 尚未发布。**
+**AnyClass v0.2.1 已部署到线上 Production；对应 GitHub 源码 Release 尚未发布。**
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
+
+> **仓库源码状态：** 当前 `main` 不应被视为线上 v0.2.1 Production 的精确源码快照。线上版本与仓库源码基线完成对齐前，请不要仅凭当前 checkout 推断 Production 的具体实现版本。
 
 ## 贡献
 
