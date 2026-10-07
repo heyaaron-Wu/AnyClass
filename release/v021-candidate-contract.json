@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "productVersion": "0.2.1",
+  "candidateReleaseId": "v0.2.1",
+  "workstream": "reconcile-v0.2.1-source",
+  "parentCommit": "fc2ecb275b52a8e83305eed8280d8b8959446f01",
+  "releaseMode": "source-release",
+  "channelExpectation": "dual-channel-source",
+  "transform": {
+    "id": "copy-app-v1",
+    "configVersion": 1
+  },
+  "publicPrivateBoundary": "public-core-only",
+  "appRoot": "app",
+  "manifest": "release/v021-candidate-app-manifest.json",
+  "commitBinding": "post-commit-attestation",
+  "lineage": {
+    "functionalSourceCommit": "e9bdd36a1900e73a7ef59c4de59b99fa2bebc961",
+    "motionCommit": "987af5a86929595a39b75eb3decf41906c871db2",
+    "adapterCommit": "5884cc733cd42ae2359be3ddd027fa47c521b025"
+  }
+}

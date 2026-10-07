@@ -5,10 +5,12 @@
   document.documentElement.dataset.todayBuild = BUILD_ID;
   console.info(`[AnyClass] Today build: ${BUILD_ID}`);
   const $ = id => document.getElementById(id);
-  const config = TimetableSchoolConfigs.demo;
+  let config = AnyClassSchoolProfileRegistry.getActive();
   let dataset = null;
   let renderTimer = null;
-  let refreshPending = false;
+  let refreshRevision = 0;
+  let entered = false;
+  let firstEntryPending = true;
 
   const el = (tag, className, value) => {
     const node = document.createElement(tag);
@@ -32,14 +34,14 @@
 
   const courseRow = item => {
     const row = el("article", `course-row ${item.status}${item.meeting.isAdjusted ? " adjusted" : ""}`);
-    const time = el("time", "course-time", item.startText);
-    time.dateTime = `${item.dateKey}T${item.startText}`;
+    const time = el("time", "course-time", item.startText || item.periodLabel);
+    if (item.startText) time.dateTime = `${item.dateKey}T${item.startText}`;
     const info = el("div", "course-info");
     info.append(adjustedName(item.meeting));
     const line = el("div", "course-meta", item.periodLabel);
     if (item.location) line.append(document.createTextNode(` · ${item.location}`));
     info.append(line);
-    const badge = el("span", `status-chip ${item.status}`, item.status === "completed" ? "已完成" : item.status === "current" ? "进行中" : "未开始");
+    const badge = el("span", `status-chip ${item.status}`, item.status === "unscheduled" ? "时间未设置" : item.status === "completed" ? "已完成" : item.status === "current" ? "进行中" : "未开始");
     row.append(time, info, badge);
     return row;
   };
@@ -72,13 +74,17 @@
 
     $("heroKicker").textContent = "今日状态";
     content.append(el("h1", "no-class-title", model.noClassTitle));
+    if (model.heroState === "TIME_UNCERTAIN") {
+      content.append(el("p", "hero-empty", "请按下方节次查看今天的课程；设置上课时间后才能判断下一节。"));
+      return;
+    }
     if (model.futureItem) {
       const item = model.futureItem;
       content.append(el("div", "future-label", "下一节"));
       content.append(adjustedName(item.meeting));
       const details = el("div", "hero-details");
       addDetail(details, "日期", `${item.dateKey} · ${TimetableTodayView.weekdays[item.weekday - 1]}`);
-      addDetail(details, "时间", `${item.startText}–${item.endText}`);
+      addDetail(details, "时间", item.startText && item.endText ? `${item.startText}–${item.endText}` : `${item.periodLabel} · 上课时间未设置`);
       addDetail(details, "地点", item.location);
       content.append(details);
     } else {
@@ -86,8 +92,7 @@
     }
   };
 
-  const render = () => {
-    const model = TimetableTodayView.createTodayModel(dataset, config);
+  const render = (model = TimetableTodayView.createTodayModel(dataset, config)) => {
     $("datePrimary").textContent = model.date;
     $("dateWeekday").textContent = model.weekday;
     $("dateWeek").textContent = model.weekLabel;
@@ -102,15 +107,32 @@
   const showEmptyState = () => {
     $("loading").hidden = true;
     $("storageError").hidden = true;
+    $("app").hidden = true;
     $("emptyState").hidden = false;
-    HeyAaronShell.setStorageError(false);
-    HeyAaronShell.setDataState(false);
+    AnyClassShell.setStorageError(false);
+    AnyClassShell.setDataState(false);
+  };
+
+  const clearDerivedView = () => {
+    $("heroContent").replaceChildren();
+    $("todayList").replaceChildren();
+    $("heroKicker").textContent = "";
+    $("statTotal").textContent = "0";
+    $("statCompleted").textContent = "0";
+    $("statRemaining").textContent = "0";
   };
 
   const refreshTimetableData = async (options = {}) => {
-    if (refreshPending) return;
-    refreshPending = true;
-    const initial = !dataset;
+    const run = ++refreshRevision;
+    const switching = options.reason === "active-timetable";
+    if (switching) {
+      dataset = null;
+      if (renderTimer) { clearInterval(renderTimer); renderTimer = null; }
+      $("app").hidden = true;
+      clearDerivedView();
+    }
+    const animateEntry = firstEntryPending;
+    const initial = !dataset || switching;
     const button = $("refreshTimetable");
     if (button) { button.classList.add("is-refreshing"); button.setAttribute("aria-busy", "true"); }
     $("refreshNotice").hidden = true;
@@ -121,23 +143,41 @@
       $("storageError").hidden = true;
       $("app").hidden = true;
     }
-    HeyAaronShell.setStorageError(false);
+    AnyClassShell.setStorageError(false);
     try {
-      const nextDataset = await TimetableStorage.latestDataset("demo");
+      const [nextDataset, active] = await Promise.all([TimetableStorage.activeDataset(),AnyClassTimetableRepository.getActiveTimetable()]);
+      if (run !== refreshRevision) return;
+      if (nextDataset) config = nextDataset.__runtimeProfile;
       if (!nextDataset || !Array.isArray(nextDataset.meetings) || !nextDataset.meetings.length) {
         dataset = null;
+        clearDerivedView();
+        if (active) AnyClassOnboarding?.close();
+        const heading = document.querySelector("#emptyState [data-online-empty] h1");
+        if (heading) heading.textContent = active ? `“${active.label}”暂无课程` : "还没有课程表";
+        $("addCourseEmpty").hidden = !active;
+        $("createTimetableEmpty").hidden = Boolean(active);
         showEmptyState();
+        if (switching) AnyClassMotion.reveal($("emptyState"));
         return;
       }
       dataset = nextDataset;
-      HeyAaronShell.setDataState(true);
+      const model = TimetableTodayView.createTodayModel(dataset, config);
+      if (run !== refreshRevision) return;
+      render(model);
+      AnyClassShell.setDataState(true);
       $("loading").hidden = true;
       $("emptyState").hidden = true;
       $("storageError").hidden = true;
       $("app").hidden = false;
-      render();
+      if (switching) AnyClassMotion.reveal($("app"));
+      if (animateEntry && !entered) {
+        entered = true;
+        firstEntryPending = false;
+        $("app").classList.add("today-content-enter");
+      }
       if (!renderTimer) renderTimer = setInterval(render, 60000);
     } catch (_error) {
+      if (run !== refreshRevision) return;
       window.__ANYCLASS_PHASE_B_STORAGE_ERROR__ = {name: _error && _error.name || "Error", message: _error && _error.message || "STORAGE_ERROR", stage: _error && _error.runtimeStage || null};
       if (dataset) {
         $("refreshNotice").textContent = "更新失败，当前仍显示上一次数据";
@@ -145,20 +185,19 @@
       } else {
         $("loading").hidden = true;
         $("storageError").hidden = false;
-        HeyAaronShell.setStorageError("无法读取本机课程数据。");
+        AnyClassShell.setStorageError("无法读取本机课程数据。");
       }
     } finally {
-      refreshPending = false;
-      if (button) { button.classList.remove("is-refreshing"); button.removeAttribute("aria-busy"); }
+      if (run === refreshRevision && button) { button.classList.remove("is-refreshing"); button.removeAttribute("aria-busy"); }
     }
   };
 
   window.refreshTimetableData = refreshTimetableData;
   $("retryStorage").addEventListener("click", refreshTimetableData);
   $("refreshTimetable")?.addEventListener("click", refreshTimetableData);
-  addEventListener("heyaaron:timetable-updated", refreshTimetableData);
+  addEventListener("anyclass:timetable-updated", event => refreshTimetableData(event.detail || {}));
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && dataset) refreshTimetableData({silent: true});
+    if (document.visibilityState === "visible") refreshTimetableData({silent: true});
   });
   refreshTimetableData();
 })();

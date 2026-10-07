@@ -1,0 +1,33 @@
+{
+  "fixtureVersion": 1,
+  "institution": "Example University",
+  "origin": "https://portal.example.invalid",
+  "validWeekExpressions": {
+    "1-5周": [1, 2, 3, 4, 5],
+    "1-6周(双)": [2, 4, 6],
+    "1-5周(单),8周,10-12周": [1, 3, 5, 8, 10, 11, 12]
+  },
+  "invalidWeekExpressions": ["", "0周", "5-2周", "1-99周", "week one"],
+  "validCases": [
+    "normal-weekly",
+    "same-course-multiple-meetings",
+    "alternating-weeks",
+    "irregular-weeks",
+    "multiple-locations",
+    "missing-school-identity",
+    "complete-semester",
+    "semester-confirmation-required"
+  ],
+  "invalidCases": [
+    "malformed-dom",
+    "oversized-capture",
+    "active-content-injection",
+    "missing-structure",
+    "ambiguous-detection",
+    "low-confidence-detection",
+    "invalid-week-expression",
+    "invalid-period-range",
+    "duplicate-visual-list-representation",
+    "conflicting-duplicate-rows"
+  ]
+}

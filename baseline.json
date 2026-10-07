@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "sourceVersion": "0.2.0-dev.0",
+  "sourceReleaseId": "v020-import-v02-channel-repair-20260929-224025",
+  "productionReleaseId": "v020-production-20260930-005312",
+  "productionApplicationFileCount": 87,
+  "productionArchiveSha256": "c86825b89dd39d25d36da030756b3b0b95dcd84c2f2cae66bfffc1ea7d751ab4",
+  "productionManifest": "release/production-app-manifest.json"
+}

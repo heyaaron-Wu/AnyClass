@@ -1,9 +1,11 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+  <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
+  <meta name="anyclass-release" content="v0.2.1">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <link rel="canonical" href="https://anyclass.heyaaron.asia/">
   <title>今天的课程</title>
@@ -11,17 +13,20 @@
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
   <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/release-metadata.js"></script>
   <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
   <link rel="stylesheet" href="/assets/timetable/common.css">
   <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-settings-safety-20260921">
+  <link rel="stylesheet" href="/assets/timetable/timetable-management.css?v=v020-phase1c">
 </head>
 <body data-shell-page="today" data-build-id="v2f3.1-20260914">
 <main class="shell">
-  <section id="loading" class="panel empty" aria-live="polite">正在读取本机课表…</section>
+  <div class="timetable-switcher" data-timetable-switcher hidden><label for="activeTimetable">当前课表</label><select id="activeTimetable" aria-label="切换当前课表"></select><span data-switch-status class="muted" role="status" aria-live="polite"></span></div>
+  <section id="loading" class="screen-reader" aria-live="polite">正在读取本机课表…</section>
   <section id="emptyState" class="panel empty" hidden>
     <div data-normal-empty data-online-empty><h1>还没有课程表</h1><p class="muted">课程数据只保存在此设备。</p></div>
     <p data-offline-empty hidden>当前设备还没有课程表。<br>联网后可进行首次导入。</p>
-    <a class="button primary" href="/import/">导入课表</a>
+    <a class="button primary" href="/import/">导入课表</a> <a id="addCourseEmpty" class="button" href="/timetable/?action=add-course" hidden>添加课程</a><a id="createTimetableEmpty" class="button" href="/settings/timetables/">新建课表</a>
   </section>
   <section id="storageError" class="panel empty runtime-error" hidden role="alert">
     <h1>无法读取本机课程数据</h1>
@@ -52,7 +57,7 @@
     <p class="privacy-note">课程数据保存在此设备，不会上传服务器。</p>
   </div>
 </main>
-<dialog class="welcome-dialog" data-onboarding-dialog aria-modal="true" aria-labelledby="welcomeTitle" aria-describedby="welcomeDescription">
+<dialog class="welcome-dialog" data-onboarding-dialog tabindex="-1" aria-modal="true" aria-labelledby="welcomeTitle" aria-describedby="welcomeDescription">
   <div class="dialog-body welcome-dialog-body glass-sheet">
     <button class="dialog-close welcome-close" type="button" data-dismiss-onboarding aria-label="关闭欢迎介绍">×</button>
     <img class="welcome-logo" src="/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass">
@@ -62,15 +67,23 @@
     <div class="welcome-actions"><a class="button primary" data-onboarding-primary data-complete-onboarding href="/import/">开始导入</a><a class="button" data-complete-onboarding href="/import/?method=file">已有课表文件</a></div>
   </div>
 </dialog>
+<script src="/assets/timetable/school-profile.js"></script>
 <script src="/assets/timetable/school-config.js"></script>
-<script src="/assets/timetable/phaseb-engine.js"></script>
-<script src="/assets/timetable/timetable-core.js"></script>
+<script src="/assets/timetable/phaseb-engine.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-model.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-resolver.js"></script>
+<script src="/assets/timetable/effective-occurrences.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/timetable-core.js?v=v020-today-incomplete-date-fix"></script>
 <script src="/assets/timetable/current-time.js"></script>
 <script src="/assets/timetable/onboarding.js"></script>
 <script src="/assets/timetable/holiday-reminders.js"></script>
+<script src="/assets/timetable/schema4-plan.js"></script>
 <script src="/assets/timetable/storage-v2.js"></script>
-<script src="/assets/timetable/storage.js"></script>
-<script src="/assets/timetable/today-view-model.js"></script>
-<script src="/assets/timetable/today-page.js?v=closure-reopen-20260918"></script>
+<script src="/assets/timetable/timetable-repository.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/session-grouping.js"></script>
+<script src="/assets/timetable/storage.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/today-view-model.js?v=v020-today-incomplete-date-fix"></script>
+<script src="/assets/timetable/today-page.js?v=v020-standard-ics-datefix-20260927"></script>
+<script src="/assets/timetable/timetable-switcher.js?v=v020-phase1c"></script>
 </body>
 </html>

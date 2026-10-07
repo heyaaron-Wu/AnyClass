@@ -1,0 +1,23 @@
+{
+  "description": "Synthetic cell-level timetable evidence; no real school or student data",
+  "headers": ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
+  "cells": [
+    {"id":"A-period-1-8","column":1,"sourceText":"课程甲 (1-8节)12周 教师甲 本部/敏行楼602","expected":{"courseName":"课程甲","weekday":1,"startPeriod":1,"endPeriod":8,"weeks":[12],"teacher":"教师甲","locationRaw":"本部 敏行楼602"}},
+    {"id":"B-period-1-10","column":2,"sourceText":"课程乙 (1-10节)15周 教师乙 尚智楼301","expected":{"courseName":"课程乙","weekday":2,"startPeriod":1,"endPeriod":10,"weeks":[15],"teacher":"教师乙","locationRaw":"尚智楼301"}},
+    {"id":"C-week-range","column":3,"sourceText":"课程丙 (3-4节)1-2周,4-10周,13-14周,16-18周 教师丙 德行楼201","expected":{"courseName":"课程丙","weekday":3,"startPeriod":3,"endPeriod":4,"weeks":[1,2,4,5,6,7,8,9,10,13,14,16,17,18],"teacher":"教师丙","locationRaw":"德行楼201"}},
+    {"id":"D-same-course-first-room","column":4,"sourceText":"课程丁 (5-6节)11周 教师丁 实验楼A101","expected":{"courseName":"课程丁","weekday":4,"startPeriod":5,"endPeriod":6,"weeks":[11],"teacher":"教师丁","locationRaw":"实验楼A101"}},
+    {"id":"E-same-course-second-room","column":4,"sourceText":"课程丁 (5-6节)12周 教师丁 实验楼B102","expected":{"courseName":"课程丁","weekday":4,"startPeriod":5,"endPeriod":6,"weeks":[12],"teacher":"教师丁","locationRaw":"实验楼B102"}},
+    {"id":"F-adjacent-left","column":5,"sourceText":"课程戊 (7-8节)3周 教师戊 敏行楼203","expected":{"courseName":"课程戊","weekday":5,"startPeriod":7,"endPeriod":8,"weeks":[3],"teacher":"教师戊","locationRaw":"敏行楼203"}},
+    {"id":"G-adjacent-right","column":6,"sourceText":"课程己 (7-8节)3周 教师己 尚智楼204","expected":{"courseName":"课程己","weekday":6,"startPeriod":7,"endPeriod":8,"weeks":[3],"teacher":"教师己","locationRaw":"尚智楼204"}}
+  ],
+  "deliberatelyCorruptedSameCount": [
+    {"cellId":"A-period-1-8","field":"endPeriod","wrongValue":4},
+    {"cellId":"B-period-1-10","field":"endPeriod","wrongValue":6},
+    {"cellId":"C-week-range","field":"weeks","wrongValue":[1,2,4,5,6,7,8,9,10,11,13,14,16,17,18]},
+    {"cellId":"A-period-1-8","field":"locationRaw","wrongValue":"本部 德行楼602"},
+    {"cellId":"D-same-course-first-room","field":"teacher","wrongValue":"教师甲"},
+    {"cellId":"E-same-course-second-room","field":"locationRaw","wrongValue":"实验楼A101"},
+    {"cellId":"F-adjacent-left","field":"teacher","wrongValue":"教师己"},
+    {"cellId":"G-adjacent-right","field":"weekday","wrongValue":5}
+  ]
+}

@@ -1,15 +1,18 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+  <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
+  <meta name="anyclass-release" content="v0.2.1">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <title>导出课程表</title>
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
   <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/release-metadata.js"></script>
   <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
   <link rel="stylesheet" href="/assets/timetable/common.css">
   <link rel="stylesheet" href="/assets/timetable/export.css">
@@ -23,6 +26,7 @@
     <section class="panel export-hero">
       <div class="eyebrow">在此设备生成</div>
       <h1>导出课程表</h1>
+      <p class="muted">当前课表：<strong id="activeTimetableName"></strong></p>
       <p id="status" class="status">课表已就绪，文件将在此浏览器本地生成。</p>
       <div class="metrics">
         <div class="metric"><span>学期</span><strong id="semester">—</strong></div>
@@ -44,7 +48,7 @@
       <summary>无法直接导入？</summary>
       <div class="shell-disclosure-content">
         <p>如果浏览器没有正常打开日历导入界面，可以使用快捷指令或从“文件”App 手动导入。</p>
-        <div class="shell-secondary-actions"><a href="https://www.icloud.com/shortcuts/de98e25371614480bc8bd7871415e050" target="_blank" rel="noopener">使用快捷指令导入</a></div>
+        <div class="shell-secondary-actions"><a href="https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37" target="_blank" rel="noopener">使用快捷指令导入</a></div>
         <h3>其他方式</h3>
         <p>从“文件”App 打开已下载的 .ics 文件。</p>
       </div>
@@ -53,19 +57,43 @@
     </section>
   </div>
 </main>
+<script src="/assets/timetable/school-profile.js"></script>
 <script src="/assets/timetable/school-config.js"></script>
-<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/phaseb-engine.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-model.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-resolver.js"></script>
+<script src="/assets/timetable/effective-occurrences.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/schema4-plan.js"></script>
 <script src="/assets/timetable/storage-v2.js"></script>
-<script src="/assets/timetable/storage.js"></script>
-<script src="/assets/timetable/ics-generator.js"></script>
+<script src="/assets/timetable/timetable-repository.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/session-grouping.js"></script>
+<script src="/assets/timetable/storage.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/ics-generator.js?v=v020-scheduling-ux"></script>
 <script>
 (() => {"use strict";
-const $=id=>document.getElementById(id),config=TimetableSchoolConfigs.demo;let dataset=null,prepared=null;
-const fail=message=>{const loading=$("loading");loading.hidden=false;loading.innerHTML="";const title=document.createElement("h1");title.textContent=message;const hint=document.createElement("p");hint.className="muted";hint.textContent="请先导入课表";const link=document.createElement("a");link.className="button primary";link.href="/import/";link.textContent="导入课表";loading.append(title,hint,link);$("app").hidden=true};
-const generate=value=>value.__phaseBGraph?TimetableIcs.generateFromFinal(value.__phaseBGraph,config):TimetableIcs.generate(value,config);
-const prepare=async value=>{dataset=value;prepared=await generate(dataset);if(prepared.expectedEvents!==prepared.generatedEvents)throw Error("EVENT_COUNT_MISMATCH");$("semester").textContent=`${dataset.semester.academicYear} 第${dataset.semester.term}学期`;$("eventCount").textContent=prepared.generatedEvents;$("download").disabled=false;$("loading").hidden=true;$("app").hidden=false};
-$("download").addEventListener("click",async()=>{const button=$("download");button.disabled=true;try{const result=await generate(dataset);if(!result.validation.ok||result.expectedEvents!==result.generatedEvents)throw Error("VALIDATION_FAILED");const blob=new Blob([result.ics],{type:"text/calendar;charset=utf-8"}),url=URL.createObjectURL(blob),anchor=document.createElement("a");anchor.href=url;anchor.download=TimetableIcs.fileName(dataset);anchor.hidden=true;document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$("status").textContent=`已生成 ${result.generatedEvents} 个日历事件`;$("status").className="status good"}catch(error){$("status").textContent="导出失败，未生成不完整文件";$("status").className="status error"}finally{button.disabled=false}});
-TimetableStorage.latestDataset("demo").then(value=>value?prepare(value):fail("还没有课程表")).catch(()=>fail("无法读取本机课表"));
+const $=id=>document.getElementById(id);let prepared=null;
+const fail=(message,missingTimes=false)=>{const loading=$("loading");loading.hidden=false;loading.replaceChildren();const title=document.createElement("h1");title.textContent=message;const hint=document.createElement("p");hint.className="muted";hint.textContent=missingTimes?"补全所需节次时间后即可导出。":"可导入课程，或新建空课表。";const link=document.createElement("a");link.className="button primary";link.href=missingTimes?"/settings/timetable/":"/import/";link.textContent=missingTimes?"前往课表设置":"导入课表";loading.append(title,hint,link);if(!missingTimes){const create=document.createElement("a");create.className="button";create.href="/settings/timetables/";create.textContent="新建课表";loading.append(document.createTextNode(" "),create)}$("app").hidden=true};
+const generate=async value=>{
+  if(!value?.__effectiveOccurrences?.length)throw Error("ACTIVE_TIMETABLE_EMPTY");
+  const academic=await TimetableIcs.generateFromEffective(value,value.__effectiveOccurrences,value.__runtimeProfile);
+  if(!academic.validation.ok||academic.expectedEvents!==academic.generatedEvents)throw Error("VALIDATION_FAILED");
+  return academic;
+};
+const prepare=async(value,active)=>{
+  if(value?.__effectiveOccurrences?.some(item=>!item.startTime||!item.endTime)){fail("请先在课表设置中补全上课时间，再导出日历",true);return;}
+  prepared=await generate(value);$("activeTimetableName").textContent=active.label;
+  const term=value?.__phaseBGraph?.term;$("semester").textContent=term?(term.sourceType==="manual"?`手动课表 · ${term.semesterStartDate} 起 · ${term.totalWeeks} 周`:`${value.semester.academicYear} 第${value.semester.term}学期`):"—";
+  $("eventCount").textContent=prepared.generatedEvents;$("download").disabled=false;$("loading").hidden=true;$("app").hidden=false;
+};
+$("download").addEventListener("click",async()=>{const button=$("download");button.disabled=true;try{
+  const active=await AnyClassTimetableRepository.getActiveTimetable();if(!active)throw Error("ACTIVE_TIMETABLE_EMPTY");
+  const current=await TimetableStorage.activeDataset();
+  const result=await generate(current);
+  const blob=new Blob([result.ics],{type:"text/calendar;charset=utf-8"}),url=URL.createObjectURL(blob),anchor=document.createElement("a");anchor.href=url;anchor.download=TimetableIcs.fileName(current);anchor.hidden=true;document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);$("status").textContent=`已生成 ${result.generatedEvents} 个日历事件`;$("status").className="status good"
+}catch(error){$("status").textContent="导出失败，未生成不完整文件";$("status").className="status error"}finally{button.disabled=false}});
+const refresh=async()=>{try{const active=await AnyClassTimetableRepository.getActiveTimetable();if(!active){fail("还没有课程表");return;}const value=await TimetableStorage.activeDataset();await prepare(value,active)}catch(error){fail("无法读取本机课表")}};
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh()});
+refresh();
 })();
 </script>
 </body>

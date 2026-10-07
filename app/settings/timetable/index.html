@@ -1,18 +1,20 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+  <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <title>课表设置 · AnyClass</title>
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
   <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/release-metadata.js"></script>
   <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
   <link rel="stylesheet" href="/assets/timetable/common.css">
-  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-period-time-width-20260921">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v020-compact-schedule-preview">
 </head>
 <body data-shell-page="settings-timetable">
 <main class="shell settings-shell">
@@ -24,6 +26,8 @@
       <label class="field-label" for="periodMode">显示范围</label>
       <select id="periodMode"><option value="AUTO">自动</option><option value="ALL">全部</option><option value="CUSTOM">自定义</option></select>
       <div id="customEndField" class="custom-period-end" hidden><label for="customEnd">显示到第</label><input id="customEnd" type="number" min="1" step="1"><span>节</span></div>
+      <button id="saveDisplayRange" class="button" type="button" hidden>保存显示范围</button>
+      <p id="displayRangeStatus" class="muted" role="status"></p>
     </div>
     <div class="settings-section period-definition-section">
       <h2>节次时间</h2>
@@ -35,30 +39,55 @@
       </div>
       <p id="periodStatus" class="muted" role="status"></p>
     </div>
+    <div id="localScheduleSection" class="settings-section" hidden>
+      <h2>上课时间</h2>
+      <p class="muted">课表已可按节次使用。补全上课时间后可显示当前时间、导出日历。</p>
+      <div id="localScheduleEditor"></div>
+      <div class="period-actions">
+        <div class="period-actions-secondary"><button id="localAddPeriod" class="button period-add" type="button">＋ 增加节次</button><button id="localResetTimes" class="button period-reset" type="button" title="恢复 AnyClass 默认作息">恢复默认</button></div>
+        <button id="saveLocalSchedule" class="button primary period-save" type="button">保存上课时间</button>
+      </div>
+      <p id="localScheduleStatus" class="muted" role="status"></p>
+    </div>
   </section>
 </main>
-<script src="/assets/timetable/school-config.js"></script>
-<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/school-profile.js"></script>
+<script src="/assets/timetable/school-config.js?v=v020-default-period-times"></script>
+<script src="/assets/timetable/phaseb-engine.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-model.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-resolver.js"></script>
+<script src="/assets/timetable/effective-occurrences.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/schema4-plan.js"></script>
 <script src="/assets/timetable/storage-v2.js"></script>
-<script src="/assets/timetable/storage.js"></script>
-<script src="/assets/timetable/period-preferences.js?v=v011-settings-safety-20260921"></script>
+<script src="/assets/timetable/timetable-repository.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/session-grouping.js"></script>
+<script src="/assets/timetable/storage.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/period-preferences.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/schedule-times.js?v=v020-compact-schedule-preview"></script>
 <script>
 (() => {
   "use strict";
   const $=id=>document.getElementById(id);
   let currentDataset=null;
+  let localScheduleEditor=null,localScheduleTableId=null,localScheduleInitial={},localScheduleHighest=1;
+  const renderLocalSchedule=()=>{localScheduleEditor=AnyClassScheduleTimes.editor($("localScheduleEditor"),localScheduleHighest,localScheduleInitial);};
   const syncCustomEndVisibility=()=>{const custom=$("periodMode").value==="CUSTOM";$("customEndField").hidden=!custom;$("customEnd").disabled=!custom;};
   const syncCustomEndBounds=()=>{const periods=[...document.querySelectorAll(".period-setting-row")].map(row=>Number(row.dataset.period)).filter(Number.isInteger).sort((a,b)=>a-b),input=$("customEnd"),occupied=AnyClassPeriodPreferences.highestUsed(currentDataset);input.min=String(Math.max(periods[0]||1,occupied));input.max=String(periods.at(-1)||1);if(!periods.includes(Number(input.value)))input.value=String(periods.at(-1)||1);};
   const attachRemove=(row,period,isDefault)=>{if(isDefault)return;const button=document.createElement("button");button.className="remove-period";button.type="button";button.textContent="删除新增节次";button.addEventListener("click",()=>{const used=(currentDataset?.meetings||[]).some(item=>item.startPeriod<=period&&item.endPeriod>=period);if(used){$("periodStatus").textContent=`第 ${period} 节仍被课程使用，不能删除。`;return;}row.remove();syncCustomEndBounds();});row.append(button);};
   const createPeriodRow=(period,definition,isDefault)=>{const row=document.createElement("div");row.className=`period-setting-row${isDefault?" is-default":" is-added"}`;row.dataset.period=period;row.innerHTML=`<strong>第 ${period} 节</strong><label><span>开始</span><input class="period-start" type="time" value="${definition.start}"></label><label><span>结束</span><input class="period-end" type="time" value="${definition.end}"></label>`;attachRemove(row,period,isDefault);return row;};
   const addMinutes=(value,minutes)=>{const[hour,minute]=String(value).split(":").map(Number),total=Math.min((23*60)+59,(hour*60)+minute+minutes);return`${String(Math.floor(total/60)).padStart(2,"0")}:${String(total%60).padStart(2,"0")}`;};
-  const renderPeriods=()=>{const config=TimetableSchoolConfigs.demo,saved=AnyClassPeriodPreferences.load(),defs=AnyClassPeriodPreferences.definitions(config);$("periodMode").value=saved?.visibleMode||"AUTO";$("customEnd").value=saved?.customEnd||Math.max(...Object.keys(defs).map(Number));const fragment=document.createDocumentFragment(),defaultPeriods=new Set(Object.keys(config.periodTimes).map(Number));for(const period of Object.keys(defs).map(Number).sort((a,b)=>a-b))fragment.append(createPeriodRow(period,defs[period],defaultPeriods.has(period)));$("periodRows").replaceChildren(fragment);syncCustomEndBounds();syncCustomEndVisibility();};
+  let profile=AnyClassSchoolProfileRegistry.getActive();
+  const renderPeriods=()=>{const config=profile,saved=AnyClassPeriodPreferences.load(),defs=AnyClassPeriodPreferences.definitions(config);$("periodMode").value=saved?.visibleMode||"AUTO";$("customEnd").value=saved?.customEnd||Math.max(...Object.keys(defs).map(Number));const fragment=document.createDocumentFragment(),defaultPeriods=new Set(Object.keys(config.periodTimes).map(Number));for(const period of Object.keys(defs).map(Number).sort((a,b)=>a-b))fragment.append(createPeriodRow(period,defs[period],defaultPeriods.has(period)));$("periodRows").replaceChildren(fragment);syncCustomEndBounds();syncCustomEndVisibility();};
   renderPeriods();
   $("periodMode").addEventListener("change",syncCustomEndVisibility);
   $("addPeriod").addEventListener("click",()=>{const rows=[...document.querySelectorAll(".period-setting-row")],next=Math.max(0,...rows.map(row=>Number(row.dataset.period)))+1,template=rows.at(-1),start=template?.querySelector(".period-end").value||"08:00";$("periodRows").append(createPeriodRow(next,{start,end:addMinutes(start,45)},false));syncCustomEndBounds();});
-  $("savePeriods").addEventListener("click",()=>{try{const defs={};for(const row of document.querySelectorAll(".period-setting-row"))defs[row.dataset.period]={start:row.querySelector(".period-start").value,end:row.querySelector(".period-end").value};AnyClassPeriodPreferences.save(TimetableSchoolConfigs.demo,currentDataset,{periodDefinitions:defs,visibleMode:$("periodMode").value,customEnd:$("periodMode").value==="CUSTOM"?Number($("customEnd").value):null});const effective=AnyClassPeriodPreferences.effective(TimetableSchoolConfigs.demo,currentDataset);$("periodStatus").textContent=`已保存。周课表将显示第 1–${effective.visibleEndPeriod} 节。`;}catch(error){const occupied=AnyClassPeriodPreferences.highestUsed(currentDataset);$("periodStatus").textContent=error.message==="PERIOD_IN_USE"?"该节次仍被课程使用，不能删除。":error.message==="VISIBLE_RANGE_IN_USE"?`当前课表存在第 ${occupied} 节课程，最少需要显示到第 ${occupied} 节。`:error.message==="INVALID_VISIBLE_RANGE"?"请选择现有节次范围内的结束节次。":"节次设置无效，请检查显示范围和开始、结束时间。";}});
-  $("resetPeriods").addEventListener("click",()=>{AnyClassPeriodPreferences.reset();renderPeriods();const effective=AnyClassPeriodPreferences.effective(TimetableSchoolConfigs.demo,currentDataset);$("periodStatus").textContent=`已恢复默认设置。周课表将显示第 1–${effective.visibleEndPeriod} 节。`;});
-  TimetableStorage.latestDataset("demo").then(dataset=>{currentDataset=dataset;syncCustomEndBounds();AnyClassShell.setDataState(Boolean(dataset));}).catch(()=>AnyClassShell.setStorageError("无法读取本机课程数据。"));
+  $("savePeriods").addEventListener("click",()=>{try{const defs={};for(const row of document.querySelectorAll(".period-setting-row"))defs[row.dataset.period]={start:row.querySelector(".period-start").value,end:row.querySelector(".period-end").value};AnyClassPeriodPreferences.save(profile,currentDataset,{periodDefinitions:defs,visibleMode:$("periodMode").value,customEnd:$("periodMode").value==="CUSTOM"?Number($("customEnd").value):null});const effective=AnyClassPeriodPreferences.effective(profile,currentDataset);$("periodStatus").textContent=`已保存。周课表将显示第 1–${effective.visibleEndPeriod} 节。`;}catch(error){const occupied=AnyClassPeriodPreferences.highestUsed(currentDataset);$("periodStatus").textContent=error.message==="PERIOD_IN_USE"?"该节次仍被课程使用，不能删除。":error.message==="VISIBLE_RANGE_IN_USE"?`当前课表存在第 ${occupied} 节课程，最少需要显示到第 ${occupied} 节。`:error.message==="INVALID_VISIBLE_RANGE"?"请选择现有节次范围内的结束节次。":"节次设置无效，请检查显示范围和开始、结束时间。";}});
+  $("resetPeriods").addEventListener("click",()=>{AnyClassPeriodPreferences.reset();renderPeriods();const effective=AnyClassPeriodPreferences.effective(profile,currentDataset);$("periodStatus").textContent=`已恢复默认设置。周课表将显示第 1–${effective.visibleEndPeriod} 节。`;});
+  $("localAddPeriod").addEventListener("click",()=>{if(localScheduleEditor){localScheduleEditor.addPeriod();localScheduleHighest++;}});
+  $("localResetTimes").addEventListener("click",()=>{if(!localScheduleEditor)return;localScheduleInitial=AnyClassDefaultPeriodTimes.clone();localScheduleHighest=Math.max(AnyClassDefaultPeriodTimes.highest,AnyClassPeriodPreferences.highestUsed(currentDataset));renderLocalSchedule();$("localScheduleStatus").textContent="已载入 AnyClass 默认作息；点击保存后生效。";});
+  $("saveLocalSchedule").addEventListener("click",async()=>{if(!localScheduleEditor||!localScheduleTableId)return;try{const term=await AnyClassTimetableRepository.saveTermPeriodTimes(localScheduleTableId,localScheduleEditor.read());localScheduleInitial=term.periodTimes||{};localScheduleHighest=Math.max(localScheduleHighest,term.maxPeriod||1);$("localScheduleStatus").textContent=term.timingStatus==="COMPLETE"?"上课时间已补全。课表时钟和日历导出现可使用。":"已保存。仍有节次未设置，可继续按节次查看课表。";AnyClassShell.dispatchTimetableUpdated({reason:"schedule-times"})}catch(_){$("localScheduleStatus").textContent="时间设置无效，请检查顺序、重叠及开始和结束时间。"}});
+  $("saveDisplayRange").addEventListener("click",()=>{try{AnyClassPeriodPreferences.saveDisplayRange(profile,currentDataset,$("periodMode").value,Number($("customEnd").value));$("displayRangeStatus").textContent="已保存显示范围。"}catch(error){$("displayRangeStatus").textContent=error.message==="VISIBLE_RANGE_IN_USE"?"显示范围不能小于已占用的节次。":"请选择有效的显示范围。"}});
+  TimetableStorage.activeDataset().then(dataset=>{currentDataset=dataset;if(dataset){profile=dataset.__runtimeProfile;renderPeriods();const term=dataset.__phaseBGraph.term;if(term.schoolProfileSnapshot?.adapterId==="file"||term.sourceType==="manual"){$("localScheduleSection").hidden=false;$("saveDisplayRange").hidden=false;document.querySelector(".period-definition-section").hidden=true;localScheduleTableId=dataset.__phaseBGraph.timetable.timetableId;localScheduleInitial=term.periodTimes||{};localScheduleHighest=Math.max(1,term.maxPeriod||0,...Object.keys(term.periodTimes||{}).map(Number),AnyClassPeriodPreferences.highestUsed(dataset));renderLocalSchedule();}}syncCustomEndBounds();AnyClassShell.setDataState(Boolean(dataset));}).catch(()=>AnyClassShell.setStorageError("无法读取本机课程数据。"));
 })();
 </script>
 </body>
