@@ -37,7 +37,7 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> Hosted Production is currently **v0.2.1**. The [**v0.2.0**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0) source release is now published on GitHub. The repository's `main` branch temporarily corresponds to the **public v0.2.0 source baseline**; the v0.2.1 source release has not been published yet.
+> Hosted Production is currently **v0.2.1**. The [**v0.2.0**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0) source release is published on GitHub. The repository's `main` branch contains the reconciled **public v0.2.1 source baseline**; the v0.2.1 source release has not been published yet. Source-release identity remains separate from the Hosted Production deployment build identity.
 
 ## Features
 
@@ -116,7 +116,7 @@ Roadmap items are plans, not currently available features.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** the current `main` branch temporarily corresponds to the public v0.2.0 source baseline and is independent from the hosted v0.2.1 Production deployment identity. The GitHub v0.2.0 source release is published; the v0.2.1 source release is not yet published.
+> **Repository source status:** the current `main` branch contains the reconciled AnyClass v0.2.1 public source baseline. The GitHub v0.2.0 source release is published; the v0.2.1 source release is not yet published. Its source identity is `v0.2.1`, while Hosted Production uses a separate deployment build identity.
 
 ## Contributing
 

@@ -27,7 +27,6 @@
   const CONFLICT_STATES=Object.freeze({UNRESOLVED:"UNRESOLVED",EDITED_REVALIDATING:"EDITED_REVALIDATING",RESOLVED_BY_EDIT:"RESOLVED_BY_EDIT",SKIPPED:"SKIPPED",CONFIRMED_REAL_CONFLICT:"CONFIRMED_REAL_CONFLICT"});
   let conflictPairs=[],exactDuplicatePairs=[],exactDuplicateSignature="[]",conflictReady=false,targetBundle=null,conflictFeedback="";
   let editOrigin=null,editReturnRevision=0,reviewHoldTimer=null;
-  const returnMotion=()=>window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth";
   const holdReviewGeometry=()=>{
     if(reviewHoldTimer!==null)clearTimeout(reviewHoldTimer);
     const beforeY=window.scrollY;
@@ -40,14 +39,8 @@
   };
   const navigateReview=async target=>{
     const revision=++editReturnRevision;
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    if(revision!==editReturnRevision||!target?.isConnected||target.hidden)return;
-    for(let details=target.closest("details:not([open])");details;details=target.closest("details:not([open])"))details.open=true;
-    const offset=Math.min(180,Math.max(96,Math.round(innerHeight*.18)));
-    const top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-offset);
-    if(!target.hasAttribute("tabindex"))target.setAttribute("tabindex","-1");
-    target.focus({preventScroll:true});
-    window.scrollTo({top,behavior:returnMotion()});
+    const navigated=await AnyClassMotion.navigate(target,{valid:()=>revision===editReturnRevision});
+    if(!navigated)return;
     target.classList.add("file-edit-return-target");
     setTimeout(()=>target.classList.remove("file-edit-return-target"),1200);
   };
@@ -115,6 +108,24 @@
   let redirectTimer = null;
   let countdownTimer = null;
   let navigating = false;
+  const importTargetComfortablyVisible = target => {
+    if (!target?.isConnected || target.hidden) return false;
+    const viewport = window.visualViewport;
+    const viewportTop = (viewport?.offsetTop || 0) + 18;
+    const viewportBottom = (viewport?.offsetTop || 0) + (viewport?.height || innerHeight);
+    const dock = document.querySelector(".shell-bottom-nav:not([hidden])")?.getBoundingClientRect();
+    const usableBottom = Math.min(viewportBottom - 18,dock?.top ? dock.top - 18 : viewportBottom - 18);
+    const rect = target.getBoundingClientRect();
+    return rect.top >= viewportTop && rect.top <= usableBottom - Math.min(96,Math.max(44,rect.height));
+  };
+  const navigateImportTarget = async target => {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (importTargetComfortablyVisible(target)) return false;
+    if (window.AnyClassMotion?.navigate) return AnyClassMotion.navigate(target,{focus:false,valid:()=>target?.isConnected&&!target.hidden});
+    target?.scrollIntoView?.({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+    return true;
+  };
+  const revealImportSection = target => { if (target && !target.hidden) window.AnyClassMotion?.reveal?.(target); };
   const validMonday = value => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const date = new Date(`${value}T00:00:00Z`);
@@ -320,12 +331,12 @@
     }
     $("fileRows").replaceChildren(fragment);
     $("filePreviewLimit").hidden = dataset.meetings.length <= 50;
-    preview.hidden = false;
+    const previewWasHidden=preview.hidden;preview.hidden = false;if(previewWasHidden)revealImportSection(preview);
     document.body.classList.add("file-preview-active");
     setState(STATES.VALIDATION_REQUIRED);
     void refreshNameReview();
     if (!dataset.school.name) showFieldError("fileSchoolName","fileSchoolNameError","请填写学校名称。");
-    preview.scrollIntoView({block:"start",behavior:"instant"});
+    void navigateImportTarget(preview);
   };
 
   const previewDataset = async (dataset, source = "file", options = {}) => {
@@ -427,7 +438,7 @@
       const incomingKeys=new Set(plan.incoming.map(item=>item.key));
       for(const [key,choice] of nameChoices)if(!incomingKeys.has(key)||(choice.targetGroupKey&&!incomingKeys.has(choice.targetGroupKey))){nameChoices.delete(key);nameReviewStates.delete(key)}
       for(const conflict of plan.conflicts)if(nameReviewStates.get(conflict.incoming.key)===NAME_STATES.RENAMED)nameReviewStates.set(conflict.incoming.key,NAME_STATES.UNRESOLVED);
-      const section=$("fileNameReview"),items=$("fileNameItems");items.replaceChildren();section.hidden=!plan.conflicts.length;
+      const section=$("fileNameReview"),items=$("fileNameItems"),wasHidden=section.hidden;items.replaceChildren();section.hidden=!plan.conflicts.length;if(wasHidden&&!section.hidden)revealImportSection(section);
       $("fileNameSummary").textContent=plan.conflicts.length?`发现同名课程安排；同一课程的多条上课安排仍可保留。请逐项明确处理。${renamedFeedback}`:renamedFeedback;
       const refreshProgress=()=>{
         const keys=new Set(plan.conflicts.map(item=>item.incoming.key));
@@ -466,7 +477,7 @@
     const groups=AnyClassCourseNameReview.groups(pending.meetings),select=$("filePendingGroup");select.replaceChildren();
     for(const group of groups){const option=document.createElement("option");option.value=group.key;option.textContent=`${group.name} · ${group.indices.length} 条安排`;select.append(option)}
     select.value=key||groups[0]?.key||"";
-    $("filePendingEditor").hidden=false;updatePendingMeetingOptions();
+    const editor=$("filePendingEditor"),wasHidden=editor.hidden;editor.hidden=false;updatePendingMeetingOptions();if(wasHidden)revealImportSection(editor);
     void navigateReview($("filePendingEditor"));
   };
   const openMeetingEditor = index => {
@@ -512,7 +523,7 @@
     exactDuplicatePairs=interactions.exactDuplicates.map(item=>({...item,incoming:dataset.meetings[item.incomingIndex],key:exactDuplicateKey(dataset.meetings[item.incomingIndex],item.existing)}));
     exactDuplicateSignature=JSON.stringify(exactDuplicatePairs.map(item=>item.key).sort());
     const activeExactKeys=new Set(exactDuplicatePairs.map(item=>item.key));for(const key of exactDuplicateChoices.keys())if(!activeExactKeys.has(key))exactDuplicateChoices.delete(key);
-    const exactSection=$("fileExactDuplicateReview"),exactItems=$("fileExactDuplicateItems");exactItems.replaceChildren();exactSection.hidden=!exactDuplicatePairs.length;
+    const exactSection=$("fileExactDuplicateReview"),exactItems=$("fileExactDuplicateItems"),exactWasHidden=exactSection.hidden;exactItems.replaceChildren();exactSection.hidden=!exactDuplicatePairs.length;if(exactWasHidden&&!exactSection.hidden)revealImportSection(exactSection);
     $("fileExactDuplicateSummary").textContent=exactDuplicatePairs.length?`发现 ${exactDuplicatePairs.length} 条与当前课表完全相同的安排。它们不是时间冲突，不会重复写入；请选择复用或跳过。`:"";
     for(const item of exactDuplicatePairs){
       const card=document.createElement("article"),text=document.createElement("p"),actions=document.createElement("div"),status=document.createElement("p");
@@ -537,7 +548,7 @@
     renderValidationWarnings(dataset,conflicts);
     if(existing.length)$("fileConflictWarning").textContent+=` 导入安排与当前课表已有课程另有 ${existing.length} 处时间重叠，请分别核对。`;
     $("fileConflictWarning").hidden=!$("fileConflictWarning").textContent;
-    $("fileConflictReview").hidden=!pairs.length;
+    const conflictSection=$("fileConflictReview"),conflictWasHidden=conflictSection.hidden;conflictSection.hidden=!pairs.length;if(conflictWasHidden&&!conflictSection.hidden)revealImportSection(conflictSection);
     $("fileConflictDetails").querySelector("summary").textContent=`导入内部 ${conflicts.groupCount} 组 · 与已有课程 ${existing.length} 处 · 查看详情`;
     $("fileConflictReview").dataset.grouped=String(pairs.length>20);
     const describe=row=>`${row.title||row.courseName} · 周${row.weekday}第 ${row.startPeriod}–${row.endPeriod} 节 · 第${row.weeks.join("、")}周 · ${row.location||row.locationRaw||"地点未提供"}`;
@@ -594,10 +605,25 @@
   });
 
   const setSubmitMessage = (text, kind = "muted", scroll = true) => {
+    delete submitMessage.dataset.importSuccess;
     submitMessage.textContent = text;
     submitMessage.className = `file-submit-message ${kind}`;
     submitMessage.hidden = !text;
     if (text && scroll) submitMessage.scrollIntoView({block:"nearest",behavior:"instant"});
+  };
+  const renderStableSuccess = (lines,remaining) => {
+    let countdown=submitMessage.querySelector("[data-import-countdown]");
+    if(!countdown||submitMessage.dataset.importSuccess!=="true"){
+      submitMessage.dataset.importSuccess="true";
+      submitMessage.className="file-submit-message ok";
+      submitMessage.hidden=false;
+      countdown=document.createElement("span");
+      countdown.dataset.importCountdown="";
+      countdown.dataset.motionStableValue="";
+      countdown.className="file-countdown-value";
+      submitMessage.replaceChildren(document.createTextNode(`${lines.join("\n")}\n`),countdown,document.createTextNode(" 秒后自动前往 Today。"));
+    }
+    countdown.textContent=String(remaining);
   };
   const committedButUnverified = text => {
     clearRedirect();
@@ -605,6 +631,7 @@
     setSubmitMessage(text,"error");
   };
   const showSuccess = (dataset, result) => {
+    clearRedirect();
     pending = null;
     input.value = "";
     setMessage("");
@@ -617,16 +644,18 @@
     const headline = `已保存到此设备：${dataset.meetings.length} 个课程安排。`;
     const detail = merge?.status === "NO_CHANGE" ? "课表没有变化，现有数据已保留。" : merge ? `课表已更新：更新课程 ${merge.sourceUpdatedCourses} 门，新增课程 ${merge.newCourses} 门。你的其他修改已保留。` : "";
     let remaining = 3;
-    const update = () => setSubmitMessage(`${headline}${detail ? `\n${detail}` : ""}\n${remaining} 秒后自动前往 Today。`,"ok");
+    const update = () => renderStableSuccess([headline,...(detail?[detail]:[])],remaining);
     update();
+    void navigateImportTarget(submitMessage);
     countdownTimer = setInterval(() => { remaining -= 1; if (remaining > 0) update(); },1000);
     redirectTimer = setTimeout(goToday,3000);
   };
   const showExactDuplicateNoChange=async dataset=>{
+    clearRedirect();
     const targetId=importTarget?.id||null;
     if(targetId)await AnyClassTimetableRepository.setActiveTimetable(targetId);
     pending=null;input.value="";setMessage("");document.body.classList.remove("file-preview-active");setState(STATES.SUCCESS);
-    let remaining=3;const update=()=>setSubmitMessage(`没有新的课程安排；完全重复项未再次写入，当前课表保持不变。\n${remaining} 秒后自动前往 Today。`,"ok");update();
+    let remaining=3;const update=()=>renderStableSuccess(["没有新的课程安排；完全重复项未再次写入，当前课表保持不变。"],remaining);update();void navigateImportTarget(submitMessage);
     countdownTimer=setInterval(()=>{remaining-=1;if(remaining>0)update()},1000);redirectTimer=setTimeout(goToday,3000);
   };
   const clearFieldErrors = () => {

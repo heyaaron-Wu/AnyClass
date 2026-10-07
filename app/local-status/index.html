@@ -3,7 +3,7 @@
 <head>
   <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
-  <meta name="anyclass-release" content="v020-import-v02-channel-repair-20260929-224025">
+  <meta name="anyclass-release" content="v0.2.1">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
@@ -12,6 +12,7 @@
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
   <link rel="manifest" href="/site.webmanifest">
+  <script src="/assets/timetable/release-metadata.js"></script>
   <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
   <link rel="stylesheet" href="/assets/timetable/common.css">
   <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-settings-safety-20260921">
@@ -32,12 +33,16 @@
         <article class="status-card"><span>最后导入时间</span><strong id="time"></strong></article>
       </div>
       <div class="local-metadata-actions"><button id="editTimetableInfo" class="button" type="button">编辑课表信息</button></div>
-      <form id="timetableInfoForm" class="local-metadata-form" hidden>
-        <h2>编辑课表信息</h2>
-        <div class="local-metadata-fields"><label>课表名称<input id="editTimetableName" type="text" maxlength="100" required></label><label>学校名称<input id="editSchoolName" type="text" maxlength="300" required></label></div>
-        <p id="editTimetableError" role="alert" hidden></p>
-        <div class="actions"><button id="saveTimetableInfo" class="button primary" type="submit">保存</button><button id="cancelTimetableInfo" class="button" type="button">取消</button></div>
-      </form>
+      <div id="timetableInfoEditor" class="local-metadata-editor" aria-hidden="true">
+        <div class="local-metadata-editor-clip">
+          <form id="timetableInfoForm" class="local-metadata-form" hidden>
+            <h2>编辑课表信息</h2>
+            <div class="local-metadata-fields"><label>课表名称<input id="editTimetableName" type="text" maxlength="100" required></label><label>学校名称<input id="editSchoolName" type="text" maxlength="300" required></label></div>
+            <p id="editTimetableError" role="alert" hidden></p>
+            <div class="actions"><button id="saveTimetableInfo" class="button primary" type="submit">保存</button><button id="cancelTimetableInfo" class="button" type="button">取消</button></div>
+          </form>
+        </div>
+      </div>
       <div class="shell-disclosure local-advanced">
         <button id="advancedToggle" class="shell-disclosure-toggle" type="button" aria-expanded="false" aria-controls="advancedPanel">
           <span>高级信息</span><span class="shell-disclosure-indicator" aria-hidden="true">⌄</span>
@@ -69,15 +74,17 @@
   });
   const set = (id, value) => { $(id).textContent = String(value ?? "—"); };
   const targetId=new URLSearchParams(location.search).get("timetableId");
-  let revision=0,currentTable=null,currentSchool="",editingId=null,busy=false,openRequested=new URLSearchParams(location.search).get("edit")==="1";
-  const closeEditor=()=>{editingId=null;$("timetableInfoForm").hidden=true;$("editTimetableInfo").hidden=false;$("editTimetableError").hidden=true;};
+  let revision=0,currentTable=null,currentSchool="",editingId=null,busy=false,editorTimer=0,openRequested=new URLSearchParams(location.search).get("edit")==="1";
+  const setEditorOpen=(open,immediate=false)=>{const editor=$("timetableInfoEditor"),form=$("timetableInfoForm");clearTimeout(editorTimer);if(open){form.hidden=false;void editor.offsetHeight;editor.dataset.open="true";editor.setAttribute("aria-hidden","false");editor.inert=false;return}editor.dataset.open="false";editor.setAttribute("aria-hidden","true");editor.inert=true;const finish=()=>{if(editor.dataset.open!=="true")form.hidden=true};if(immediate||matchMedia("(prefers-reduced-motion: reduce)").matches)finish();else editorTimer=setTimeout(finish,240);};
+  setEditorOpen(false,true);
+  const closeEditor=()=>{editingId=null;setEditorOpen(false);$("editTimetableInfo").hidden=false;$("editTimetableError").hidden=true;};
   const openEditor=()=>{
     if(!currentTable)return;
     editingId=currentTable.timetableId;
     $("editTimetableName").value=currentTable.label||"";
     $("editSchoolName").value=currentSchool;
-    $("editTimetableInfo").hidden=true;$("timetableInfoForm").hidden=false;
-    $("editTimetableName").focus();
+    $("editTimetableInfo").hidden=true;setEditorOpen(true);
+    requestAnimationFrame(()=>$("editTimetableName").focus({preventScroll:true}));
   };
   $("editTimetableInfo").addEventListener("click",openEditor);
   $("cancelTimetableInfo").addEventListener("click",()=>{closeEditor();$("editTimetableInfo").focus();});

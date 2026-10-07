@@ -57,7 +57,7 @@ const routes = [["today", "/today/"], ["timetable", "/timetable/"], ["settings",
         const transition = await page.evaluate(() => ({active: document.documentElement.dataset.crossPageTransition === "true", duration: getComputedStyle(document.documentElement, "::view-transition-new(root)").animationDuration, animation: getComputedStyle(document.documentElement, "::view-transition-new(root)").animationName, dockX: document.querySelector(".shell-bottom-nav")?.getBoundingClientRect().x}));
         assert(transition.active, "same-origin cross-document transition did not start");
         assert.match(transition.animation,/shell-cross-page-in/);
-        assert(transition.duration.split(",").some(value => Math.abs(parseFloat(value) - .21) < .01));
+        assert(transition.duration.split(",").some(value => Math.abs(parseFloat(value) - .24) < .01));
         const dockBefore = transition.dockX;
         await page.waitForTimeout(350);
         await page.locator('.shell-bottom-nav a[href="/timetable/"]').click();
@@ -77,7 +77,8 @@ const routes = [["today", "/today/"], ["timetable", "/timetable/"], ["settings",
         await page.waitForTimeout(400);
         await page.screenshot({path: path.join(out, `course-detail-${width}-${theme}.png`)});
         const border = await page.locator("dialog[open]").first().evaluate(node => ({width: getComputedStyle(node).borderTopWidth, radius: getComputedStyle(node).borderTopLeftRadius, body: getComputedStyle(node.querySelector(".dialog-body")).borderTopWidth}));
-        assert.notEqual(border.width, "0px"); assert.equal(border.body, "0px");
+        if (width < 700) { assert.equal(border.width, "0px"); assert.notEqual(border.body, "0px"); }
+        else { assert.notEqual(border.width, "0px"); assert.equal(border.body, "0px"); }
         results.push({name: "course-detail", width, theme, border});
       }
       assert.deepEqual(errors, [], `${width}-${theme} page errors`);

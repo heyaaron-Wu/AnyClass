@@ -1,8 +1,175 @@
 (() => {
   "use strict";
-  const RELEASE_ID = "v020-import-v02-channel-repair-20260929-224025";
-  window.AnyClassReleaseIdentity = Object.freeze({releaseId:RELEASE_ID,channel:location.hostname.startsWith("beta.")?"beta":"stable"});
+  const metadata=window.AnyClassReleaseMetadata||Object.freeze({schemaVersion:1,productVersion:"Unknown",releaseId:"Unknown",releaseMode:"unavailable"}),RELEASE_ID=metadata.releaseId;
+  window.AnyClassReleaseIdentity = Object.freeze({...metadata,channel:location.hostname.startsWith("beta.")?"beta":location.hostname==="anyclass.heyaaron.asia"?"stable":"local"});
   document.documentElement.dataset.releaseId = RELEASE_ID;
+
+  const reducedMotionQuery = matchMedia("(prefers-reduced-motion: reduce)");
+  const syncReducedMotion = () => { document.documentElement.dataset.reducedMotion = reducedMotionQuery.matches ? "reduce" : "no-preference"; };
+  syncReducedMotion();
+  reducedMotionQuery.addEventListener?.("change", syncReducedMotion);
+  const dialogStates = new WeakMap();
+  const sheetDismissStates = new WeakMap();
+  let sheetScrollLock = null;
+  let semanticNavigationRevision = 0;
+  const lockSheetBackground = dialog => {
+    if (sheetScrollLock?.dialog === dialog) return;
+    if (sheetScrollLock) return;
+    const body = document.body, root = document.documentElement, x = scrollX, y = scrollY;
+    sheetScrollLock = {
+      dialog, x, y,
+      body: {position:body.style.position, top:body.style.top, left:body.style.left, right:body.style.right, width:body.style.width, overflow:body.style.overflow},
+      rootOverflow:root.style.overflow
+    };
+    root.dataset.sheetScrollLocked = "true";
+    root.style.overflow = "hidden";
+    Object.assign(body.style,{position:"fixed",top:`-${y}px`,left:"0",right:"0",width:"100%",overflow:"hidden"});
+  };
+  const unlockSheetBackground = dialog => {
+    const state = sheetScrollLock;
+    if (!state || state.dialog !== dialog) return;
+    sheetScrollLock = null;
+    const body = document.body, root = document.documentElement;
+    delete root.dataset.sheetScrollLocked;
+    root.style.overflow = state.rootOverflow;
+    Object.assign(body.style,state.body);
+    scrollTo({top:state.y,left:state.x,behavior:"auto"});
+  };
+  const cancelDialogClose = dialog => {
+    const state = dialogStates.get(dialog);
+    if (!state) return;
+    clearTimeout(state.timer);
+    state.body?.removeEventListener("animationend", state.onEnd);
+    state.body?.removeEventListener("animationcancel", state.onCancel);
+    dialogStates.delete(dialog);
+    delete dialog.dataset.closing;
+    state.resolve(false);
+  };
+  const motionApi = Object.freeze({
+    prefersReducedMotion: () => reducedMotionQuery.matches,
+    cancelNavigation: () => ++semanticNavigationRevision,
+    reveal(element) {
+      if (!element?.isConnected) return false;
+      element.classList.remove("shell-content-refresh");
+      void element.offsetWidth;
+      element.classList.add("shell-content-refresh");
+      return true;
+    },
+    async navigate(target, options = {}) {
+      const revision = ++semanticNavigationRevision;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      if (revision !== semanticNavigationRevision || options.valid?.() === false || !target?.isConnected || target.hidden) return false;
+      for (let details = target.closest?.("details:not([open])"); details; details = target.closest?.("details:not([open])")) details.open = true;
+      const offset = options.offset ?? Math.min(180, Math.max(96, Math.round(innerHeight * .18)));
+      const top = Math.max(0, scrollY + target.getBoundingClientRect().top - offset);
+      if (options.focus !== false) {
+        if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+        target.focus({preventScroll:true});
+      }
+      scrollTo({top, behavior:reducedMotionQuery.matches ? "auto" : "smooth"});
+      return true;
+    },
+    openDialog(dialog, options = {}) {
+      if (!(dialog instanceof HTMLDialogElement)) throw new TypeError("dialog required");
+      cancelDialogClose(dialog);
+      if (!dialog.open) {
+        dialog.__anyclassRestoreFocus = options.restoreFocus || document.activeElement;
+        dialog.showModal();
+      }
+      sheetDismissStates.get(dialog)?.opened?.();
+      options.focus?.focus?.({preventScroll:true});
+      return dialog;
+    },
+    closeDialog(dialog, options = {}) {
+      if (!(dialog instanceof HTMLDialogElement) || !dialog.open) return Promise.resolve(false);
+      const pending = dialogStates.get(dialog);
+      if (pending) return pending.promise;
+      let resolve;
+      const promise = new Promise(done => { resolve = done; });
+      const body = dialog.querySelector(".dialog-body") || dialog;
+      const finish = () => {
+        const state = dialogStates.get(dialog);
+        if (!state || state.promise !== promise) return;
+        clearTimeout(state.timer);
+        body.removeEventListener("animationend", state.onEnd);
+        body.removeEventListener("animationcancel", state.onCancel);
+        dialogStates.delete(dialog);
+        delete dialog.dataset.closing;
+        sheetDismissStates.get(dialog)?.closed?.();
+        if (dialog.open) dialog.close(options.returnValue || "");
+        const restore = options.restoreFocus === false ? null : options.restoreFocus || dialog.__anyclassRestoreFocus;
+        delete dialog.__anyclassRestoreFocus;
+        if (restore?.isConnected) restore.focus({preventScroll:true});
+        resolve(true);
+      };
+      const onEnd = event => { if (event.target === body && (!event.animationName || ["shell-sheet-exit","shell-sheet-drag-exit"].includes(event.animationName))) finish(); };
+      const onCancel = event => { if (event.target === body) finish(); };
+      const state = {promise, resolve, body, onEnd, onCancel, timer:0};
+      dialogStates.set(dialog, state);
+      if (reducedMotionQuery.matches) { finish(); return promise; }
+      dialog.dataset.closing = "true";
+      body.addEventListener("animationend", onEnd);
+      body.addEventListener("animationcancel", onCancel);
+      state.timer = setTimeout(finish, options.timeout || 320);
+      return promise;
+    },
+    enableSheetDismiss(dialog, options = {}) {
+      if (!(dialog instanceof HTMLDialogElement)) throw new TypeError("dialog required");
+      if (sheetDismissStates.has(dialog)) return sheetDismissStates.get(dialog).cleanup;
+      const handle=options.handle||dialog.querySelector("[data-sheet-grabber]"),body=dialog.querySelector(".dialog-body")||dialog,scrim=dialog.querySelector("[data-course-dialog-scrim]"),scroll=options.scrollContainer||dialog;
+      if (!handle) throw new TypeError("sheet handle required");
+      const phases=Object.freeze({IDLE:"IDLE",PRESS_PENDING:"PRESS_PENDING",SHEET_DRAG:"SHEET_DRAG",CONTENT_SCROLL:"CONTENT_SCROLL",SNAP_BACK:"SNAP_BACK",DISMISS:"DISMISS"});
+      let gesture=null,snapTimer=0,snapFrame=0,snapCleanupFrame=0,entryTimer=0,frame=0,pendingY=0,snapPending=null;
+      const setPhase=phase=>{dialog.dataset.sheetGestureState=phase};
+      const setProgress=(progress,y)=>{const value=Math.max(0,Math.min(1,progress));if(y!==undefined)dialog.style.setProperty("--sheet-drag-y",`${Math.max(0,y)}px`);dialog.style.setProperty("--sheet-drag-progress",String(value));dialog.style.setProperty("--sheet-scrim-strength",String(1-value))};
+      const paint=()=>{frame=0;if(!gesture||gesture.phase!==phases.SHEET_DRAG)return;const y=pendingY;setProgress(y/gesture.height,y)};
+      const queuePaint=y=>{pendingY=y;if(!frame)frame=requestAnimationFrame(paint)};
+      const clearVisual=()=>{clearTimeout(snapTimer);if(frame)cancelAnimationFrame(frame);if(snapFrame)cancelAnimationFrame(snapFrame);if(snapCleanupFrame)cancelAnimationFrame(snapCleanupFrame);frame=snapFrame=snapCleanupFrame=0;snapPending=null;for(const node of [body,scrim]){node?.removeEventListener("transitionend",onSnapEnd);node?.removeEventListener("transitioncancel",onSnapEnd)}delete dialog.dataset.sheetDragging;delete dialog.dataset.sheetSnapping;delete dialog.dataset.sheetDismissing;for(const property of ["--sheet-drag-y","--sheet-drag-progress","--sheet-scrim-strength"])dialog.style.removeProperty(property);setPhase(phases.IDLE)};
+      const finishSnap=()=>{if(!dialog.dataset.sheetSnapping)return;snapPending=null;snapFrame=requestAnimationFrame(()=>{snapFrame=0;snapCleanupFrame=requestAnimationFrame(()=>{snapCleanupFrame=0;dialog.dataset.sheetSettled="true";clearVisual()})})};
+      const onSnapEnd=event=>{if(!snapPending)return;if(event.target===body&&event.propertyName==="transform")snapPending.delete("transform");if(event.target===scrim&&event.propertyName==="opacity")snapPending.delete("opacity");if(!snapPending.size)finishSnap()};
+      const snap=()=>{gesture=null;setPhase(phases.SNAP_BACK);delete dialog.dataset.sheetDragging;dialog.dataset.sheetSnapping="true";snapPending=new Set(scrim?["transform","opacity"]:["transform"]);for(const node of [body,scrim]){node?.addEventListener("transitionend",onSnapEnd);node?.addEventListener("transitioncancel",onSnapEnd)}setProgress(0,0);if(reducedMotionQuery.matches)finishSnap();else snapTimer=setTimeout(finishSnap,360)};
+      const begin=(kind,id,x,y,source,eventTime)=>{if(!dialog.open)return;const interactive=eventTime?.target?.closest?.("button,a,input,select,textarea,label,[contenteditable=true]");const contentEligible=source==="content"&&!interactive&&scroll.scrollTop<=0;gesture={kind,id,source,phase:source==="handle"||contentEligible?phases.PRESS_PENDING:phases.CONTENT_SCROLL,startX:x,startY:y,lastY:y,lastTime:eventTime?.timeStamp||performance.now(),velocity:0,height:0};setPhase(gesture.phase)};
+      const moveGesture=(x,y,time,cancelNative)=>{if(!gesture||gesture.phase===phases.CONTENT_SCROLL)return;const dx=x-gesture.startX,dy=y-gesture.startY;if(gesture.phase===phases.PRESS_PENDING){const downwardCandidate=dy>0&&Math.abs(dx)<=Math.max(4,Math.abs(dy)*.8);if(gesture.kind==="touch"&&(gesture.source==="handle"||downwardCandidate))cancelNative();if(Math.abs(dy)<6&&Math.abs(dx)<6)return;if(dy<=0||Math.abs(dx)>Math.abs(dy)*.8){gesture.phase=phases.CONTENT_SCROLL;setPhase(phases.CONTENT_SCROLL);return}gesture.phase=phases.SHEET_DRAG;gesture.height=Math.max(1,body.getBoundingClientRect().height);dialog.dataset.sheetDragging="true";setPhase(phases.SHEET_DRAG)}cancelNative();const elapsed=Math.max(1,time-gesture.lastTime);gesture.velocity=(y-gesture.lastY)/elapsed;gesture.lastY=y;gesture.lastTime=time;queuePaint(Math.max(0,dy))};
+      const finishGesture=(y,time)=>{if(!gesture)return;const state=gesture,dragged=state.phase===phases.SHEET_DRAG,displacement=Math.max(0,y-state.startY),releaseVelocity=time-state.lastTime<=80?state.velocity:0,dismiss=dragged&&(displacement>=state.height*.23||releaseVelocity>=.65);gesture=null;if(!dragged){clearVisual();return}if(!dismiss){snap();return}if(frame){cancelAnimationFrame(frame);frame=0}setProgress(displacement/state.height,displacement);setPhase(phases.DISMISS);delete dialog.dataset.sheetDragging;dialog.dataset.sheetDismissing="true";const close=options.close||(()=>motionApi.closeDialog(dialog));const closing=close({reason:"drag",displacement,velocity:releaseVelocity});requestAnimationFrame(()=>{if(dialog.open&&dialog.dataset.sheetDismissing)setProgress(1)});void closing};
+      const down=event=>{if(event.pointerType==="touch"||event.button!==0)return;begin("pointer",event.pointerId,event.clientX,event.clientY,"handle",event);try{handle.setPointerCapture?.(event.pointerId)}catch{}}
+      const move=event=>{if(!gesture||gesture.kind!=="pointer"||event.pointerId!==gesture.id)return;moveGesture(event.clientX,event.clientY,event.timeStamp,()=>event.preventDefault())};
+      const finish=event=>{if(!gesture||gesture.kind!=="pointer"||event.pointerId!==gesture.id)return;try{handle.releasePointerCapture?.(event.pointerId)}catch{}finishGesture(event.clientY,event.timeStamp)};
+      const cancelGesture=()=>{if(gesture?.phase===phases.SHEET_DRAG)snap();else{gesture=null;clearVisual()}};
+      const cancel=event=>{if(!gesture||gesture.kind!=="pointer"||event.pointerId!==gesture.id)return;cancelGesture()};
+      const touchById=(list,id)=>Array.from(list||[]).find(touch=>touch.identifier===id);
+      const touchStart=event=>{if(event.touches.length!==1||gesture)return;const touch=event.touches[0],source=event.target.closest?.("[data-sheet-grabber]")?"handle":"content";begin("touch",touch.identifier,touch.clientX,touch.clientY,source,event)};
+      const touchMove=event=>{if(!gesture||gesture.kind!=="touch")return;const touch=touchById(event.touches,gesture.id);if(!touch)return;moveGesture(touch.clientX,touch.clientY,event.timeStamp,()=>{if(event.cancelable)event.preventDefault()})};
+      const touchEnd=event=>{if(!gesture||gesture.kind!=="touch")return;const touch=touchById(event.changedTouches,gesture.id);if(touch)finishGesture(touch.clientY,event.timeStamp)};
+      const touchCancel=()=>{if(gesture?.kind==="touch")cancelGesture()};
+      const viewportReset=()=>{if(gesture)snap()};
+      const settleEntry=event=>{if(event&&(event.target!==body||event.animationName!=="shell-sheet-enter"))return;clearTimeout(entryTimer);entryTimer=0;if(dialog.open&&!dialog.dataset.closing&&!dialog.dataset.sheetDismissing)dialog.dataset.sheetSettled="true"};
+      const opened=()=>{clearTimeout(entryTimer);delete dialog.dataset.sheetSettled;lockSheetBackground(dialog);setPhase(phases.IDLE);if(reducedMotionQuery.matches)settleEntry();else entryTimer=setTimeout(settleEntry,360)};
+      const closed=()=>{gesture=null;clearTimeout(entryTimer);entryTimer=0;delete dialog.dataset.sheetSettled;clearVisual();unlockSheetBackground(dialog)};
+      const onClose=()=>{if(!dialog.open)closed()};
+      handle.addEventListener("pointerdown",down);handle.addEventListener("pointermove",move);handle.addEventListener("pointerup",finish);handle.addEventListener("pointercancel",cancel);body.addEventListener("animationend",settleEntry);dialog.addEventListener("touchstart",touchStart,{passive:true});dialog.addEventListener("touchmove",touchMove,{passive:false});dialog.addEventListener("touchend",touchEnd,{passive:true});dialog.addEventListener("touchcancel",touchCancel,{passive:true});addEventListener("resize",viewportReset,{passive:true});window.visualViewport?.addEventListener("resize",viewportReset,{passive:true});dialog.addEventListener("close",onClose);
+      const cleanup=()=>{closed();handle.removeEventListener("pointerdown",down);handle.removeEventListener("pointermove",move);handle.removeEventListener("pointerup",finish);handle.removeEventListener("pointercancel",cancel);body.removeEventListener("animationend",settleEntry);dialog.removeEventListener("touchstart",touchStart);dialog.removeEventListener("touchmove",touchMove);dialog.removeEventListener("touchend",touchEnd);dialog.removeEventListener("touchcancel",touchCancel);removeEventListener("resize",viewportReset);window.visualViewport?.removeEventListener("resize",viewportReset);dialog.removeEventListener("close",onClose);sheetDismissStates.delete(dialog)};
+      const state={cleanup,opened,closed};sheetDismissStates.set(dialog,state);if(dialog.open)opened();return cleanup;
+    }
+  });
+  window.AnyClassMotion = motionApi;
+
+  const animateStatus = node => {
+    if (!node?.isConnected || node.hidden || !node.textContent.trim()) return;
+    node.classList.remove("motion-status-enter");
+    void node.offsetWidth;
+    node.classList.add("motion-status-enter");
+  };
+  const observeStatusFeedback = () => {
+    for (const node of document.querySelectorAll('[role="status"]')) {
+      new MutationObserver(records => {
+        const stableValueOnly=records.length&&records.every(record=>{
+          const target=record.target.nodeType===Node.TEXT_NODE?record.target.parentElement:record.target;
+          return Boolean(target?.closest?.("[data-motion-stable-value]"));
+        });
+        if(!stableValueOnly)animateStatus(node);
+      }).observe(node,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["hidden"]});
+    }
+  };
 
   // Cross-document View Transitions are progressive enhancement; navigation itself stays native.
   addEventListener("pagereveal", event => {
@@ -261,6 +428,7 @@
       dock.style.setProperty("--active-index", String(activeIndex));
       links.forEach(link => { delete link.dataset.preview; });
     };
+    const cancelGesture = () => { if (!gesture) return; gesture = null; reset(); };
     const indexAt = x => {
       const bounds = dock.getBoundingClientRect();
       const position = (x - bounds.left - 6) / Math.max(1, bounds.width - 12);
@@ -300,7 +468,10 @@
       else { preview(index); links[index].click(); }
       setTimeout(() => { suppressDockClick = false; }, 0);
     });
-    document.addEventListener("pointercancel", event => { if (!gesture || event.pointerId !== gesture.id) return; gesture = null; reset(); });
+    document.addEventListener("pointercancel", event => { if (!gesture || event.pointerId !== gesture.id) return; cancelGesture(); });
+    dock.addEventListener("lostpointercapture", cancelGesture);
+    addEventListener("blur", cancelGesture);
+    addEventListener("pagehide", cancelGesture);
     dock.addEventListener("click", event => {
       if (!suppressDockClick || !event.isTrusted) return;
       event.preventDefault();
@@ -375,6 +546,7 @@
       visualViewport.addEventListener("scroll", scheduleDockLayout, {passive: true});
     }
     scheduleDockLayout();
+    observeStatusFeedback();
     publishState();
   };
   if (document.readyState === "loading") addEventListener("DOMContentLoaded", mount, {once: true});

@@ -77,8 +77,11 @@ const listen = () => new Promise(resolve => server.listen(0, "127.0.0.1", resolv
     check((await page.evaluate(() => AnyClassTimetableRepository.listTimetables())).length === 2, "cancel delete preserves data");
     await page.locator("#timetableList article").filter({hasText:"First"}).getByRole("button", {name:"删除"}).click();
     await page.locator("#confirmDelete").click();
+    await page.waitForFunction(async id => (await AnyClassTimetableRepository.getTimetable(id)) === null, first.timetableId);
+    await page.locator("#timetableList article").filter({hasText:"First"}).waitFor({state:"detached"});
+    check((await page.locator("#timetableList article").filter({hasText:"Renamed"}).count()) === 1, "deleting First preserves Renamed timetable card");
     check((await page.evaluate(() => AnyClassTimetableRepository.getActiveTimetable())).timetableId === second.timetableId, "inactive deletion preserves active");
-    await page.locator("#timetableList article").getByRole("button", {name:"删除"}).click();
+    await page.locator("#timetableList article").filter({hasText:"Renamed"}).getByRole("button", {name:"删除"}).click();
     await page.locator("#confirmDelete").click();
     await page.waitForSelector("#noTimetables:not([hidden])");
     check((await page.evaluate(() => AnyClassTimetableRepository.getActiveTimetable())) === null, "last deletion leaves null active");
@@ -192,8 +195,12 @@ const listen = () => new Promise(resolve => server.listen(0, "127.0.0.1", resolv
       const pointerFocus=await page.evaluate(()=>({active:document.activeElement?.id||document.activeElement?.textContent?.trim(),cancelVisible:document.querySelector("#deleteDialog [data-close-dialog]").matches(":focus-visible"),dialogOutline:getComputedStyle(document.querySelector("#deleteDialog")).outlineStyle}));
       check(pointerFocus.active==="deleteDialog"&&!pointerFocus.cancelVisible&&pointerFocus.dialogOutline==="none",`touch/pointer delete open has no Cancel focus ring ${width} ${dark}`);
       await page.locator("#deleteDialog [data-close-dialog]").click();
+      await page.locator("#deleteDialog").waitFor({state:"hidden"});
       const deleteTrigger=page.locator("#timetableList article").first().getByRole("button", {name:"删除"});
-      await deleteTrigger.focus();await deleteTrigger.press("Enter");
+      await deleteTrigger.focus();
+      await page.keyboard.press("Tab");
+      await page.keyboard.press("Shift+Tab");
+      await page.keyboard.press("Enter");
       const keyboardFocus=await page.evaluate(()=>({label:document.activeElement?.textContent?.trim(),visible:document.activeElement?.matches(":focus-visible"),outline:getComputedStyle(document.activeElement).outlineStyle}));
       check(keyboardFocus.label==="取消"&&keyboardFocus.visible&&keyboardFocus.outline!=="none",`keyboard delete open keeps visible focus ${width} ${dark}`);
       await page.keyboard.press("Shift+Tab");

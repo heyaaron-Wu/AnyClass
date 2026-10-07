@@ -1,11 +1,12 @@
 (function (root) {
   "use strict";
-  const ID = "zhengfang-v9", VERSION = "legacy-v1", FAMILY = "zhengfang";
+  const ID = "zhengfang-v9", VERSION = "legacy-v1", FAMILY = "zhengfang",INTERFACE_VERSION=1,MAX_INPUT_BYTES=2000000,MAX_MEETINGS=1000;
+  const primitives=root.AnyClassAdapterPrimitives||(typeof require==="function"?require("./parsing-primitives.js"):null);
   const TABLE = "table#kbgrid_table_0", BLOCK = ".timetable_con";
   const compact = value => String(value == null ? "" : value).replace(/\s+/g, " ").trim();
   const fail = code => { const error = new Error(code); error.code = code; throw error; };
   const parseDocument = html => {
-    if (typeof html !== "string" || !html.trim() || html.length > 2000000) fail("SOURCE_VALIDATION_FAILED");
+    if (typeof html !== "string" || !html.trim() || new TextEncoder().encode(html).length > MAX_INPUT_BYTES) fail("SOURCE_VALIDATION_FAILED");
     if (/<\s*\/?\s*(?:script|iframe|frame|img|link|style|object|embed|source|video|audio|form|input|button|meta|base)\b/i.test(html) || /\s(?:src|href|srcset|poster|background)\s*=/i.test(html) || /\son[a-z][a-z0-9_-]*\s*=/i.test(html) || /javascript\s*:/i.test(html)) fail("SOURCE_VALIDATION_FAILED");
     if (typeof root.DOMParser !== "function") fail("DOM_PARSER_UNAVAILABLE");
     return new root.DOMParser().parseFromString(html, "text/html");
@@ -35,6 +36,7 @@
     return Object.freeze({outcome, family: FAMILY, version: VERSION, confidence, adapterId: ID, evidenceCodes, schoolProfileCandidates: []});
   };
   const parseWeeks = expression => {
+    if(primitives){const value=primitives.parseWeeks(expression);if(!value)fail("PARSER_FAILED");return value}
     const normalized = compact(expression).replace(/[（]/g, "(").replace(/[）]/g, ")").replace(/\s+/g, "").replace(/[，、；;]/g, ",");
     if (!normalized) fail("PARSER_FAILED");
     const weeks = [];
@@ -99,7 +101,7 @@
         blockIndex += 1;
       }
     }
-    if (meetings.length !== allBlocks.length) fail("PARSER_FAILED");
+    if (meetings.length !== allBlocks.length||meetings.length>MAX_MEETINGS) fail("PARSER_FAILED");
     return Object.freeze({meetings, diagnostics: Object.freeze({adapterId: ID, adapterVersion: VERSION, profileId: profile.id, profileVersion: profile.profileVersion, parseCount: meetings.length, inheritedTitles, adjustedBlocks})});
   };
   const normalizeCompatibilityDataset = (dataset, profile) => {
@@ -107,7 +109,7 @@
     if (!profile || dataset.school?.id !== profile.id) fail("UNSUPPORTED_SYSTEM");
     return Object.freeze({source: Object.freeze({systemFamily: FAMILY, adapterId: ID, adapterVersion: VERSION, schoolId: profile.id, profileVersion: profile.profileVersion}), semester: Object.freeze({academicYear: String(dataset.semester.academicYear), termCode: String(dataset.semester.term)}), meetings: dataset.meetings});
   };
-  const adapter = Object.freeze({id: ID, family: FAMILY, version: VERSION, integrity: "bundled", captureRequirements: Object.freeze({captureVersion: 1, required: Object.freeze(["tableHtml", "semesterSource.xnm", "semesterSource.xqm"])}), compatibility: Object.freeze({captureVersions: Object.freeze([1])}), captureSignals, detect, extractSemester, normalizeCompatibilityDataset, parse, parseWeeks, validateSource});
+  const adapter = Object.freeze({interfaceVersion:INTERFACE_VERSION,id:ID,systemFamily:"ZhengFang V9",family:FAMILY,version:VERSION,supportedCaptureVersions:Object.freeze([1]),limits:Object.freeze({maxInputBytes:MAX_INPUT_BYTES,maxMeetings:MAX_MEETINGS}),integrity:"bundled",captureRequirements:Object.freeze({captureVersion:1,required:Object.freeze(["tableHtml","semesterSource.xnm","semesterSource.xqm"])}),compatibility:Object.freeze({captureVersions:Object.freeze([1])}),captureSignals,detect,extractSemester,normalizeCompatibilityDataset,parse,parseWeeks,validateCapture:validateSource,validateSource});
   root.AnyClassZhengFangV9Adapter = adapter;
   if (typeof module === "object" && module.exports) module.exports = adapter;
 })(typeof globalThis !== "undefined" ? globalThis : this);

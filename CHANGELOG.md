@@ -18,8 +18,8 @@ AnyClass 的用户可见版本更新记录。仅记录正式发布或已部署�
 - Hosted Production 已升级到 **v0.2.1**。
 - Production 正式版本身份已从 Beta 元数据切换为稳定版 `0.2.1`。
 - Beta 与 Production 保持独立发布身份。
-- 对应 GitHub v0.2.x 源码 Release 尚未发布；当前 GitHub 已正式发布的源码 Release 仍为 v0.1.1。
-- 当前 `main` 仍是较早的公开源码基线，尚未与 Hosted Production v0.2.1 完成源码等价对齐。
+- `main` 包含已对齐的公开 v0.2.1 源码基线；源码 Release 身份与 Hosted Production 的部署 Build 身份保持独立。
+- GitHub v0.2.1 Release 尚未发布；当前 GitHub 已正式发布的最新源码 Release 为 v0.2.0。
 
 ## [0.2.0] - 2026-09-30
 

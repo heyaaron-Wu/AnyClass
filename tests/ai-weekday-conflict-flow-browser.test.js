@@ -24,9 +24,12 @@ try{
     await page.locator("#fileConflictDetails summary").tap();
     assert.equal(await page.locator("#fileConflictItems .file-conflict-item").count(),2,"Alpha overlaps Beta and Gamma independently");
     const first=page.locator("#fileConflictItems .file-conflict-item").filter({hasText:"Course Beta"}).first();
-    const editHit=await first.getByRole("button",{name:"编辑课程 B"}).evaluate(button=>{const rect=button.getBoundingClientRect(),target=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2),dock=document.querySelector(".shell-bottom-nav")?.getBoundingClientRect();return {hit:target===button||button.contains(target),dockOverlap:!!dock&&rect.bottom>dock.top&&rect.top<dock.bottom,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth}});
-    assert(editHit.hit&&!editHit.dockOverlap&&!editHit.overflow,`${width}px first conflict action reachable`);
-    await first.getByRole("button",{name:"编辑课程 B"}).tap();
+    const firstEdit=first.getByRole("button",{name:"编辑课程 B"});
+    assert(await first.evaluate(card=>card.classList.contains("file-conflict-item")&&card.textContent.includes("Course Beta")),`${width}px action remains in the correct semantic conflict block`);
+    await firstEdit.scrollIntoViewIfNeeded();
+    const editHit=await firstEdit.evaluate(button=>{const rect=button.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,target=document.elementFromPoint(x,y),dock=document.querySelector(".shell-bottom-nav")?.getBoundingClientRect();return {centerInside:x>=0&&x<=innerWidth&&y>=0&&y<=innerHeight,hit:target===button||button.contains(target),dockOverlap:!!dock&&rect.bottom>dock.top&&rect.top<dock.bottom,overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth}});
+    assert(editHit.centerInside&&editHit.hit&&!editHit.dockOverlap&&!editHit.overflow,`${width}px first conflict action reachable after ordinary scrolling`);
+    await firstEdit.tap();
     assert.equal(await page.locator("#filePendingWeekday").inputValue(),"1");
     await page.locator("#filePendingCancel").tap();
     assert(await page.locator("#fileConflictDetails").evaluate(node=>node.open),"cancel returns to expanded conflict review");

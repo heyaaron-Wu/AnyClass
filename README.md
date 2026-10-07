@@ -37,7 +37,7 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 线上 Hosted Production 当前为 **v0.2.1**。GitHub 已正式发布 [**v0.2.0**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0) 源码 Release。当前仓库 `main` 暂时对应 **v0.2.0 公开源码基线**；v0.2.1 源码 Release 尚未发布。
+> 线上 Hosted Production 当前为 **v0.2.1**。GitHub 已正式发布 [**v0.2.0**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0) 源码 Release。当前仓库 `main` 包含已对齐的 **v0.2.1 公开源码基线**；v0.2.1 源码 Release 尚未发布。源码 Release 身份与 Hosted Production 的部署 Build 身份相互独立。
 
 ## 功能
 
@@ -116,7 +116,7 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
 
-> **仓库源码状态：** 当前 `main` 暂时对应 v0.2.0 公开源码基线，与线上 v0.2.1 Production 的部署身份相互独立。GitHub v0.2.0 源码 Release 已发布；v0.2.1 源码 Release 尚未发布。
+> **仓库源码状态：** 当前 `main` 包含已对齐的 AnyClass v0.2.1 公开源码基线。GitHub v0.2.0 源码 Release 已发布；v0.2.1 源码 Release 尚未发布。源码身份为 `v0.2.1`，Hosted Production 使用独立的部署 Build 身份。
 
 ## 贡献
 

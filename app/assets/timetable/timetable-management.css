@@ -1,7 +1,7 @@
 .timetable-switcher{display:flex;align-items:center;gap:12px;max-width:100%;margin-bottom:16px;flex-wrap:wrap}
 .timetable-switcher label{font-weight:700;color:var(--shell-ink)}
 .timetable-switcher select{min-width:0;width:min(280px,100%);max-width:100%;padding:10px 12px;border:1px solid var(--shell-line);border-radius:12px;background:var(--shell-glass-strong);color:var(--shell-ink);font:inherit}
-.timetable-switcher [data-switch-status]{display:inline-block;min-inline-size:7.5em;min-block-size:1.4em;opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease}
+.timetable-switcher [data-switch-status]{display:inline-block;min-inline-size:7.5em;min-block-size:1.4em;opacity:0;visibility:hidden;transition:opacity var(--motion-feedback) var(--ease-standard),visibility var(--motion-feedback) var(--ease-standard)}
 .timetable-switcher [data-switch-status].is-visible{opacity:1;visibility:visible}
 @media(prefers-reduced-motion:reduce){.timetable-switcher [data-switch-status]{transition:none}}
 .timetable-switcher a{color:var(--shell-ink)}
@@ -23,7 +23,7 @@
 .timetable-manager-dialog h2{margin-top:0}
 .timetable-manager-dialog input{box-sizing:border-box;min-width:0;width:100%;padding:12px;border:1px solid var(--shell-line);border-radius:10px;background:var(--shell-glass-strong);color:var(--shell-ink);font:inherit}
 .timetable-manager-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
-.timetable-manager-status{min-height:1.5em;transition:opacity .18s ease,visibility .18s ease}
+.timetable-manager-status{min-height:1.5em;transition:opacity var(--motion-feedback) var(--ease-standard),visibility var(--motion-feedback) var(--ease-standard)}
 .timetable-manager-status.is-expired{opacity:0;visibility:hidden}
 @media(prefers-reduced-motion:reduce){.timetable-manager-status{transition:none}}
 .timetable-manager-empty p{margin-bottom:8px}

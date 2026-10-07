@@ -4,7 +4,12 @@ const {chromium}=require("playwright"),site=path.resolve(__dirname,"../app"),out
 const executablePath=[path.join(process.env.LOCALAPPDATA||"","Google","Chrome","Application","chrome.exe"),path.join(process.env["PROGRAMFILES(X86)"]||"","Microsoft","Edge","Application","msedge.exe")].find(fs.existsSync);
 const fixture=JSON.parse(fs.readFileSync(path.join(__dirname,"fixtures/ai-visual-timetable-synthetic.json"),"utf8")).importPayload;
 const columnShift=JSON.parse(fs.readFileSync(path.join(__dirname,"fixtures/ai-weekday-column-shift-synthetic.json"),"utf8"));
-const retainAll=async page=>{for(const group of await page.locator("#fileConflictItems .file-conflict-group").all())await group.locator("summary").click();for(const button of await page.locator("#fileConflictItems .file-conflict-item button").filter({hasText:"确认这是真实冲突，保留两者"}).all())await button.click()};
+const retainAll=async page=>{
+  for(const group of await page.locator("#fileConflictItems .file-conflict-group").all()){
+    if(!await group.evaluate(node=>node.open))await group.locator("summary").click();
+  }
+  for(const button of await page.locator("#fileConflictItems .file-conflict-item button:visible").filter({hasText:"确认这是真实冲突，保留两者"}).all())await button.click();
+};
 const server=http.createServer((req,res)=>{let name=decodeURIComponent(new URL(req.url,"http://local").pathname);if(name.endsWith("/"))name+="index.html";const file=path.resolve(site,"."+name);if(!file.startsWith(site+path.sep)||!fs.existsSync(file)){res.writeHead(404);res.end();return}res.writeHead(200,{"content-type":file.endsWith(".js")?"application/javascript":file.endsWith(".css")?"text/css":"text/html"});res.end(fs.readFileSync(file))});
 const variants=[[390,"light"],[390,"dark"],[430,"light"],[430,"dark"],[1024,"light"],[1024,"dark"],[1440,"light"],[1440,"dark"]];
 (async()=>{
@@ -51,6 +56,7 @@ const variants=[[390,"light"],[390,"dark"],[430,"light"],[430,"dark"],[1024,"lig
         assert.equal(await page.locator("#conflictGroupItems button").count(),3);
         await page.locator("#conflictGroupDialog").screenshot({path:path.join(out,`conflict-group-detail-${width}-${theme}.png`)});
         await page.locator("#conflictGroupItems button").first().click();
+        await page.locator("#courseDialog[open]").waitFor();
         assert(await page.locator("#courseDialog").isVisible());
         if(width===1024&&theme==="light"){
           await page.locator("#closeDialog").click();

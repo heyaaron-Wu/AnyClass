@@ -3,7 +3,7 @@
 <head>
   <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
-  <meta name="anyclass-release" content="v020-import-v02-channel-repair-20260929-224025">
+  <meta name="anyclass-release" content="v0.2.1">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
@@ -36,8 +36,8 @@
     </section>
     <section class="panel about-version">
       <h2>版本信息</h2>
-      <dl class="product-version-list"><dt>产品</dt><dd>AnyClass 当前版本</dd><dt>本机数据库版本</dt><dd id="localDatabaseVersion">—</dd></dl>
-      <details class="shell-disclosure about-advanced"><summary>高级信息</summary><dl><dt>Build</dt><dd>closure-reopen-20260918</dd></dl></details>
+      <dl class="product-version-list"><dt>产品</dt><dd>AnyClass</dd><dt>Version</dt><dd id="productVersion">Unavailable</dd><dt>本机数据库版本</dt><dd id="localDatabaseVersion">—</dd></dl>
+      <details class="shell-disclosure about-advanced"><summary>高级信息</summary><dl><dt>Build</dt><dd id="productBuild">Unavailable</dd></dl></details>
       <h3 class="about-project-heading">项目链接</h3>
       <div class="settings-link-list">
         <a id="aboutGithubLink" class="settings-link-row about-repo-link" href="https://github.com/heyaaron-Wu/AnyClass" target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开 AnyClass GitHub 开源项目">
@@ -48,8 +48,9 @@
     </section>
   </div>
 </main>
+<script src="/assets/timetable/release-metadata.js"></script>
 <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
 <script src="/assets/timetable/storage-v2.js"></script>
-<script>document.getElementById("localDatabaseVersion").textContent=String(AnyClassStorageV2.DB_VERSION);</script>
+<script>document.getElementById("localDatabaseVersion").textContent=String(AnyClassStorageV2.DB_VERSION);const release=window.AnyClassReleaseMetadata;if(release){document.getElementById("productVersion").textContent=release.productVersion;document.getElementById("productBuild").textContent=release.releaseId}else{console.warn("ANYCLASS_RELEASE_METADATA_UNAVAILABLE")}</script>
 </body>
 </html>

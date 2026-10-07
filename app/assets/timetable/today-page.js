@@ -157,6 +157,7 @@
         $("addCourseEmpty").hidden = !active;
         $("createTimetableEmpty").hidden = Boolean(active);
         showEmptyState();
+        if (switching) AnyClassMotion.reveal($("emptyState"));
         return;
       }
       dataset = nextDataset;
@@ -168,6 +169,7 @@
       $("emptyState").hidden = true;
       $("storageError").hidden = true;
       $("app").hidden = false;
+      if (switching) AnyClassMotion.reveal($("app"));
       if (animateEntry && !entered) {
         entered = true;
         firstEntryPending = false;

@@ -34,7 +34,7 @@
     for(const item of result.orphanedOccurrenceOverrides||[]){const card=node("article","reimport-review-card reimport-review-blocked"),detail=[item.nominalDate?`原定 ${item.nominalDate}${item.week?`（第 ${item.week} 周）`:""}`:"",item.modifiedDate?`你改到了 ${item.modifiedDate}`:"",item.modifiedStartPeriod?`第 ${item.modifiedStartPeriod}${item.modifiedEndPeriod?`–${item.modifiedEndPeriod}`:""} 节`:""].filter(Boolean).join("，");card.append(node("h3","",`${item.courseTitle||"一门课程"}的一次课需要进一步核对`),node("p","",`原来修改过的一次课无法安全对应到最新课表。${detail?`${detail}。`:""}本次更新不能继续；请取消并检查来源。`));list.append(card);}
     for(const item of result.invalidatedGroupings||[]){const card=node("article","reimport-review-card reimport-review-blocked");card.append(node("h3","","课程分组需要进一步核对"),node("p","",`${groupingReasons[item.reason]||"课程安排发生变化"}。为保护你的分组，本次更新暂不能继续。`));list.append(card);}
     for(const item of result.conflicts.filter(value=>value.type!=="FIELD_CONFLICT")){const card=node("article","reimport-review-card reimport-review-blocked");card.append(node("h3","","课程对应关系需要进一步核对"),node("p","","来源中的课程与已有课程无法安全对应。本次更新不会修改现有课表。"));list.append(card);}
-    updateProgress();root.hidden=false;document.body.classList.add("reimport-review-active");root.scrollIntoView({block:"start",behavior:"instant"});root.querySelector("h2")?.focus();
+    updateProgress();root.hidden=false;document.body.classList.add("reimport-review-active");window.AnyClassMotion?.reveal?.(root);root.scrollIntoView({block:"start",behavior:"instant"});root.querySelector("h2")?.focus();
   };
   const attempt=async options=>{
     session.busy=true;updateProgress();reveal("");

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceVersion": "0.2.0",
+  "sourceVersion": "0.2.0-dev.0",
   "sourceReleaseId": "v020-import-v02-channel-repair-20260929-224025",
   "productionReleaseId": "v020-production-20260930-005312",
   "productionApplicationFileCount": 87,

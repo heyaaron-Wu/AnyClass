@@ -4,6 +4,7 @@ const root=path.resolve(__dirname,".."),site=path.join(root,"app"),read=relative
 const allFiles=(directory,out=[])=>{for(const entry of fs.readdirSync(directory,{withFileTypes:true})){const absolute=path.join(directory,entry.name);entry.isDirectory()?allFiles(absolute,out):out.push(absolute)}return out};
 const publicText=allFiles(site).filter(file=>/\.(?:html|js|json|txt|md|css)$/i.test(file)).map(file=>fs.readFileSync(file,"utf8")).join("\n");
 const config=read("assets/timetable/school-config.js"),contract=read("assets/timetable/school-profile.js"),adapter=read("assets/adapters/zhengfang-v9.js"),bookmarklet=read("assets/timetable/bookmarklet.txt"),importPage=read("import/index.html"),shell=read("assets/timetable/product-shell.js"),normalizedImport=read("assets/timetable/normalized-import.js");
+for(const file of ["assets/adapters/timetable-adapter-contract.js","assets/adapters/adapter-diagnostics.js","assets/adapters/parsing-primitives.js","assets/adapters/public-profile-factory.js"])assert(fs.existsSync(path.join(site,file)),`public adapter architecture ${file}`);
 assert(config.includes('id:"school-demo"')&&config.includes('displayName:"Example University"')&&config.includes('"https://jw.example.edu"'),"synthetic profile");
 assert(contract.includes("AnyClassSchoolProfileRegistry")&&contract.includes("matchOrigin"),"SchoolProfile contract");
 assert(!/AnyClassSchoolProfiles\.[A-Za-z0-9_-]+|TimetableSchoolConfigs\.[A-Za-z0-9_-]+/.test(adapter),"adapter imports concrete profile");
@@ -11,6 +12,7 @@ assert(adapter.includes("schoolProfileCandidates: []"),"generic adapter detectio
 assert(bookmarklet.includes("SOURCE_ORIGIN=location.origin")&&!bookmarklet.includes("jw.example.edu"),"generic bookmarklet source boundary");
 assert(importPage.includes("profileRegistry.matchOrigin(event.origin,p.source?.system)"),"receiver profile negotiation");
 assert(normalizedImport.includes("AnyClassNormalizedImport")&&importPage.includes("AnyClassNormalizedImport.create"),"normalized bookmarklet boundary");
+assert(importPage.includes("AnyClassAdapterRegistry.invoke")&&importPage.includes("AnyClassPublicProfileFactory.create"),"registry-isolated shared preview pipeline");
 assert(read("assets/timetable/import-file-core.js").includes("AnyClassNormalizedImport.create"),"normalized file boundary");
 assert(!fs.existsSync(path.join(site,"import-mobile"))&&!fs.existsSync(path.join(site,"import-file")),"retired routes remain absent");
 for(const value of ["高级设置 / 手动安装","手动配置","ios-shortcut-parser-shortcut.txt"])assert(!importPage.includes(value),`obsolete import copy ${value}`);

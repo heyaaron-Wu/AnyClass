@@ -50,6 +50,12 @@ const server = http.createServer((req,res)=>{
   res.end(fs.readFileSync(file));
 });
 const fixture = id => ({schemaVersion:1,school:{id,name:"Example University"},semester:{academicYear:"2026-2027",term:"1"},meetings:Array.from({length:29},(_,index)=>({courseName:`Course ${index+1}`,weekday:index%5+1,startPeriod:1,endPeriod:2,weeks:[1,2,3,4,5],teacher:"Teacher A",locationRaw:"Building A101"}))});
+async function confirmAllVisibleConflicts(page){
+  const buttons=page.locator("#fileConflictItems button").filter({hasText:"确认这是真实冲突，保留两者"});
+  const count=await buttons.count();
+  assert(count<500,"unexpected conflict confirmation count");
+  for(let index=0;index<count;index++)await buttons.nth(index).evaluate(button=>button.click());
+}
 async function previewFile(page,id){
   await page.goto(`${base}/import/?method=file`);
   await page.locator("#fileInput").setInputFiles({name:"synthetic.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(fixture(id)))});
@@ -63,13 +69,13 @@ async function previewFile(page,id){
     await page.locator("#fileConflictDetails > summary").click();
     assert.match(await page.locator("#fileConflictItems").innerText(),/重叠/);
     await page.locator("#fileConflictItems .file-conflict-group").evaluateAll(groups=>groups.forEach(group=>{group.open=true}));
-    for(const button of await page.locator("#fileConflictItems button").filter({hasText:"确认这是真实冲突，保留两者"}).all())await button.click();
+    await confirmAllVisibleConflicts(page);
     await page.locator("#fileConflictConfirm").check();
     await page.locator("#fileConflictDetails > summary").click();
   }
   assert.equal(await page.locator("#filePreview").getAttribute("data-import-state"),"PREVIEW_READY");
 }
-async function acknowledgeConflicts(page){if(await page.locator("#fileConflictReview").isVisible()&&!await page.locator("#fileConflictConfirm").isChecked()){await page.locator("#fileConflictDetails > summary").click();assert.match(await page.locator("#fileConflictItems").innerText(),/重叠/);await page.locator("#fileConflictItems .file-conflict-group").evaluateAll(groups=>groups.forEach(group=>{group.open=true}));for(const button of await page.locator("#fileConflictItems button").filter({hasText:"确认这是真实冲突，保留两者"}).all())await button.click();await page.locator("#fileConflictConfirm").check();await page.locator("#fileConflictDetails > summary").click();}}
+async function acknowledgeConflicts(page){if(await page.locator("#fileConflictReview").isVisible()&&!await page.locator("#fileConflictConfirm").isChecked()){await page.locator("#fileConflictDetails > summary").click();assert.match(await page.locator("#fileConflictItems").innerText(),/重叠/);await page.locator("#fileConflictItems .file-conflict-group").evaluateAll(groups=>groups.forEach(group=>{group.open=true}));await confirmAllVisibleConflicts(page);await page.locator("#fileConflictConfirm").check();await page.locator("#fileConflictDetails > summary").click();}}
 async function assertToday(page){
   await page.waitForURL(`${base}/today/`);
   await waitForApp(page, "import-to-today");

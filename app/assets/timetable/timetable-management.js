@@ -26,6 +26,7 @@
     return node;
   };
   const completeOnboarding = () => { try { localStorage.setItem("anyclass.onboardingCompleted", "1"); } catch (_) {} };
+  const closeDialog = dialog => globalThis.AnyClassMotion?.closeDialog ? globalThis.AnyClassMotion.closeDialog(dialog) : Promise.resolve((dialog.close(), true));
   const notify = () => AnyClassShell.dispatchTimetableUpdated({reason:"timetable-management"});
   const restoreFocus = () => { if (returnFocus?.isConnected) returnFocus.focus(); else $("createTimetable").focus(); };
   async function render() {
@@ -76,7 +77,7 @@
   }
   $("createTimetable").addEventListener("click", event => openName(event.currentTarget));
   for (const dialog of [$("nameDialog"), $("deleteDialog")]) {
-    dialog.querySelector("[data-close-dialog]").addEventListener("click", () => dialog.close());
+    dialog.querySelector("[data-close-dialog]").addEventListener("click", () => { void closeDialog(dialog); });
     dialog.addEventListener("keydown", event => {
       if (event.key !== "Tab" || !dialog.open) return;
       const focusable = [...dialog.querySelectorAll("button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]")].filter(node => node.getClientRects().length);
@@ -96,7 +97,7 @@
     busy = true;
     try {
       await repo.createTimetable({label:name}); completeOnboarding();
-      $("nameDialog").close();
+      await closeDialog($("nameDialog"));
       await render();
       notify();
       message("已创建课表。");
@@ -109,11 +110,11 @@
     try {
       await repo.deleteTimetable(deletingId);
       completeOnboarding();
-      $("deleteDialog").close();
+      await closeDialog($("deleteDialog"));
       await render();
       notify();
       message("已删除课表及其本机课程数据。");
-    } catch (_) { message("删除失败，课表未被移除。请重试。"); $("deleteDialog").close(); }
+    } catch (_) { message("删除失败，课表未被移除。请重试。"); await closeDialog($("deleteDialog")); }
     finally { busy = false; }
   });
   addEventListener("pagehide", clearSwitchNoticeTimer);

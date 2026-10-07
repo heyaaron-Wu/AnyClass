@@ -18,6 +18,8 @@
   let selectedCourseId = null;
   let selectedOccurrenceId = null;
   let editingBusy = false;
+  const closeDialog = dialog => AnyClassMotion?.closeDialog ? AnyClassMotion.closeDialog(dialog) : Promise.resolve((dialog.close(), true));
+  const reveal = node => { if (node && !node.hidden) AnyClassMotion?.reveal?.(node); };
 
 
   const syncVisiblePeriodConfig = weekOccurrences => {
@@ -78,6 +80,7 @@
     selectedCourseId = item.meeting.courseId || null;
     selectedOccurrenceId = item.finalOccurrenceId || null;
     $("dialogAdjusted").hidden = !item.meeting.isAdjusted;
+    $("dialogStatusRow").hidden = !item.meeting.isAdjusted;
     $("courseEditForm").hidden = true;
     $("courseDetailView").hidden = false;
     if (selectedCourseId) renderCourseDetail();
@@ -90,9 +93,7 @@
       $("dialogDetails").replaceChildren(detailRow("星期", days[item.weekday - 1]),detailRow("节次", TimetableTodayView.periodLabel(item.meeting)),detailRow("时间", item.startText && item.endText ? `${item.startText}–${item.endText}` : "尚未设置"),detailRow("周次", `${item.meeting.weeks.join("、")}周`),detailRow("地点", item.meeting.locationRaw),detailRow("教师", item.meeting.teacher),detailRow("备注", item.meeting.notes));
     }
     const dialog = $("courseDialog");
-    delete dialog.dataset.closing;
-    dialog.showModal();
-    $("closeDialog").focus({preventScroll: true});
+    AnyClassMotion.openDialog(dialog,{focus:$("closeDialog")});
   };
 
   const resolvedCourses=()=>{
@@ -199,6 +200,7 @@
     $("courseEditError").hidden=true;
     $("courseDetailView").hidden=true;
     $("courseEditForm").hidden=false;
+    reveal($("courseEditForm"));
     $("edit-title").focus();
   };
   const occurrenceBaseline=()=>{
@@ -230,7 +232,7 @@
       wrap.append(head,input);fields.append(wrap);
     }
     fields.oninput=updateOccurrenceWarnings;fields.onchange=updateOccurrenceWarnings;
-    $("occurrenceEditError").hidden=true;$("courseDetailView").hidden=true;$("occurrenceEditForm").hidden=false;updateOccurrenceWarnings();$("occurrence-title").focus();
+    $("occurrenceEditError").hidden=true;$("courseDetailView").hidden=true;$("occurrenceEditForm").hidden=false;reveal($("occurrenceEditForm"));updateOccurrenceWarnings();$("occurrence-title").focus();
   };
   const readCourseDraft = (container = $("courseEditForm")) => {
     const value = field => container.querySelector(`[data-edit-field="${field}"]`).value;
@@ -295,7 +297,7 @@
       const details=el("p",null,`新课程：第 ${item.newCourse.startPeriod}–${item.newCourse.endPeriod} 节${item.newCourse.location ? ` · ${item.newCourse.location}` : ""}；已有课程：第 ${item.existing.startPeriod}–${item.existing.endPeriod} 节${typeof item.existing.location==="string"&&item.existing.location ? ` · ${item.existing.location}` : ""}`);
       card.append(newName,existingName,time,details);list.append(card);
     }
-    $("createCourseForm").hidden=true;$("createConflictReview").hidden=false;$("createConflictError").hidden=true;
+    $("createCourseForm").hidden=true;$("createConflictReview").hidden=false;reveal($("createConflictReview"));$("createConflictError").hidden=true;
     $("createConflictTitle").focus();
   };
   const commitCreate = async (entry, errorNode = $("createCourseError")) => {
@@ -305,7 +307,7 @@
       const active=await AnyClassTimetableRepository.getActiveTimetable();
       if (active?.timetableId!==entry.timetableId) throw Error("MANUAL_COURSE_ACTIVE_OWNER_CONFLICT");
       await AnyClassTimetableRepository.createManualCourse(entry.timetableId,entry.draft,entry.context);
-      pendingCreate=null;$("createCourseDialog").close();
+      pendingCreate=null;await closeDialog($("createCourseDialog"));
       await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"manual-course-create"});
     } catch (error) {
       const code=String(error?.message||"");
@@ -334,19 +336,9 @@
 
   const closeCourse = () => {
     const dialog = $("courseDialog");
-    if (!dialog.open || dialog.dataset.closing === "true") return;
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      dialog.close();
-      return;
-    }
-    dialog.dataset.closing = "true";
-    const body = dialog.querySelector(".dialog-body");
-    body.addEventListener("animationend", event => {
-      if (event.animationName !== "shell-sheet-exit") return;
-      dialog.close();
-      delete dialog.dataset.closing;
-    }, {once: true});
+    void AnyClassMotion.closeDialog(dialog);
   };
+  AnyClassMotion.enableSheetDismiss($("courseDialog"),{scrollContainer:$("courseDialog").querySelector(".dialog-body"),close:()=>AnyClassMotion.closeDialog($("courseDialog"))});
 
   const cardContent = (item, isCurrent) => {
     const fragment = document.createDocumentFragment();
@@ -374,7 +366,7 @@
       const button = el("button","conflict-group-item");
       button.type = "button";
       button.append(el("strong",null,item.meeting.courseName || "未命名课程"),el("span",null,`${TimetableTodayView.periodLabel(item.meeting)} · ${TimetableTodayView.normalizeDisplayLocation(item.meeting.locationRaw) || "地点未提供"}`));
-      button.addEventListener("click",()=>{$("conflictGroupDialog").close();openCourse(item)});
+      button.addEventListener("click",async()=>{await closeDialog($("conflictGroupDialog"));openCourse(item)});
       list.append(button);
     }
     $("conflictGroupTitle").textContent = `${group.items.length} 门课程时间冲突`;
@@ -543,48 +535,49 @@
     }
   };
 
-  $("previous").addEventListener("click", () => { selectedWeek -= 1; render(); });
-  $("next").addEventListener("click", () => { selectedWeek += 1; render(); });
+  const renderWeekChange=()=>{render();reveal($("weekGrid"));reveal($("mobileWeekList"))};
+  $("previous").addEventListener("click", () => { selectedWeek -= 1; renderWeekChange(); });
+  $("next").addEventListener("click", () => { selectedWeek += 1; renderWeekChange(); });
   $("returnNow").addEventListener("click", () => {
     const now = new Date();
     selectedWeek = TimetableCore.currentWeek(now, config);
-    render();
+    renderWeekChange();
   });
   $("closeDialog").addEventListener("click", closeCourse);
-  $("closeConflictGroup").addEventListener("click",()=>$("conflictGroupDialog").close());
+  $("closeConflictGroup").addEventListener("click",()=>{void closeDialog($("conflictGroupDialog"))});
   $("editCourse").addEventListener("click",openCourseEditor);
   $("editOccurrence").addEventListener("click",()=>openOccurrenceEditor(false));
   $("cancelOccurrence").addEventListener("click",()=>openOccurrenceEditor(true));
-  $("cancelOccurrenceEdit").addEventListener("click",()=>{$("occurrenceEditForm").hidden=true;$("courseDetailView").hidden=false;$("editOccurrence").focus()});
+  $("cancelOccurrenceEdit").addEventListener("click",()=>{$("occurrenceEditForm").hidden=true;$("courseDetailView").hidden=false;reveal($("courseDetailView"));$("editOccurrence").focus()});
   $("occurrenceEditForm").addEventListener("submit",async event=>{
     event.preventDefault();if(editingBusy||!selectedCourseId||!selectedOccurrenceId)return;
     editingBusy=true;$("saveOccurrenceEdit").disabled=true;$("occurrenceEditError").hidden=true;
-    try{const draft=occurrenceDraft();await AnyClassTimetableRepository.saveOccurrenceOverride(selectedOccurrenceId,selectedCourseId,draft);const cancelled=draft.cancelled;await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"occurrence-override"});$("occurrenceEditForm").hidden=true;$("courseDetailView").hidden=false;if(cancelled)$("courseDialog").close();else renderCourseDetail()}
+    try{const draft=occurrenceDraft();await AnyClassTimetableRepository.saveOccurrenceOverride(selectedOccurrenceId,selectedCourseId,draft);const cancelled=draft.cancelled;await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"occurrence-override"});$("occurrenceEditForm").hidden=true;$("courseDetailView").hidden=false;if(cancelled)await closeDialog($("courseDialog"));else{renderCourseDetail();reveal($("courseDetailView"))}}
     catch(error){const code=String(error?.message||"");$("occurrenceEditError").textContent=code.includes("DATE")?"请选择有效日期。":code.includes("PERIOD")?"请选择有效的开始和结束节次。":code.includes("GROUP")?"合并节次请先取消合并。":code.includes("TITLE")?"课程名称不能为空。":"保存失败，原课程未被修改。";$("occurrenceEditError").hidden=false}
     finally{editingBusy=false;$("saveOccurrenceEdit").disabled=false}
   });
   $("groupCourse").addEventListener("click",openGroupCourse);
   $("groupCandidateList").addEventListener("change",updateGroupPreview);
-  $("closeGroupCourse").addEventListener("click",()=>$("groupCourseDialog").close());
-  $("cancelGroupCourse").addEventListener("click",()=>$("groupCourseDialog").close());
+  $("closeGroupCourse").addEventListener("click",()=>{void closeDialog($("groupCourseDialog"))});
+  $("cancelGroupCourse").addEventListener("click",()=>{void closeDialog($("groupCourseDialog"))});
   $("saveGroupCourse").addEventListener("click",async()=>{
     if(editingBusy || $("saveGroupCourse").disabled)return;
     editingBusy=true;$("saveGroupCourse").disabled=true;$("groupCourseError").hidden=true;
     try{
       const ids=[...$("groupCandidateList").querySelectorAll("input:checked")].map(input=>input.value);
       await AnyClassTimetableRepository.createSessionGroup(ids);
-      $("groupCourseDialog").close();$("courseDialog").close();
+      await closeDialog($("groupCourseDialog"));await closeDialog($("courseDialog"));
       await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"session-group-create"});
     }catch(error){$("groupCourseError").textContent=error.message.includes("DISPLAY")?"课程信息不一致，请先核对。":error.message.includes("PERIOD")?"节次不连续，请重新选择。":"合并失败，原课程未被修改。";$("groupCourseError").hidden=false;updateGroupPreview()}
     finally{editingBusy=false}
   });
   $("ungroupCourse").addEventListener("click",async()=>{
     if(editingBusy)return;editingBusy=true;$("ungroupCourse").disabled=true;
-    try{await AnyClassTimetableRepository.removeSessionGroup($("ungroupCourse").dataset.groupingId);$("courseDialog").close();await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"session-group-remove"})}
+    try{await AnyClassTimetableRepository.removeSessionGroup($("ungroupCourse").dataset.groupingId);await closeDialog($("courseDialog"));await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"session-group-remove"})}
     catch(_error){$("refreshNotice").textContent="取消合并失败，当前显示未修改。";$("refreshNotice").hidden=false}
     finally{editingBusy=false;$("ungroupCourse").disabled=false}
   });
-  $("cancelCourseEdit").addEventListener("click",()=>{$("courseEditForm").hidden=true;$("courseDetailView").hidden=false;$("editCourse").focus()});
+  $("cancelCourseEdit").addEventListener("click",()=>{$("courseEditForm").hidden=true;$("courseDetailView").hidden=false;reveal($("courseDetailView"));$("editCourse").focus()});
   $("courseEditForm").addEventListener("submit",async event=>{
     event.preventDefault();
     if (editingBusy || !selectedCourseId) return;
@@ -600,6 +593,7 @@
       $("courseEditForm").hidden=true;
       $("courseDetailView").hidden=false;
       renderCourseDetail();
+      reveal($("courseDetailView"));
       AnyClassShell.dispatchTimetableUpdated({reason:manual ? "manual-course-edit" : "course-override"});
       $("editCourse").focus();
     } catch (failure) {
@@ -611,10 +605,10 @@
   $("addCourse").addEventListener("click",openCreateCourse);
   $("addCourseEmpty").addEventListener("click",openCreateCourse);
   $("createCourseDialog").addEventListener("close",()=>{pendingCreate=null;$("createConflictReview").hidden=true;$("createCourseForm").hidden=false});
-  $("closeCreateCourse").addEventListener("click",()=>$("createCourseDialog").close());
-  $("cancelCreateCourse").addEventListener("click",()=>$("createCourseDialog").close());
-  $("cancelConflictCreate").addEventListener("click",()=>$("createCourseDialog").close());
-  $("reviseConflictCreate").addEventListener("click",()=>{pendingCreate=null;$("createConflictReview").hidden=true;$("createCourseForm").hidden=false;$("create-title").focus()});
+  $("closeCreateCourse").addEventListener("click",()=>{void closeDialog($("createCourseDialog"))});
+  $("cancelCreateCourse").addEventListener("click",()=>{void closeDialog($("createCourseDialog"))});
+  $("cancelConflictCreate").addEventListener("click",()=>{void closeDialog($("createCourseDialog"))});
+  $("reviseConflictCreate").addEventListener("click",()=>{pendingCreate=null;$("createConflictReview").hidden=true;$("createCourseForm").hidden=false;reveal($("createCourseForm"));$("create-title").focus()});
   const attachButton=el("button","button primary","添加上课时间到已有课程");attachButton.id="attachConflictCreate";attachButton.type="button";attachButton.hidden=true;$("confirmConflictCreate").before(attachButton);
   attachButton.addEventListener("click",()=>commitCreate(pendingCreate,$("createConflictError")));
   $("confirmConflictCreate").addEventListener("click",()=>commitCreate(pendingCreate,$("createConflictError")));
@@ -636,10 +630,10 @@
     finally{editingBusy=false;$("saveCreateCourse").disabled=false}
   });
   $("deleteManualCourse").addEventListener("click",()=>{$("deleteCourseError").hidden=true;$("deleteCourseDialog").showModal();$("cancelDeleteCourse").focus()});
-  $("cancelDeleteCourse").addEventListener("click",()=>$("deleteCourseDialog").close());
+  $("cancelDeleteCourse").addEventListener("click",()=>{void closeDialog($("deleteCourseDialog"))});
   $("confirmDeleteCourse").addEventListener("click",async()=>{
     if(editingBusy||!selectedCourseId)return;editingBusy=true;$("confirmDeleteCourse").disabled=true;
-    try{await AnyClassTimetableRepository.deleteManualCourse(selectedCourseId);$("deleteCourseDialog").close();$("courseDialog").close();selectedCourseId=null;await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"manual-course-delete"})}
+    try{await AnyClassTimetableRepository.deleteManualCourse(selectedCourseId);await closeDialog($("deleteCourseDialog"));await closeDialog($("courseDialog"));selectedCourseId=null;await refreshTimetableData();AnyClassShell.dispatchTimetableUpdated({reason:"manual-course-delete"})}
     catch(_error){$("deleteCourseError").textContent="删除失败，课程未被修改。";$("deleteCourseError").hidden=false}
     finally{editingBusy=false;$("confirmDeleteCourse").disabled=false}
   });
@@ -648,7 +642,7 @@
     closeCourse();
   });
   $("courseDialog").addEventListener("click", event => {
-    if (event.target === $("courseDialog")) closeCourse();
+    if (event.target === $("courseDialog") || event.target.matches?.("[data-course-dialog-scrim]")) closeCourse();
   });
 
   const refreshTimetableData = async (options = {}) => {
@@ -690,6 +684,7 @@
         AnyClassShell.setDataState(false);
         $("emptyState").hidden = false;
         $("app").hidden = true;
+        if (switching) AnyClassMotion.reveal($("emptyState"));
         return;
       }
       dataset = nextDataset;
@@ -703,6 +698,7 @@
       $("storageError").hidden = true;
       $("app").hidden = false;
       render();
+      if (switching) AnyClassMotion.reveal($("app"));
       requestAnimationFrame(() => {
         if (run !== refreshRevision) return;
         window.scrollTo({top: scrollY, behavior: "auto"});
