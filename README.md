@@ -37,7 +37,7 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 线上 Hosted Production 当前为 **v0.2.1**。GitHub 中已经正式发布的源码 Release 目前仍为 **v0.1.1**。当前仓库 `main` 暂时对应 **v0.2.0 公开源码基线**；GitHub 源码 Release 正按版本顺序补齐，v0.2.0 Release 尚未发布。
+> 线上 Hosted Production 当前为 **v0.2.1**。GitHub 已正式发布 [**v0.2.0**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0) 源码 Release。当前仓库 `main` 暂时对应 **v0.2.0 公开源码基线**；v0.2.1 源码 Release 尚未发布。
 
 ## 功能
 
@@ -110,13 +110,13 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 ## 开源状态
 
-**AnyClass v0.1.1 的公开源码 Release 已经发布。**
+**AnyClass v0.2.0 的公开源码 Release 已经发布：** [AnyClass v0.2.0](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0)
 
 **AnyClass v0.2.1 已部署到线上 Production；对应 GitHub 源码 Release 尚未发布。**
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
 
-> **仓库源码状态：** 当前 `main` 暂时对应 v0.2.0 公开源码基线，与线上 v0.2.1 Production 的部署身份相互独立。GitHub v0.2.0 与 v0.2.1 源码 Release 将按版本顺序另行发布。
+> **仓库源码状态：** 当前 `main` 暂时对应 v0.2.0 公开源码基线，与线上 v0.2.1 Production 的部署身份相互独立。GitHub v0.2.0 源码 Release 已发布；v0.2.1 源码 Release 尚未发布。
 
 ## 贡献
 

@@ -63,7 +63,7 @@ AnyClass 的用户可见版本更新记录。仅记录正式发布或已部署�
 ### 发布状态
 
 - Hosted Production 已部署 v0.2.0。
-- 对应 GitHub v0.2.0 源码 Release 尚未发布；当前 GitHub 已正式发布的源码 Release 仍为 v0.1.1。
+- GitHub v0.2.0 源码 Release 已于 2026-10-07 发布：[AnyClass v0.2.0](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0)。
 
 ## [0.1.1] - 2026-09-18
 
