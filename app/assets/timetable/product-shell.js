@@ -99,8 +99,8 @@
         body.removeEventListener("animationcancel", state.onCancel);
         dialogStates.delete(dialog);
         delete dialog.dataset.closing;
-        sheetDismissStates.get(dialog)?.closed?.();
         if (dialog.open) dialog.close(options.returnValue || "");
+        sheetDismissStates.get(dialog)?.closed?.();
         const restore = options.restoreFocus === false ? null : options.restoreFocus || dialog.__anyclassRestoreFocus;
         delete dialog.__anyclassRestoreFocus;
         if (restore?.isConnected) restore.focus({preventScroll:true});
