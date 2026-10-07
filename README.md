@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://anyclass.heyaaron.asia/">
-  <img src="assets/brand/anyclass-logo.svg" alt="AnyClass Logo" width="128" />
+  <img src="app/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass Logo" width="128" />
 </a>
 
 <h1>AnyClass / 有课吗</h1>
@@ -37,7 +37,7 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 当前线上 Production 已部署 **v0.2.1**。GitHub 中已经正式发布的源码 Release 目前仍为 **v0.1.1**。当前 `main` 仍是较早的公开源码基线，尚未与线上 v0.2.1 做源码等价同步；v0.2.x 源码 Release 会在仓库历史清理与源码基线对齐完成后单独发布。
+> 当前线上 Production 已部署 **v0.2.1**，`main` 包含已对齐的公开 v0.2.1 源码基线。GitHub 中已经正式发布的最新源码 Release 仍为 **v0.1.1**；GitHub v0.2.1 Release 尚未发布。源码 Release 身份与 Hosted Production 的部署 Build 身份相互独立。
 
 ## 功能
 
@@ -116,7 +116,7 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
 
-> **仓库源码状态：** 当前 `main` 不应被视为线上 v0.2.1 Production 的精确源码快照。线上版本与仓库源码基线完成对齐前，请不要仅凭当前 checkout 推断 Production 的具体实现版本。
+> **仓库源码状态：** 当前 `main` 包含已对齐的 AnyClass v0.2.1 公开源码基线。源码身份为 `v0.2.1`；Hosted Production 使用独立的部署 Build 身份，因此仓库源码身份不等同于某一次线上部署编号。
 
 ## 贡献
 

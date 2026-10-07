@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://anyclass.heyaaron.asia/">
-  <img src="assets/brand/anyclass-logo.svg" alt="AnyClass Logo" width="128" />
+  <img src="app/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass Logo" width="128" />
 </a>
 
 <h1>AnyClass</h1>
@@ -37,7 +37,7 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> The hosted Production app is currently **v0.2.1**. The latest source release published on GitHub remains **v0.1.1**. The current `main` branch still contains an older public source baseline and is not yet source-equivalent to hosted v0.2.1; the v0.2.x source release will follow repository-history cleanup and source-baseline reconciliation.
+> The hosted Production app is currently **v0.2.1**, and `main` contains the reconciled public v0.2.1 source baseline. The latest source release published on GitHub remains **v0.1.1**; the GitHub v0.2.1 Release has not been published yet. Source-release identity remains separate from the hosted Production deployment build identity.
 
 ## Features
 
@@ -116,7 +116,7 @@ Roadmap items are plans, not currently available features.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** the current `main` branch should not be treated as an exact source snapshot of hosted v0.2.1 Production. Until source-baseline reconciliation is complete, do not infer the exact Production implementation solely from the current checkout.
+> **Repository source status:** the current `main` branch contains the reconciled AnyClass v0.2.1 public source baseline. Its source identity is `v0.2.1`; hosted Production uses a separate deployment build identity, so the repository source identity is not a particular hosted deployment number.
 
 ## Contributing
 
