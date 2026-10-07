@@ -59,6 +59,6 @@ Changes to import behavior should preserve the current product contracts unless 
 
 ## Development notes
 
-The repository currently contains the published v0.1.1 source release while the hosted Production app is on v0.2.0. The matching v0.2.0 GitHub source release will be published separately after repository release maintenance is complete.
+The repository `main` branch currently contains the verified AnyClass v0.2.1 public source baseline. The current GitHub source release and Hosted Production are both on v0.2.1, while Hosted Production keeps its own deployment Build identity.
 
-When working on current code, keep public documentation, tests, release-channel configuration, and privacy boundaries aligned with the actual target environment.
+When working on current code, keep public documentation, tests, release-channel configuration, and privacy boundaries aligned with the actual target environment. Historical releases remain available through GitHub Releases and the changelog rather than being treated as the current development target.
