@@ -49,6 +49,20 @@
 
   const compactDate = date => `${date.year}${pad(date.month)}${pad(date.day)}`;
   const compactLocal = (date, time) => `${compactDate(date)}T${String(time).replace(":", "")}00`;
+  const zonedUtc = (date, time, timezone) => {
+    const target=Date.UTC(date.year,date.month-1,date.day,Number(time.slice(0,2)),Number(time.slice(3)));
+    const formatter=new Intl.DateTimeFormat("en-US",{timeZone:timezone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+    let instant=target;
+    for(let attempt=0;attempt<4;attempt++){
+      const parts=Object.fromEntries(formatter.formatToParts(new Date(instant)).map(item=>[item.type,item.value]));
+      const observed=Date.UTC(Number(parts.year),Number(parts.month)-1,Number(parts.day),Number(parts.hour),Number(parts.minute));
+      const difference=target-observed;
+      if(!difference)return utcStamp(new Date(instant));
+      instant+=difference;
+    }
+    throw Error("ICS_LOCAL_TIME_INVALID");
+  };
+  const calendarHeader = timezone => timezone === "Asia/Shanghai" ? ["BEGIN:VTIMEZONE","TZID:Asia/Shanghai","X-LIC-LOCATION:Asia/Shanghai","BEGIN:STANDARD","TZOFFSETFROM:+0800","TZOFFSETTO:+0800","TZNAME:CST","DTSTART:19700101T000000","END:STANDARD","END:VTIMEZONE"] : [];
   const minutes = time => {
     const match = String(time || "").match(/^(\d{2}):(\d{2})$/);
     if (!match) throw new Error("INVALID_PERIOD_TIME");
@@ -57,7 +71,7 @@
   const utcStamp = date => `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`;
 
   const normalizeLocation = (value, profile) => typeof profile?.normalizeLocation === "function" ? profile.normalizeLocation(value) : String(value || "").trim().replace(/\s+/g, " ");
-  const normalizeCampusLocation = (value, profile = root.AnyClassSchoolProfiles?.demo || root.TimetableSchoolConfigs?.demo) => normalizeLocation(value, profile);
+  const normalizeCampusLocation = (value, profile = root.AnyClassSchoolProfileRegistry?.getActive()) => normalizeLocation(value, profile);
 
   const canonicalize = value => JSON.stringify(value);
   const digestHex = async value => {
@@ -86,25 +100,26 @@
     }, 0);
   };
 
-  const eventLines = async ({dataset, meeting, week, config, dtstamp, duplicateOrdinal}) => {
+  const eventLines = async ({dataset, meeting, week, config, dtstamp, duplicateOrdinal, explicitDate = null, explicitStart = null, explicitEnd = null, uidIdentity = null}) => {
     validateMeeting(meeting, config);
-    const date = occurrenceDate(config.semesterStartDate, week, meeting.weekday);
-    const start = config.periodTimes[meeting.startPeriod].start;
-    const end = config.periodTimes[meeting.endPeriod].end;
+    const date = explicitDate ? parseDate(explicitDate) : occurrenceDate(config.semesterStartDate, week, meeting.weekday);
+    const start = explicitStart || config.periodTimes[meeting.startPeriod].start;
+    const end = explicitEnd || config.periodTimes[meeting.endPeriod].end;
     const location = normalizeLocation(meeting.locationRaw, config);
     const teacher = String(meeting.teacher || "").trim();
     const summary = `${String(meeting.courseName).trim()}${meeting.isAdjusted ? "（调）" : ""}`;
     const school = dataset.school && (dataset.school.id || dataset.school.name) || "unknown-school";
     const semester = dataset.semester || {};
+    const identity = uidIdentity || meeting;
     const canonicalKey = canonicalize({
       school,
       semester: {academicYear: semester.academicYear || "", term: semester.term || ""},
-      courseName: String(meeting.courseName).trim(),
-      weekday: meeting.weekday,
+      courseName: String(identity.courseName).trim(),
+      weekday: identity.weekday,
       week,
-      startPeriod: meeting.startPeriod,
-      endPeriod: meeting.endPeriod,
-      locationRaw: String(meeting.locationRaw || "").trim(),
+      startPeriod: identity.startPeriod,
+      endPeriod: identity.endPeriod,
+      locationRaw: String(identity.locationRaw || "").trim(),
       duplicateOrdinal
     });
     const uid = `${await digestHex(canonicalKey)}@course.heyaaron.asia`;
@@ -115,8 +130,8 @@
       "BEGIN:VEVENT",
       `UID:${uid}`,
       `DTSTAMP:${dtstamp}`,
-      `DTSTART;TZID=Asia/Shanghai:${compactLocal(date, start)}`,
-      `DTEND;TZID=Asia/Shanghai:${compactLocal(date, end)}`,
+      config.timezone === "Asia/Shanghai" || !config.timezone ? `DTSTART;TZID=Asia/Shanghai:${compactLocal(date, start)}` : `DTSTART:${zonedUtc(date,start,config.timezone)}`,
+      config.timezone === "Asia/Shanghai" || !config.timezone ? `DTEND;TZID=Asia/Shanghai:${compactLocal(date, end)}` : `DTEND:${zonedUtc(date,end,config.timezone)}`,
       `SUMMARY:${escapeText(summary)}`,
       ...(location ? [`LOCATION:${escapeText(location)}`] : []),
       `DESCRIPTION:${escapeText(description.join("\n"))}`,
@@ -142,16 +157,7 @@
       "PRODID:-//AnyClass//Timetable//ZH-CN",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
-      "BEGIN:VTIMEZONE",
-      "TZID:Asia/Shanghai",
-      "X-LIC-LOCATION:Asia/Shanghai",
-      "BEGIN:STANDARD",
-      "TZOFFSETFROM:+0800",
-      "TZOFFSETTO:+0800",
-      "TZNAME:CST",
-      "DTSTART:19700101T000000",
-      "END:STANDARD",
-      "END:VTIMEZONE"
+      ...calendarHeader(config.timezone || "Asia/Shanghai")
     ];
     const duplicateCounts = new Map();
     for (const meeting of dataset.meetings) {
@@ -165,7 +171,7 @@
     }
     lines.push("END:VCALENDAR");
     const ics = lines.map(foldLine).join("\r\n") + "\r\n";
-    const validation = validate(ics, {expectedEvents});
+    const validation = validate(ics, {expectedEvents,timezone:config.timezone || "Asia/Shanghai"});
     if (!validation.ok) throw new Error(`ICS_VALIDATION_FAILED:${validation.errors.join(",")}`);
     return {ics, expectedEvents, generatedEvents: validation.eventCount, validation};
   };
@@ -210,6 +216,41 @@
     return {...result, finalOccurrenceCount: finals.length, engineVersion: engine.ENGINE_VERSION};
   };
 
+  const generateFromEffective = async (dataset, effectiveOccurrences, config, options = {}) => {
+    if (!dataset || !Array.isArray(effectiveOccurrences) || !config?.periodTimes) throw new Error("INVALID_SCHEMA3_EFFECTIVE_INPUT");
+    if (!effectiveOccurrences.length) throw new Error("NO_EVENTS");
+    if (effectiveOccurrences.some(item => !item.startTime || !item.endTime || !config.periodTimes[item.startPeriod]?.start || !config.periodTimes[item.endPeriod]?.end)) throw new Error("ICS_PERIOD_TIMES_INCOMPLETE");
+    const now = options.now instanceof Date ? options.now : new Date(), dtstamp = utcStamp(now);
+    const lines = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//AnyClass//Timetable//ZH-CN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+      ...calendarHeader(config.timezone || "Asia/Shanghai")
+    ];
+    const duplicateCounts = new Map();
+    const ordered = [...effectiveOccurrences].sort((a, b) => a.sourceOrdinal - b.sourceOrdinal || a.week - b.week || a.occurrenceId.localeCompare(b.occurrenceId));
+    for (const item of ordered) {
+      const meeting = {
+        courseName: item.title,
+        weekday: item.weekday,
+        startPeriod: item.startPeriod,
+        endPeriod: item.endPeriod,
+        weeks: [item.week],
+        teacher: item.teacher || null,
+        locationRaw: item.location || null,
+        isAdjusted: item.adjusted === true
+      };
+      if (!item.uidIdentity) throw new Error("EFFECTIVE_UID_IDENTITY_REQUIRED");
+      const base = canonicalize([item.uidIdentity.courseName, item.uidIdentity.weekday, item.uidIdentity.week, item.uidIdentity.startPeriod, item.uidIdentity.endPeriod, item.uidIdentity.locationRaw || ""]);
+      const duplicateOrdinal = duplicateCounts.get(base) || 0;
+      duplicateCounts.set(base, duplicateOrdinal + 1);
+      lines.push(...await eventLines({dataset, meeting, week: item.week, config, dtstamp, duplicateOrdinal, explicitDate: item.effectiveDate, explicitStart: item.startTime, explicitEnd: item.endTime, uidIdentity: item.uidIdentity}));
+    }
+    lines.push("END:VCALENDAR");
+    const ics = lines.map(foldLine).join("\r\n") + "\r\n";
+    const validation = validate(ics, {expectedEvents: ordered.length,timezone:config.timezone || "Asia/Shanghai"});
+    if (!validation.ok) throw new Error(`ICS_VALIDATION_FAILED:${validation.errors.join(",")}`);
+    return {ics, expectedEvents: ordered.length, generatedEvents: validation.eventCount, finalOccurrenceCount: ordered.length, validation};
+  };
+
   const unfold = ics => String(ics).replace(/\r\n[ \t]/g, "");
   const validate = (ics, options = {}) => {
     const errors = [];
@@ -217,7 +258,8 @@
     const text = unfold(raw);
     const eventBlocks = text.match(/BEGIN:VEVENT\r\n[\s\S]*?\r\nEND:VEVENT/g) || [];
     if (!text.startsWith("BEGIN:VCALENDAR\r\n") || !text.endsWith("END:VCALENDAR\r\n")) errors.push("VCALENDAR_BOUNDARY");
-    if (!text.includes("BEGIN:VTIMEZONE\r\n") || !text.includes("TZID:Asia/Shanghai\r\n")) errors.push("TIMEZONE");
+    const shanghai=(options.timezone || "Asia/Shanghai")==="Asia/Shanghai";
+    if (shanghai && (!text.includes("BEGIN:VTIMEZONE\r\n") || !text.includes("TZID:Asia/Shanghai\r\n"))) errors.push("TIMEZONE");
     if (options.expectedEvents != null && eventBlocks.length !== options.expectedEvents) errors.push("EVENT_COUNT");
     const uidSet = new Set();
     for (const block of eventBlocks) {
@@ -226,11 +268,11 @@
       if (!uid) errors.push("UID");
       else if (uidSet.has(uid)) errors.push("DUPLICATE_UID");
       else uidSet.add(uid);
-      if (!start || !/^[0-9]{8}T[0-9]{6}$/.test(start)) errors.push("DTSTART");
-      if (!end || !/^[0-9]{8}T[0-9]{6}$/.test(end)) errors.push("DTEND");
+      if (!start || !(shanghai?/^[0-9]{8}T[0-9]{6}$/:/^[0-9]{8}T[0-9]{6}Z$/).test(start)) errors.push("DTSTART");
+      if (!end || !(shanghai?/^[0-9]{8}T[0-9]{6}$/:/^[0-9]{8}T[0-9]{6}Z$/).test(end)) errors.push("DTEND");
       if (start && end && end <= start) errors.push("DTEND_ORDER");
       if (!summary) errors.push("SUMMARY");
-      if (!block.includes("DTSTART;TZID=Asia/Shanghai:")) errors.push("TZID");
+      if (shanghai && !block.includes("DTSTART;TZID=Asia/Shanghai:")) errors.push("TZID");
       if (!block.includes("BEGIN:VALARM\r\nTRIGGER:-PT30M\r\nACTION:DISPLAY\r\nDESCRIPTION:课程即将开始\r\nEND:VALARM")) errors.push("VALARM");
     }
     for (const line of raw.split("\r\n")) if (utf8Length(line) > 75) errors.push("LINE_LENGTH");
@@ -243,7 +285,7 @@
     return `课程表_${year}${term ? `_第${term}学期` : ""}.ics`;
   };
 
-  const api = {escapeText, expectedEventCount, fileName, foldLine, generate, generateFromFinal, normalizeCampusLocation, normalizeLocation, occurrenceDate, unfold, utf8Length, validate};
+  const api = {escapeText, expectedEventCount, fileName, foldLine, generate, generateFromEffective, generateFromFinal, normalizeCampusLocation, normalizeLocation, occurrenceDate, unfold, utf8Length, validate};
   root.TimetableIcs = Object.freeze(api);
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

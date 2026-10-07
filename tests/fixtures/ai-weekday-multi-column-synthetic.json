@@ -1,0 +1,9 @@
+{
+  "school": {"id": null, "name": null},
+  "semester": {"academicYear": "2026-2027", "term": "1"},
+  "sourceBlocks": [
+    {"id": "ALPHA", "physicalWeekday": 1, "name": "Course Alpha", "startPeriod": 1, "endPeriod": 4, "weeks": [1, 2, 4, 5, 6, 7, 8, 9, 10]},
+    {"id": "BETA", "physicalWeekday": 7, "name": "Course Beta", "startPeriod": 1, "endPeriod": 6, "weeks": [2]},
+    {"id": "GAMMA", "physicalWeekday": 5, "name": "Course Gamma", "startPeriod": 1, "endPeriod": 4, "weeks": [1, 9, 10]}
+  ]
+}

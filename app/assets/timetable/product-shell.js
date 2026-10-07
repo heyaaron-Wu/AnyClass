@@ -1,5 +1,75 @@
 (() => {
   "use strict";
+  const RELEASE_ID = "v020-import-v02-channel-repair-20260929-224025";
+  window.AnyClassReleaseIdentity = Object.freeze({releaseId:RELEASE_ID,channel:location.hostname.startsWith("beta.")?"beta":"stable"});
+  document.documentElement.dataset.releaseId = RELEASE_ID;
+
+  // Cross-document View Transitions are progressive enhancement; navigation itself stays native.
+  addEventListener("pagereveal", event => {
+    if (!event.viewTransition) return;
+    document.documentElement.dataset.crossPageTransition = "true";
+  });
+
+  const NAV_PROGRESS_KEY = "anyclass.navigationProgress";
+  const progress = document.createElement("div");
+  progress.className = "shell-nav-progress";
+  progress.setAttribute("aria-hidden", "true");
+  document.documentElement.append(progress);
+  let progressTimers = [];
+  let progressActive = false;
+  const clearProgressTimers = () => { for (const timer of progressTimers) clearTimeout(timer); progressTimers = []; };
+  const setProgress = value => progress.style.setProperty("--nav-progress", String(value));
+  const finishProgress = () => {
+    if (!progressActive) return;
+    clearProgressTimers();
+    setProgress(1);
+    progressTimers.push(setTimeout(() => {
+      progress.dataset.visible = "false";
+      progressTimers.push(setTimeout(() => { progressActive = false; setProgress(0); }, 180));
+    }, 150));
+  };
+  const startProgress = destination => {
+    progressActive = true;
+    clearProgressTimers();
+    progress.dataset.visible = "true";
+    setProgress(.08);
+    requestAnimationFrame(() => setProgress(.36));
+    for (const [delay, value] of [[140, .56], [450, .72], [1100, .84]]) {
+      progressTimers.push(setTimeout(() => { if (progressActive) setProgress(value); }, delay));
+    }
+    // A destination only resumes a fresh same-origin navigation to itself.
+    try { sessionStorage.setItem(NAV_PROGRESS_KEY, JSON.stringify({url:destination.href, at:Date.now()})); } catch (_error) {}
+    progressTimers.push(setTimeout(() => {
+      if (location.href === destination.href && document.visibilityState === "visible") finishProgress();
+    }, 12000));
+  };
+  let suppressDockClick = false;
+  const eligibleLink = event => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null;
+    if (suppressDockClick && event.isTrusted) return null;
+    const link = event.target.closest?.("a[href]");
+    if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return null;
+    const destination = new URL(link.href, location.href);
+    if (destination.origin !== location.origin || destination.href === location.href) return null;
+    if (destination.pathname === location.pathname && destination.search === location.search) return null;
+    return destination;
+  };
+  document.addEventListener("click", event => {
+    const destination = eligibleLink(event);
+    if (destination) startProgress(destination);
+  }, true);
+  try {
+    const pending = JSON.parse(sessionStorage.getItem(NAV_PROGRESS_KEY) || "null");
+    sessionStorage.removeItem(NAV_PROGRESS_KEY);
+    if (pending?.url === location.href && Date.now() - pending.at < 15000) {
+      progressActive = true;
+      progress.dataset.visible = "true";
+      setProgress(.88);
+      if (document.readyState === "complete") finishProgress();
+      else addEventListener("load", finishProgress, {once:true});
+    }
+  } catch (_error) {}
+  addEventListener("pageshow", event => { if (event.persisted) finishProgress(); });
 
   const STATES = Object.freeze({
     APP_READY: "APP_READY",
@@ -11,10 +81,11 @@
   });
   const flags = {hasTimetable: undefined, resourceError: null, importError: null, storageError: null};
   const stateListeners = new Set();
-  const DISPLAY_NAME_KEY = "anyclass.displayName";
+  const DISPLAY_NAME_KEY = "anyclass.timetable.displayName";
+  const PREVIOUS_DISPLAY_NAME_KEY = "anyclass.displayName";
   const BRAND_LABEL_KEY = "anyclass.brandLabel";
   const DISPLAY_NAME_VERSION_KEY = "anyclass.preferenceVersion";
-  const DISPLAY_NAME_VERSION = "1";
+  const DISPLAY_NAME_VERSION = "2";
   const LEGACY_NAME_KEY = "heyaaron.timetable.displayName";
   const DEFAULT_DISPLAY_NAME = "AnyClass";
   const ALLOWED_BRANDS = new Set(["AnyClass", "有课吗"]);
@@ -29,8 +100,9 @@
     try {
       if (localStorage.getItem(DISPLAY_NAME_VERSION_KEY) === DISPLAY_NAME_VERSION) return;
       const current = normalizeDisplayName(localStorage.getItem(DISPLAY_NAME_KEY));
+      const previous = normalizeDisplayName(localStorage.getItem(PREVIOUS_DISPLAY_NAME_KEY));
       const legacy = normalizeDisplayName(localStorage.getItem(LEGACY_NAME_KEY));
-      const selected = current || legacy;
+      const selected = current || previous || legacy;
       if (selected) localStorage.setItem(DISPLAY_NAME_KEY, selected);
       else localStorage.removeItem(DISPLAY_NAME_KEY);
       if (!localStorage.getItem(BRAND_LABEL_KEY)) localStorage.setItem(BRAND_LABEL_KEY, DEFAULT_DISPLAY_NAME);
@@ -124,6 +196,7 @@
     },
     retryResource() { location.reload(); },
     retryImport() { location.assign("/import/"); },
+    dispatchTimetableUpdated(detail = {}) { dispatchEvent(new CustomEvent("anyclass:timetable-updated", {detail})); },
     getDisplayName,
     getBrandLabel,
     setDisplayName(value) {
@@ -159,6 +232,10 @@
   });
   window.AnyClassShell = shellApi;
   window.HeyAaronShell = shellApi;
+  addEventListener("heyaaron:timetable-updated", event => {
+    if (event.detail && event.detail.__anyclassCompatibilityBridge) return;
+    dispatchEvent(new CustomEvent("anyclass:timetable-updated", {detail: {...(event.detail || {}), legacyEvent: true, __anyclassCompatibilityBridge: true}}));
+  });
 
   addEventListener("online", publishState);
   addEventListener("offline", publishState);
@@ -169,6 +246,67 @@
       publishState();
     }
   }, true);
+
+  const enableDockScrub = (dock, activeIndex) => {
+    const links = [...dock.querySelectorAll("a")];
+    dock.addEventListener("dragstart", event => event.preventDefault());
+    let gesture = null;
+    const preview = index => {
+      dock.style.setProperty("--active-index", String(index));
+      links.forEach((link, position) => { link.dataset.preview = String(position === index); });
+    };
+    const reset = () => {
+      dock.dataset.scrubbing = "false";
+      dock.style.removeProperty("--scrub-x");
+      dock.style.setProperty("--active-index", String(activeIndex));
+      links.forEach(link => { delete link.dataset.preview; });
+    };
+    const indexAt = x => {
+      const bounds = dock.getBoundingClientRect();
+      const position = (x - bounds.left - 6) / Math.max(1, bounds.width - 12);
+      return Math.max(0, Math.min(links.length - 1, Math.floor(position * links.length)));
+    };
+    const followPointer = x => {
+      const bounds = dock.getBoundingClientRect();
+      const travel = (bounds.width - 12) * (links.length - 1) / links.length;
+      const offset = Math.max(0, Math.min(travel, x - bounds.left - 6 - (bounds.width - 12) / links.length / 2));
+      dock.style.setProperty("--scrub-x", `${offset}px`);
+    };
+    dock.addEventListener("pointerdown", event => {
+      const link = event.target.closest("a");
+      if (event.button !== 0 || !link) return;
+      gesture = {id:event.pointerId, startX:event.clientX, startY:event.clientY, index:indexAt(event.clientX), moved:false};
+    });
+    document.addEventListener("pointermove", event => {
+      if (!gesture || event.pointerId !== gesture.id) return;
+      if (!gesture.moved && Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) < 7) return;
+      gesture.moved = true;
+      dock.dataset.scrubbing = "true";
+      gesture.index = indexAt(event.clientX);
+      followPointer(event.clientX);
+      preview(gesture.index);
+    });
+    document.addEventListener("pointerup", event => {
+      if (!gesture || event.pointerId !== gesture.id) return;
+      const {moved} = gesture;
+      const index = indexAt(event.clientX);
+      gesture = null;
+      if (!moved) return; // A tap keeps the anchor's normal native click.
+      suppressDockClick = true;
+      event.preventDefault();
+      dock.dataset.scrubbing = "false";
+      dock.style.removeProperty("--scrub-x");
+      if (index === activeIndex) reset();
+      else { preview(index); links[index].click(); }
+      setTimeout(() => { suppressDockClick = false; }, 0);
+    });
+    document.addEventListener("pointercancel", event => { if (!gesture || event.pointerId !== gesture.id) return; gesture = null; reset(); });
+    dock.addEventListener("click", event => {
+      if (!suppressDockClick || !event.isTrusted) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
+  };
 
   const mount = () => {
     const page = document.body.dataset.shellPage || "";
@@ -211,7 +349,7 @@
     document.body.prepend(failure);
     document.body.prepend(offline);
     document.body.prepend(header);
-    if (dock) document.body.append(dock);
+    if (dock) { document.body.append(dock); enableDockScrub(dock, {today:0,timetable:1}[active] ?? 0); }
     const main = document.querySelector("main");
     if (main) main.classList.add("shell-page-enter");
     applyDisplayName();
@@ -241,6 +379,6 @@
   };
   if (document.readyState === "loading") addEventListener("DOMContentLoaded", mount, {once: true});
   else mount();
-  addEventListener("storage", event => { if (event.key === DISPLAY_NAME_KEY) applyDisplayName(); });
+  addEventListener("storage", event => { if ([DISPLAY_NAME_KEY, PREVIOUS_DISPLAY_NAME_KEY, LEGACY_NAME_KEY].includes(event.key)) applyDisplayName(); });
   publishState();
 })();

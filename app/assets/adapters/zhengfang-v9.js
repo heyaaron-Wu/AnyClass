@@ -31,10 +31,8 @@
     if (signals.semesterSelectors) { confidence += 15; evidenceCodes.push("ZF9_SEMESTER_SELECTORS"); }
     if (signals.cellSignature) { confidence += 10; evidenceCodes.push("ZF9_CELL_ID_LAYOUT"); }
     if (signals.iconSignature) { confidence += 5; evidenceCodes.push("ZF9_GLYPHICON_FIELDS"); }
-    const demo = signals.origin === "https://jw.example.edu";
-    if (demo) { confidence += 5; evidenceCodes.push("PROFILE_ORIGIN_demo"); }
     const outcome = confidence >= 85 && signals.tableSignature && signals.blockSignature && signals.semesterSelectors ? "MATCH" : confidence >= 40 ? "LOW_CONFIDENCE" : "UNSUPPORTED";
-    return Object.freeze({outcome, family: FAMILY, version: VERSION, confidence, adapterId: ID, evidenceCodes, schoolProfileCandidates: demo ? ["demo"] : []});
+    return Object.freeze({outcome, family: FAMILY, version: VERSION, confidence, adapterId: ID, evidenceCodes, schoolProfileCandidates: []});
   };
   const parseWeeks = expression => {
     const normalized = compact(expression).replace(/[（]/g, "(").replace(/[）]/g, ")").replace(/\s+/g, "").replace(/[，、；;]/g, ",");

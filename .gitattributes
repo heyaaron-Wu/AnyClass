@@ -1,0 +1,8 @@
+* text=auto eol=lf
+
+# The deployable application tree is byte-for-byte release evidence. Several
+# verified v0.2.0 files intentionally retain mixed historical line endings.
+app/** -text
+
+*.png binary
+*.ico binary

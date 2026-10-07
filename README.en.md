@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://anyclass.heyaaron.asia/">
-  <img src="assets/brand/anyclass-logo.svg" alt="AnyClass Logo" width="128" />
+  <img src="app/assets/brand/AnyClass_Logo_Horizontal.svg" alt="AnyClass Logo" width="128" />
 </a>
 
 <h1>AnyClass</h1>
@@ -37,7 +37,7 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> The hosted Production app is currently **v0.2.1**. The latest source release published on GitHub remains **v0.1.1**. The current `main` branch still contains an older public source baseline and is not yet source-equivalent to hosted v0.2.1; the v0.2.x source release will follow repository-history cleanup and source-baseline reconciliation.
+> Hosted Production is currently **v0.2.1**. The latest source release published on GitHub remains **v0.1.1**. The repository's `main` branch temporarily corresponds to the **public v0.2.0 source baseline**; GitHub source releases are being restored in semantic order, and the v0.2.0 Release has not yet been published.
 
 ## Features
 
@@ -56,7 +56,7 @@
 
 ## Import behavior
 
-AnyClass v0.2.1 treats **Course data** as the core import model:
+AnyClass v0.2.0 treats **Course data** as the core import model:
 
 - Imported data enters Unified Preview before being saved.
 - The currently selected timetable is the default destination; source identity does not silently redirect to another timetable.
@@ -116,7 +116,7 @@ Roadmap items are plans, not currently available features.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** the current `main` branch should not be treated as an exact source snapshot of hosted v0.2.1 Production. Until source-baseline reconciliation is complete, do not infer the exact Production implementation solely from the current checkout.
+> **Repository source status:** the current `main` branch temporarily corresponds to the public v0.2.0 source baseline and is independent from the hosted v0.2.1 Production deployment identity. GitHub v0.2.0 and v0.2.1 source releases will be published separately in semantic order.
 
 ## Contributing
 

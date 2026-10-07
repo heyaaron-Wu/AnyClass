@@ -1,0 +1,35 @@
+"use strict";
+const assert=require("node:assert/strict"),http=require("node:http"),fs=require("node:fs"),path=require("node:path");
+const {chromium}=require("playwright"),site=path.resolve(__dirname,"../app");
+const server=http.createServer((req,res)=>{let name=decodeURIComponent(new URL(req.url,"http://local").pathname);if(name.endsWith("/"))name+="index.html";const file=path.resolve(site,"."+name);if(!file.startsWith(site+path.sep)||!fs.existsSync(file)){res.writeHead(404);res.end("not found");return}res.writeHead(200,{"content-type":file.endsWith(".js")?"application/javascript":file.endsWith(".css")?"text/css":"text/html"});res.end(fs.readFileSync(file))});
+const meetings=[
+  ["课程甲",1,1,8,[12],"教师甲","本部/敏行楼602"],["课程乙",2,1,10,[15],"教师乙","尚智楼301"],["课程丙",3,3,4,[1,2,4,5,6,7,8,9,10,13,14,16,17,18],"教师丙","德行楼201"],
+  ["课程丁",4,5,6,[11],"教师丁","实验楼A101"],["课程丁",4,5,6,[12],"教师丁","实验楼B102"],["课程戊",5,7,8,[3],"教师戊","敏行楼203"],["课程己",6,7,8,[3],"教师己","尚智楼204"]
+].map(([courseName,weekday,startPeriod,endPeriod,weeks,teacher,locationRaw],index)=>({courseName,sourceCourseId:courseName,sourceTeachingClassId:`source-${index}`,weekday,startPeriod,endPeriod,weeks,teacher,locationRaw,isAdjusted:false}));
+const payload=(rows=meetings,semester={academicYear:"2026-2027",term:"1"})=>({schemaVersion:1,school:{id:null,name:"示例大学"},semester,timetableName:"重复项测试课表",meetings:rows});
+const run=async()=>{const externalBase=(process.env.ANYCLASS_BROWSER_BASE||"").replace(/\/$/,"");if(!externalBase)await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));const executablePath=[path.join(process.env.LOCALAPPDATA||"","Google","Chrome","Application","chrome.exe"),path.join(process.env["PROGRAMFILES(X86)"]||"","Microsoft","Edge","Application","msedge.exe")].find(fs.existsSync),browser=await chromium.launch({headless:true,executablePath}),base=externalBase||`http://127.0.0.1:${server.address().port}`;let checks=0;const check=(value,label)=>{assert(value,label);checks++};
+try{
+  for(const width of [390,430,1280]){
+    const context=await browser.newContext({viewport:{width,height:width<600?844:900},isMobile:width<600,hasTouch:width<600}),page=await context.newPage(),errors=[];page.on("pageerror",error=>errors.push(error.message));
+    const openImport=async data=>{await page.goto(base+"/import/?method=file");await page.locator("#fileInput").setInputFiles({name:"synthetic.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(data))});await page.locator("#filePreview:not([hidden])").waitFor();await page.locator("#fileSemesterStart").fill("2026-09-21")};
+    await openImport(payload([{...meetings[0],courseName:"种子课程",sourceCourseId:"seed",sourceTeachingClassId:"seed-meeting",weekday:7,weeks:[18]}]));await page.waitForFunction(()=>!document.querySelector("#fileSave").disabled);await page.locator("#fileSave").click();await page.waitForFunction(()=>document.querySelector("#filePreview")?.dataset.importState==="SUCCESS");
+    await page.goto(base+"/timetable/");await page.locator("#app:not([hidden])").waitFor();await page.evaluate(async rows=>{const table=await AnyClassTimetableRepository.getActiveTimetable(),owners=new Map();for(const row of rows){const created=await AnyClassTimetableRepository.createManualCourse(table.timetableId,{title:row.courseName,teacher:row.teacher,location:row.locationRaw,notes:"",weekday:row.weekday,weeks:row.weeks,startPeriod:row.startPeriod,endPeriod:row.endPeriod,...(owners.has(row.courseName)?{attachToCourseId:owners.get(row.courseName)}:{})});if(!owners.has(row.courseName))owners.set(row.courseName,created.courseId)}},meetings);
+    const before=await page.evaluate(async()=>{const b=await AnyClassTimetableRepository.readActiveBundle();return {id:b.table.timetableId,count:b.model.courses.length}});
+    await openImport(payload(meetings));await page.locator("#fileExactDuplicateReview:not([hidden])").waitFor();
+    check(await page.locator("#fileExactDuplicateItems .file-conflict-item").count()===meetings.length,`${width}: every existing semantic meeting classified exactly once`);
+    check(await page.locator("#fileConflictItems .file-conflict-item").count()===0,`${width}: exact duplicates are not time conflicts`);
+    check(await page.locator("#fileNameReview").isHidden(),`${width}: exact duplicates are not repeated in same-name review`);
+    check(await page.locator("#fileSave").isDisabled(),`${width}: unresolved exact duplicates gate save`);
+    const first=page.locator("#fileExactDuplicateItems .file-conflict-item").first();await first.getByRole("button",{name:"复用已有课程"}).click();
+    while(await page.locator("#fileExactDuplicateItems .file-conflict-item",{hasText:"待处理"}).count())await page.locator("#fileExactDuplicateItems .file-conflict-item",{hasText:"待处理"}).first().getByRole("button",{name:"跳过已存在安排"}).click();
+    await page.waitForTimeout(300);const eligibility=await page.evaluate(()=>({disabled:document.querySelector("#fileSave").disabled,blockers:document.querySelector("#fileSubmitBlockers").textContent,exact:[...document.querySelectorAll("#fileExactDuplicateItems .file-conflict-status")].map(node=>node.textContent),nameHidden:document.querySelector("#fileNameReview").hidden,conflictHidden:document.querySelector("#fileConflictReview").hidden}));check(!eligibility.disabled,`${width}: resolved exact duplicates enable save ${JSON.stringify(eligibility)}`);check(!/时间重叠未处理|课程名称处理/.test(eligibility.blockers),`${width}: no stale conflict/name blocker`);
+    await page.locator("#fileSave").click();await page.waitForFunction(()=>document.querySelector("#filePreview")?.dataset.importState==="SUCCESS");
+    check(/没有新的课程安排/.test(await page.locator("#fileSubmitMessage").innerText()),`${width}: all-exact import reports no change`);
+    await page.reload();await page.goto(base+"/timetable/");await page.locator("#app:not([hidden])").waitFor();const after=await page.evaluate(async()=>{const b=await AnyClassTimetableRepository.readActiveBundle();return {id:b.table.timetableId,count:b.model.courses.length}});check(after.id===before.id&&after.count===before.count,`${width}: save/reload preserves active timetable without duplicate writes`);
+    await openImport(payload(meetings,{academicYear:"2031-2032",term:"2"}));check(/学期与当前课表不同/.test(await page.locator("#fileImportTarget").innerText()),`${width}: semester mismatch is explicit advisory`);check(/重复项测试课表/.test(await page.locator("#fileImportTarget").innerText()),`${width}: active workspace remains target`);
+    await page.locator("#fileCancel").click();const cancelled=await page.evaluate(async()=>{const b=await AnyClassTimetableRepository.readActiveBundle();return {id:b.table.timetableId,count:b.model.courses.length}});check(cancelled.id===after.id&&cancelled.count===after.count,`${width}: cancel writes nothing`);
+    check(errors.length===0,`${width}: no browser errors: ${errors.join(" | ")}`);await context.close();
+  }
+  console.log(JSON.stringify({result:"EXACT_DUPLICATE_IMPORT_BROWSER_PASS",checks}));
+}finally{await browser.close();if(!externalBase)await new Promise(resolve=>server.close(resolve))}};
+run().catch(error=>{console.error(error);process.exitCode=1});

@@ -1,5 +1,6 @@
 /*
  * AnyClass - ZhengFang V9 Safari Shortcut Parser
+ * V2-C Phase 3
  * Read-only boundary:
  * - Reads only the current page's timetable DOM and semester selectors.
  * - Does not read cookies, browser storage, credentials, or unrelated page data.
@@ -9,7 +10,7 @@
 (() => {
   "use strict";
 
-  const EXPECTED_ORIGIN = "https://jw.example.edu";
+  const SUPPORTED_PROTOCOLS = new Set(["https:", "http:"]);
   const TABLE_SELECTOR = "table#kbgrid_table_0";
   const BLOCK_SELECTOR = ".timetable_con";
   const MAX_MEETINGS = 2000;
@@ -177,8 +178,8 @@
   };
 
   try {
-    if (window.location.origin !== EXPECTED_ORIGIN) {
-      fail("UNSUPPORTED_ORIGIN", "\u8bf7\u5728Example University\u6559\u52a1\u7cfb\u7edf\u4e2d\u8fd0\u884c\u6b64\u5feb\u6377\u6307\u4ee4");
+    if (!SUPPORTED_PROTOCOLS.has(window.location.protocol) || !window.location.hostname) {
+      fail("UNSUPPORTED_ORIGIN", "\u8bf7\u5728\u5df2\u914d\u7f6e\u7684\u6559\u52a1\u7cfb\u7edf\u4e2d\u8fd0\u884c\u6b64\u5feb\u6377\u6307\u4ee4");
     }
     const tables = document.querySelectorAll(TABLE_SELECTOR);
     if (tables.length !== 1) fail("TABLE_NOT_FOUND", "\u8bf7\u5148\u6253\u5f00\u5e76\u5b8c\u6574\u663e\u793a\u4e2a\u4eba\u8bfe\u8868");
@@ -189,8 +190,8 @@
     const dataset = {
       schemaVersion: 1,
       school: {
-        id: "demo",
-        name: "Example University"
+        id: null,
+        name: null
       },
       semester: {
         academicYear,

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <style>@view-transition { navigation: auto; }</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
+  <title>课表管理 · AnyClass</title>
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
+  <link rel="stylesheet" href="/assets/timetable/common.css">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-settings-safety-20260921">
+  <link rel="stylesheet" href="/assets/timetable/timetable-management.css?v=v020-dialog-geometry">
+  <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
+</head>
+<body data-shell-page="settings-timetables">
+<main class="shell settings-shell timetable-manager">
+  <div class="settings-page-heading"><a class="back-button" href="/settings/" aria-label="返回设置">← 设置</a><div><h1>课表管理</h1><p class="muted">切换和管理保存在此设备的课表。</p></div></div>
+  <section class="panel">
+    <div class="timetable-manager-header"><div><h2>我的课表</h2><p class="muted">同一时间只显示一张课表。</p></div><button id="createTimetable" class="button primary" type="button">新建课表</button></div>
+    <p id="managerStatus" class="timetable-manager-status muted" role="status" aria-live="polite"></p>
+    <div id="timetableList" class="timetable-manager-list" aria-live="polite"></div>
+    <div id="noTimetables" class="timetable-manager-empty muted" hidden><p>还没有课表。你可以新建空课表，也可以从文件导入已有课表。</p><a class="timetable-manager-import-action" href="/import/?method=file">导入课表 <span aria-hidden="true">→</span></a></div>
+  </section>
+</main>
+<dialog id="nameDialog" class="timetable-manager-dialog" aria-labelledby="nameDialogTitle">
+  <form method="dialog" id="nameForm"><h2 id="nameDialogTitle"></h2><label for="timetableName">课表名称</label><input id="timetableName" name="timetableName" maxlength="100" required autocomplete="off"><p id="nameError" class="muted" role="alert"></p><div class="timetable-manager-dialog-actions"><button class="button" type="button" data-close-dialog>取消</button><button class="button primary" type="submit">保存</button></div></form>
+</dialog>
+<dialog id="deleteDialog" class="timetable-manager-dialog" aria-labelledby="deleteDialogTitle" aria-describedby="deleteDescription" tabindex="-1">
+  <h2 id="deleteDialogTitle">删除课表？</h2><p id="deleteDescription"></p><p class="muted">删除后，此课表及其保存在本设备浏览器中的课程数据将被移除。此操作不会影响学校教务系统中的课程。</p><div class="timetable-manager-dialog-actions"><button class="button" type="button" data-close-dialog>取消</button><button id="confirmDelete" class="button timetable-manager-delete" type="button">确认删除</button></div>
+</dialog>
+<script src="/assets/timetable/school-profile.js"></script>
+<script src="/assets/timetable/school-config.js"></script>
+<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/course-model.js"></script>
+<script src="/assets/timetable/schema4-plan.js"></script>
+<script src="/assets/timetable/storage-v2.js"></script>
+<script src="/assets/timetable/timetable-repository.js"></script>
+<script src="/assets/timetable/session-grouping.js"></script>
+<script src="/assets/timetable/timetable-management.js?v=v020-dialog-geometry"></script>
+</body>
+</html>

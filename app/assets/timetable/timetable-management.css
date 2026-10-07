@@ -1,0 +1,35 @@
+.timetable-switcher{display:flex;align-items:center;gap:12px;max-width:100%;margin-bottom:16px;flex-wrap:wrap}
+.timetable-switcher label{font-weight:700;color:var(--shell-ink)}
+.timetable-switcher select{min-width:0;width:min(280px,100%);max-width:100%;padding:10px 12px;border:1px solid var(--shell-line);border-radius:12px;background:var(--shell-glass-strong);color:var(--shell-ink);font:inherit}
+.timetable-switcher [data-switch-status]{display:inline-block;min-inline-size:7.5em;min-block-size:1.4em;opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease}
+.timetable-switcher [data-switch-status].is-visible{opacity:1;visibility:visible}
+@media(prefers-reduced-motion:reduce){.timetable-switcher [data-switch-status]{transition:none}}
+.timetable-switcher a{color:var(--shell-ink)}
+.timetable-manager{max-width:100%}
+.timetable-manager-header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.timetable-manager-list{display:grid;gap:12px;margin-top:18px}
+.timetable-manager-row{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0;padding:16px;border:1px solid var(--shell-line);border-radius:16px}
+.timetable-manager-identity{min-width:0;overflow-wrap:anywhere}
+.timetable-manager-identity strong{display:block;color:var(--shell-ink)}
+.timetable-manager-identity small{display:block;color:var(--shell-muted);margin-top:4px}
+.timetable-manager-actions{display:flex;gap:8px;flex-wrap:wrap}
+.timetable-manager-actions button,.timetable-manager-dialog button{min-height:44px}
+.timetable-manager-delete{color:#b42318;background:#fff1f2;border:1px solid #fecdd3}
+.timetable-manager-delete:hover{background:#ffe4e6}
+.timetable-manager-dialog{inset-inline-start:50vw;inset-inline-end:auto;width:min(420px,calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));max-width:none;box-sizing:border-box;margin:auto 0;padding:24px;border:1px solid var(--shell-line);border-radius:20px;background:var(--shell-glass-strong);color:var(--shell-ink);transform:translateX(-50%)}
+@supports(width:100dvi){.timetable-manager-dialog{inset-inline-start:50dvi;width:min(420px,calc(100dvi - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)))}}
+.timetable-manager-dialog::backdrop{background:rgba(0,0,0,.55)}
+.timetable-manager-dialog:focus{outline:none}
+.timetable-manager-dialog h2{margin-top:0}
+.timetable-manager-dialog input{box-sizing:border-box;min-width:0;width:100%;padding:12px;border:1px solid var(--shell-line);border-radius:10px;background:var(--shell-glass-strong);color:var(--shell-ink);font:inherit}
+.timetable-manager-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}
+.timetable-manager-status{min-height:1.5em;transition:opacity .18s ease,visibility .18s ease}
+.timetable-manager-status.is-expired{opacity:0;visibility:hidden}
+@media(prefers-reduced-motion:reduce){.timetable-manager-status{transition:none}}
+.timetable-manager-empty p{margin-bottom:8px}
+.timetable-manager-import-action{display:inline-flex;align-items:center;gap:5px;color:var(--shell-ink);font-weight:600;text-decoration:none}
+.timetable-manager-import-action:hover,.timetable-manager-import-action:focus-visible{color:var(--shell-accent,#3486e4);text-decoration:none}
+.timetable-manager-import-action:focus-visible{outline:3px solid #3486e4;outline-offset:2px;border-radius:3px}
+.timetable-manager button:focus-visible,.timetable-manager-dialog button:focus-visible,.timetable-manager-dialog input:focus-visible,.timetable-switcher select:focus-visible,.timetable-switcher a:focus-visible{outline:3px solid #3486e4;outline-offset:2px}
+@media(max-width:700px){.timetable-manager-row{align-items:stretch;flex-direction:column}.timetable-manager-actions{justify-content:flex-start}.timetable-manager-actions button{flex:1 1 auto}.timetable-switcher select{flex:1 1 180px}}
+@media(prefers-color-scheme:dark){.timetable-manager-delete{color:#fecaca;background:rgba(127,29,29,.22);border-color:rgba(248,113,113,.35)}.timetable-manager-delete:hover{background:rgba(127,29,29,.36)}}

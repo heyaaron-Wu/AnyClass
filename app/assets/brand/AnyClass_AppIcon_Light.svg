@@ -14,7 +14,7 @@
   </linearGradient>
 </defs>
 <rect x="0" y="0" width="1024" height="1024" rx="220" fill="#FFFFFF"/>
-<g>
+<g transform="translate(71,8)">
   <!-- Main lower tile -->
   <rect x="126" y="333" width="650" height="548" rx="165" fill="url(#blueMain)"/>
   <!-- Upper soft tile -->

@@ -1,0 +1,18 @@
+{
+  "sourceGrid": {
+    "headers": ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"],
+    "blocks": [
+      {"id": "BLOCK_A", "physicalColumn": 1, "courseName": "Synthetic Physics", "periods": "1-2", "weeks": [1, 2]},
+      {"id": "BLOCK_B", "physicalColumn": 2, "courseName": "Synthetic Writing", "periods": "1-2", "weeks": [1, 2]}
+    ]
+  },
+  "aiOutputWithWeekdayError": {
+    "schemaVersion": 1,
+    "school": {"id": null, "name": null},
+    "semester": {"academicYear": "2026-2027", "term": "1"},
+    "meetings": [
+      {"courseName": "Synthetic Physics", "weekday": 1, "startPeriod": 1, "endPeriod": 2, "weeks": [1, 2], "teacher": null, "locationRaw": "Example Room A", "isAdjusted": false},
+      {"courseName": "Synthetic Writing", "weekday": 1, "startPeriod": 1, "endPeriod": 2, "weeks": [1, 2], "teacher": null, "locationRaw": "Example Room B", "isAdjusted": false}
+    ]
+  }
+}

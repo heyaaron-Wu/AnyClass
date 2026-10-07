@@ -1,5 +1,6 @@
 /*
  * AnyClass - ZhengFang V9 Safari Shortcut Parser
+ * V2-C Phase 3
  * Read-only boundary:
  * - Reads only the current page's timetable DOM and semester selectors.
  * - Does not read cookies, browser storage, credentials, or unrelated page data.
@@ -9,7 +10,7 @@
 (() => {
   "use strict";
 
-  const EXPECTED_ORIGIN = "https://jw.example.edu";
+  const SUPPORTED_PROTOCOLS = new Set(["https:", "http:"]);
   const TABLE_SELECTOR = "table#kbgrid_table_0";
   const BLOCK_SELECTOR = ".timetable_con";
   const MAX_MEETINGS = 2000;
@@ -177,8 +178,8 @@
   };
 
   try {
-    if (window.location.origin !== EXPECTED_ORIGIN) {
-      fail("UNSUPPORTED_ORIGIN", "请在Example University教务系统中运行此快捷指令");
+    if (!SUPPORTED_PROTOCOLS.has(window.location.protocol) || !window.location.hostname) {
+      fail("UNSUPPORTED_ORIGIN", "请在已配置的教务系统中运行此快捷指令");
     }
     const tables = document.querySelectorAll(TABLE_SELECTOR);
     if (tables.length !== 1) fail("TABLE_NOT_FOUND", "请先打开并完整显示个人课表");
@@ -189,8 +190,8 @@
     const dataset = {
       schemaVersion: 1,
       school: {
-        id: "demo",
-        name: "Example University"
+        id: null,
+        name: null
       },
       semester: {
         academicYear,

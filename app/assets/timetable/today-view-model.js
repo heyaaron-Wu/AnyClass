@@ -21,14 +21,15 @@
 
   const presentOccurrence = (item, now, profile) => ({
     ...item,
-    status: now >= item.end ? "completed" : now >= item.start ? "current" : "upcoming",
+    status: !item.start || !item.end ? "unscheduled" : now >= item.end ? "completed" : now >= item.start ? "current" : "upcoming",
     location: normalizeDisplayLocation(item.meeting.locationRaw, profile),
     periodLabel: periodLabel(item.meeting)
   });
 
   const createTodayModel = (dataset, config, nowOverride) => {
     const now = resolveNow(nowOverride);
-    if (!dataset || !Array.isArray(dataset.meetings) || !dataset.meetings.length) {
+    if (dataset?.__courseModel && !Array.isArray(dataset.__effectiveOccurrences)) throw new Error("SCHEMA3_EFFECTIVE_OCCURRENCES_REQUIRED");
+    if (!dataset || (!dataset.__courseModel && (!Array.isArray(dataset.meetings) || !dataset.meetings.length))) {
       return {hasDataset: false, now, heroState: "NO_TIMETABLE", today: [], stats: {total: 0, completed: 0, remaining: 0}};
     }
 
@@ -46,6 +47,8 @@
       heroState = "IN_CLASS";
       heroItem = presentOccurrence(current, now, config);
       countdownMinutes = core.minutesUntil(current.end, now);
+    } else if (analysis.state === "time-unconfigured") {
+      heroState = "TIME_UNCERTAIN";
     } else if (analysis.todayRemaining.length) {
       heroState = "NEXT_CLASS";
       heroItem = presentOccurrence(analysis.todayRemaining[0], now, config);
@@ -55,7 +58,7 @@
     const futureItem = heroState === "NO_CLASS" && analysis.nextClass
       ? presentOccurrence(analysis.nextClass, now, config)
       : null;
-    const noClassTitle = analysis.state === "day-finished" ? "今天的课程已结束" : "今天没有课程";
+    const noClassTitle = analysis.state === "time-unconfigured" ? "今天有课程 · 上课时间未设置" : analysis.state === "day-finished" ? "今天的课程已结束" : "今天没有课程";
 
     return {
       hasDataset: true,
