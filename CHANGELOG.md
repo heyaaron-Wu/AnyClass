@@ -19,7 +19,7 @@ AnyClass 的用户可见版本更新记录。仅记录正式发布或已部署�
 - Production 正式版本身份已从 Beta 元数据切换为稳定版 `0.2.1`。
 - Beta 与 Production 保持独立发布身份。
 - `main` 包含已对齐的公开 v0.2.1 源码基线；源码 Release 身份与 Hosted Production 的部署 Build 身份保持独立。
-- GitHub v0.2.1 Release 尚未发布；当前 GitHub 已正式发布的最新源码 Release 仍为 v0.1.1。
+- GitHub v0.2.1 Release 尚未发布；当前 GitHub 已正式发布的最新源码 Release 为 v0.2.0。
 
 ## [0.2.0] - 2026-09-30
 
@@ -63,7 +63,7 @@ AnyClass 的用户可见版本更新记录。仅记录正式发布或已部署�
 ### 发布状态
 
 - Hosted Production 已部署 v0.2.0。
-- 对应 GitHub v0.2.0 源码 Release 尚未发布；当前 GitHub 已正式发布的源码 Release 仍为 v0.1.1。
+- GitHub v0.2.0 源码 Release 已于 2026-10-07 发布：[AnyClass v0.2.0](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0)。
 
 ## [0.1.1] - 2026-09-18
 
