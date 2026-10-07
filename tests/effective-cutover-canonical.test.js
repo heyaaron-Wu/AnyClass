@@ -1,0 +1,9 @@
+"use strict";
+const assert=require("node:assert/strict"),path=require("node:path");
+const app=path.resolve(__dirname,"../app/assets/timetable"),profileApi=require(path.join(app,"school-profile.js")),profiles=require(path.join(app,"school-config.js")),profile=profiles["school-demo"];
+const engine=require(path.join(app,"phaseb-engine.js"));globalThis.AnyClassPhaseB=engine;
+const modelApi=require(path.join(app,"course-model.js"));globalThis.AnyClassCourseResolver=require(path.join(app,"course-resolver.js"));
+const effectiveApi=require(path.join(app,"effective-occurrences.js")),ics=require(path.join(app,"ics-generator.js"));
+const dataset={schemaVersion:1,key:"school-demo::2026-2027::1",school:{id:"school-demo",name:"Example University",sourceSystem:"synthetic"},semester:{academicYear:"2026-2027",term:"1"},importedAt:"2026-09-01T00:00:00.000Z",fingerprint:"synthetic",meetings:[{courseName:"Course A",teacher:"Teacher A",locationRaw:"Building A101",weekday:1,startPeriod:1,endPeriod:2,weeks:[1,2]},{courseName:"Course B",teacher:"Teacher B",locationRaw:"Building B202",weekday:3,startPeriod:3,endPeriod:4,weeks:[1,2]}]};
+const graph=engine.convertV1Dataset(dataset,profile,"2026-09-01T00:00:00.000Z"),model=modelApi.build(dataset,graph),effective=effectiveApi.build({...model,snapshots:[model.snapshot],courseOverrides:[],occurrenceOverrides:[],scheduleOverrides:[]},{semesterStartDate:graph.term.semesterStartDate,timezone:graph.term.timezone,periodTimes:graph.term.periodTimes});
+(async()=>{const result=await ics.generateFromEffective(dataset,effective,profile,{now:new Date("2026-09-01T00:00:00.000Z")});assert.equal(model.courses.length,2);assert.equal(effective.length,4);assert.equal(result.generatedEvents,4);assert.equal(profileApi.registry.getActive().id,"school-demo");console.log(JSON.stringify({courses:2,effectiveOccurrences:4,icsEvents:4,result:"PASS"},null,2))})().catch(error=>{console.error(error);process.exit(1)});

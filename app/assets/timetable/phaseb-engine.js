@@ -50,23 +50,30 @@
 
   const convertV1Dataset = (dataset, config, now = new Date().toISOString()) => {
     if (!dataset || !dataset.school || !dataset.semester || !Array.isArray(dataset.meetings)) throw new Error("INVALID_V1_DATASET");
-    if (!normalizeText(dataset.school.id) || !normalizeText(dataset.school.name) || !normalizeText(dataset.semester.academicYear) || !normalizeText(dataset.semester.term)) throw new Error("INVALID_V1_DATASET");
+    if ((!normalizeText(dataset.school.id) && !config?.identityScope) || !normalizeText(dataset.school.name) || !normalizeText(dataset.semester.academicYear) || !normalizeText(dataset.semester.term)) throw new Error("INVALID_V1_DATASET");
     if (!config || !config.semesterStartDate || !config.periodTimes) throw new Error("INVALID_SCHOOL_PROFILE");
-    const timetableId = `timetable:${dataset.school.id}`;
-    const termId = `term:${dataset.school.id}:${dataset.semester.academicYear}:${dataset.semester.term}`;
+    // A second local workspace may own the same source term without sharing storage IDs.
+    const timetableId = config.identityScope || `timetable:${dataset.school.id}`;
+    const termId = config.termIdOverride || (config.identityScope
+      ? `term:local:${idComponent([config.identityScope,dataset.school.id,dataset.semester.academicYear,dataset.semester.term])}`
+      : `term:${dataset.school.id}:${dataset.semester.academicYear}:${dataset.semester.term}`);
     const profile = schoolSnapshot(dataset, config);
     const context = {schoolId: dataset.school.id, termId, adapterId: profile.adapterId};
     const duplicateCounts = new Map();
+    const trustedCounts = new Map();
     const baseMeetings = dataset.meetings.map(meeting => {
       const weeks = normalizedWeeks(meeting && meeting.weeks);
-      if (!meeting || !normalizeText(meeting.courseName) || !Number.isInteger(meeting.weekday) || meeting.weekday < 1 || meeting.weekday > 7 || !Number.isInteger(meeting.startPeriod) || !Number.isInteger(meeting.endPeriod) || meeting.startPeriod > meeting.endPeriod || !config.periodTimes[meeting.startPeriod] || !config.periodTimes[meeting.endPeriod] || weeks.length === 0 || weeks.some(week => week < 1)) throw new Error("INVALID_V1_MEETING");
+      if (!meeting || !normalizeText(meeting.courseName) || !Number.isInteger(meeting.weekday) || meeting.weekday < 1 || meeting.weekday > 7 || !Number.isInteger(meeting.startPeriod) || !Number.isInteger(meeting.endPeriod) || meeting.startPeriod < 1 || meeting.startPeriod > meeting.endPeriod || (config.timingStatus !== "INCOMPLETE" && (!config.periodTimes[meeting.startPeriod] || !config.periodTimes[meeting.endPeriod])) || weeks.length === 0 || weeks.some(week => week < 1)) throw new Error("INVALID_V1_MEETING");
       const structure = structuralIdentity(meeting, context);
       const structuralKey = canonical(structure);
       const duplicateOrdinal = duplicateCounts.get(structuralKey) || 0;
       duplicateCounts.set(structuralKey, duplicateOrdinal + 1);
       const trusted = normalizeText(meeting.sourceTeachingClassId || meeting.teachingClassId);
+      const trustedSlot = trusted ? canonical([trusted,meeting.weekday,meeting.startPeriod,meeting.endPeriod]) : null;
+      const trustedOrdinal = trustedSlot ? trustedCounts.get(trustedSlot) || 0 : 0;
+      if(trustedSlot)trustedCounts.set(trustedSlot,trustedOrdinal+1);
       const identity = trusted
-        ? {kind: "trusted", schoolId: context.schoolId, termId, adapterId: context.adapterId, sourceTeachingClassId: trusted}
+        ? {kind: "trusted", schoolId: context.schoolId, termId, adapterId: context.adapterId, sourceTeachingClassId: trusted,weekday:meeting.weekday,startPeriod:meeting.startPeriod,endPeriod:meeting.endPeriod,duplicateOrdinal:trustedOrdinal}
         : {kind: "derived", structure, duplicateOrdinal};
       return {
         baseMeetingId: `academic:${idComponent(identity)}`,
@@ -95,6 +102,8 @@
       semesterStartDate: profile.semesterStartDate,
       totalWeeks: profile.totalWeeks,
       periodTimes: profile.periodTimes,
+      timingStatus: profile.timingStatus || "COMPLETE",
+      maxPeriod: profile.maxPeriod || Math.max(...dataset.meetings.map(meeting=>meeting.endPeriod)),
       schoolProfileSnapshot: profile,
       importMetadata: {source: dataset.source || dataset.school.sourceSystem || "legacy-v1", legacyKey: dataset.key, legacyFingerprint: dataset.fingerprint || null},
       createdAt: dataset.importedAt || now,

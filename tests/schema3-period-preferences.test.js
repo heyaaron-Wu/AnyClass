@@ -1,0 +1,13 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm"),values=new Map();
+const context={CustomEvent:function(){},dispatchEvent(){},localStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,String(value)),removeItem:key=>values.delete(key)}};context.globalThis=context;vm.createContext(context);vm.runInContext(fs.readFileSync(path.resolve(__dirname,"../app/assets/timetable/period-preferences.js"),"utf8"),context);
+const api=context.AnyClassPeriodPreferences,periodTimes=Object.fromEntries(Array.from({length:11},(_,index)=>[index+1,{start:`${String(8+index).padStart(2,"0")}:00`,end:`${String(8+index).padStart(2,"0")}:45`} ])),config={periodTimes};
+const dataset={meetings:[{startPeriod:1,endPeriod:4}],__courseModel:{schemaVersion:3},__effectiveOccurrences:[{week:1,startPeriod:1,endPeriod:4},{week:12,startPeriod:9,endPeriod:10}]};
+assert.equal(api.highestUsed(dataset),10);
+assert.equal(api.effective(config,dataset,{weekOccurrences:[{meeting:{endPeriod:4}}]}).visibleEndPeriod,4);
+api.save(config,dataset,{periodDefinitions:periodTimes,visibleMode:"ALL"});assert.equal(api.effective(config,dataset).visibleEndPeriod,11);
+assert.throws(()=>api.save(config,dataset,{periodDefinitions:periodTimes,visibleMode:"CUSTOM",customEnd:9}),/VISIBLE_RANGE_IN_USE/);assert.equal(api.load().visibleMode,"ALL");
+api.save(config,dataset,{periodDefinitions:periodTimes,visibleMode:"CUSTOM",customEnd:10});assert.equal(api.effective(config,dataset).visibleEndPeriod,10);
+api.save(config,dataset,{periodDefinitions:periodTimes,visibleMode:"CUSTOM",customEnd:11});assert.equal(api.effective(config,dataset).visibleEndPeriod,11);
+assert.throws(()=>api.highestUsed({__courseModel:{schemaVersion:3},meetings:[]}),/SCHEMA3_EFFECTIVE_OCCURRENCES_REQUIRED/);
+console.log(JSON.stringify({AUTO:"PASS",ALL:"PASS",CUSTOM:"PASS",tooSmallCustom:"REJECTED",futureWeekOccupiedGuard:"PASS",settingsReloadPersistence:"PASS",legacyFallback:"NO",result:"PASS"},null,2));

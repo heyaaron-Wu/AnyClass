@@ -1,9 +1,11 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+  <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
+  <meta name="anyclass-release" content="v020-import-v02-channel-repair-20260929-224025">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <title>本地数据</title>
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
@@ -21,6 +23,7 @@
     <p id="empty" class="muted" aria-live="polite">正在读取此设备的课程数据…</p>
     <div id="data" hidden>
       <div class="local-status-grid local-data-grid">
+        <article class="status-card"><span>课表</span><strong id="timetableName"></strong></article>
         <article class="status-card"><span>学校</span><strong id="school"></strong></article>
         <article class="status-card"><span>学期</span><strong id="semester"></strong></article>
         <article class="status-card"><span>基础课程安排</span><strong id="count"></strong></article>
@@ -28,6 +31,13 @@
         <article class="status-card"><span>最终课次</span><strong id="finalCount"></strong></article>
         <article class="status-card"><span>最后导入时间</span><strong id="time"></strong></article>
       </div>
+      <div class="local-metadata-actions"><button id="editTimetableInfo" class="button" type="button">编辑课表信息</button></div>
+      <form id="timetableInfoForm" class="local-metadata-form" hidden>
+        <h2>编辑课表信息</h2>
+        <div class="local-metadata-fields"><label>课表名称<input id="editTimetableName" type="text" maxlength="100" required></label><label>学校名称<input id="editSchoolName" type="text" maxlength="300" required></label></div>
+        <p id="editTimetableError" role="alert" hidden></p>
+        <div class="actions"><button id="saveTimetableInfo" class="button primary" type="submit">保存</button><button id="cancelTimetableInfo" class="button" type="button">取消</button></div>
+      </form>
       <div class="shell-disclosure local-advanced">
         <button id="advancedToggle" class="shell-disclosure-toggle" type="button" aria-expanded="false" aria-controls="advancedPanel">
           <span>高级信息</span><span class="shell-disclosure-indicator" aria-hidden="true">⌄</span>
@@ -39,10 +49,15 @@
     </div>
   </section>
 </main>
-<script src="/assets/timetable/school-config.js"></script>
-<script src="/assets/timetable/phaseb-engine.js"></script>
+<script src="/assets/timetable/phaseb-engine.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-model.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-resolver.js"></script>
+<script src="/assets/timetable/effective-occurrences.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/schema4-plan.js"></script>
 <script src="/assets/timetable/storage-v2.js"></script>
-<script src="/assets/timetable/storage.js"></script>
+<script src="/assets/timetable/timetable-repository.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/session-grouping.js"></script>
+<script src="/assets/timetable/storage.js?v=v020-scheduling-ux"></script>
 <script>
 (() => {
   "use strict";
@@ -52,32 +67,70 @@
     $("advancedToggle").setAttribute("aria-expanded", String(!expanded));
     $("advancedPanel").hidden = expanded;
   });
-  TimetableStorage.latestDataset("demo").then(dataset => {
-    if (!dataset) { $("empty").textContent = "此设备尚未保存课程表。"; AnyClassShell.setDataState(false); return; }
-    const set = (id, value) => { $(id).textContent = String(value ?? "—"); };
-    const graph = dataset.__phaseBGraph;
-    set("school", dataset.school && dataset.school.name);
-    set("semester", `${dataset.semester.academicYear} 第${dataset.semester.term}学期`);
-    set("count", Array.isArray(dataset.meetings) ? dataset.meetings.length : graph?.baseMeetings?.length || 0);
-    set("logicalCount", graph ? AnyClassPhaseB.logicalOccurrences(graph).length : "—");
-    set("finalCount", graph ? AnyClassPhaseB.finalOccurrences(graph).length : "—");
-    const imported = new Date(dataset.importedAt);
-    set("time", Number.isNaN(imported.getTime()) ? "—" : imported.toLocaleString("zh-CN", {hour12:false}));
-    set("fingerprint", dataset.fingerprint ? String(dataset.fingerprint).slice(0, 12) : "—");
-    return TimetableStorage.diagnostics("demo").then(diagnostics => {
-      set("schemaVersion", diagnostics.schemaVersion);
-      set("activeTerm", diagnostics.activeTermId);
-      set("profileVersion", diagnostics.profileSnapshotVersion);
-      set("adapterVersion", `${diagnostics.adapterId}@${diagnostics.adapterVersion}`);
-      set("engineVersion", diagnostics.engineVersion);
-      $("empty").hidden = true;
-      $("data").hidden = false;
-      AnyClassShell.setDataState(true);
-    });
-  }).catch(() => {
-    $("empty").textContent = "无法读取本机课程数据。";
-    AnyClassShell.setStorageError("无法读取本机课程数据。");
+  const set = (id, value) => { $(id).textContent = String(value ?? "—"); };
+  const targetId=new URLSearchParams(location.search).get("timetableId");
+  let revision=0,currentTable=null,currentSchool="",editingId=null,busy=false,openRequested=new URLSearchParams(location.search).get("edit")==="1";
+  const closeEditor=()=>{editingId=null;$("timetableInfoForm").hidden=true;$("editTimetableInfo").hidden=false;$("editTimetableError").hidden=true;};
+  const openEditor=()=>{
+    if(!currentTable)return;
+    editingId=currentTable.timetableId;
+    $("editTimetableName").value=currentTable.label||"";
+    $("editSchoolName").value=currentSchool;
+    $("editTimetableInfo").hidden=true;$("timetableInfoForm").hidden=false;
+    $("editTimetableName").focus();
+  };
+  $("editTimetableInfo").addEventListener("click",openEditor);
+  $("cancelTimetableInfo").addEventListener("click",()=>{closeEditor();$("editTimetableInfo").focus();});
+  $("timetableInfoForm").addEventListener("submit",async event=>{
+    event.preventDefault();if(busy||!currentTable||editingId!==currentTable.timetableId)return;
+    const label=$("editTimetableName").value.trim(),schoolName=$("editSchoolName").value.trim();
+    if(!label||!schoolName){$("editTimetableError").textContent="请填写课表名称和学校名称。";$("editTimetableError").hidden=false;(!label?$("editTimetableName"):$("editSchoolName")).focus();return;}
+    busy=true;$("saveTimetableInfo").disabled=true;
+    try{await AnyClassTimetableRepository.updateTimetableMetadata(currentTable.timetableId,{label,schoolName});closeEditor();await refresh();AnyClassShell.dispatchTimetableUpdated({reason:"timetable-metadata"});}
+    catch(_){$("editTimetableError").textContent="保存失败，课表信息未修改。";$("editTimetableError").hidden=false;}
+    finally{busy=false;$("saveTimetableInfo").disabled=false;}
   });
+  const refresh = async () => {
+    const run=++revision;
+    try {
+      const bundle=targetId?await AnyClassTimetableRepository.readTimetableBundle(targetId):await AnyClassTimetableRepository.readActiveBundle();
+      if(run!==revision)return;
+      if(editingId&&editingId!==bundle?.table?.timetableId)closeEditor();
+      currentTable=bundle?.table||null;
+      if(!bundle?.table){
+        $("data").hidden=true;$("empty").hidden=false;
+        $("empty").textContent=targetId?"指定的课表不存在。":"此设备尚未保存课程表。";
+        AnyClassShell.setStorageError(false);AnyClassShell.setDataState(false);return;
+      }
+      const dataset=bundle.term&&bundle.model?.courses.length?(targetId?await TimetableStorage.timetableDataset(targetId):await TimetableStorage.activeDataset()):null;
+      if(run!==revision)return;
+      if(bundle.term&&bundle.model?.courses.length&&!dataset)throw Error("TIMETABLE_RUNTIME_MISSING");
+      const term=bundle.term||{},source=bundle.dataset;
+      set("timetableName",bundle.table.label);
+      currentSchool=bundle.table.schoolName||term.schoolName||term.schoolProfileSnapshot?.schoolName||source?.school?.name||"";
+      set("school",currentSchool||"未指定");
+      set("semester",term.academicYear&&term.termCode?`${term.academicYear} 第${term.termCode}学期`:"未指定");
+      set("count",bundle.model?.courses.length||0);
+      set("logicalCount",dataset?.__sourceEffectiveOccurrences.length||0);
+      set("finalCount",dataset?.__effectiveOccurrences.length||0);
+      const imported=new Date(source?.importedAt||"");
+      set("time",Number.isNaN(imported.getTime())?"—":imported.toLocaleString("zh-CN",{hour12:false}));
+      set("fingerprint",source?.fingerprint?String(source.fingerprint).slice(0,12):"—");
+      set("schemaVersion",4);
+      set("activeTerm",term.termId);
+      set("profileVersion",term.schoolProfileSnapshot?.schoolProfileVersion||"—");
+      set("adapterVersion",term.schoolProfileSnapshot?.adapterId&&term.schoolProfileSnapshot?.adapterVersion?`${term.schoolProfileSnapshot.adapterId}@${term.schoolProfileSnapshot.adapterVersion}`:"—");
+      set("engineVersion",AnyClassPhaseB.ENGINE_VERSION);
+      $("empty").hidden=true;$("data").hidden=false;
+      AnyClassShell.setStorageError(false);AnyClassShell.setDataState(true);
+      if(openRequested){openRequested=false;openEditor();}
+    }catch(_){if(run!==revision)return;$("data").hidden=true;$("empty").hidden=false;$("empty").textContent="无法读取本机课程数据。";AnyClassShell.setStorageError("无法读取本机课程数据。");}
+  };
+  addEventListener("anyclass:timetable-updated",refresh);
+  addEventListener("pageshow",refresh);
+  addEventListener("focus",refresh);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
+  refresh();
 })();
 </script>
 </body>

@@ -1,9 +1,12 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+  <!-- Opt in before the larger page styles load; the shared sheet defines the animation. -->
+  <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
+  <meta name="anyclass-release" content="v020-import-v02-channel-repair-20260929-224025">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <title>导入课表</title>
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
@@ -14,8 +17,138 @@
   <style>
     :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#f5f7fb}body{margin:0}main{max-width:1180px;margin:auto;padding:24px}.card{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:20px;box-shadow:0 8px 30px #1e3a5f12;margin-bottom:16px}h1{margin:0 0 12px;font-size:24px}body[data-shell-page="import"] h1,body[data-shell-page="import"] h2,body[data-shell-page="import"] .card strong{color:var(--shell-ink,#14213d)}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0}.metric{padding:12px;background:#f4f7fb;border-radius:10px}.metric b,.metric strong{display:block;font-size:20px}.actions{display:flex;gap:10px;margin:18px 0;flex-wrap:wrap}button,a.button{border:0;border-radius:9px;padding:10px 16px;font-weight:650;cursor:pointer;text-decoration:none}.primary{background:#2563eb;color:#fff}.secondary{background:#e8eef7;color:#172033}.danger{background:#fff1f2;color:#b42318;border:1px solid #fecdd3}button:disabled{opacity:.5;cursor:not-allowed}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #e5eaf1}.muted{color:#667085}.ok{color:#067647}.error{color:#b42318}.bookmark-bar-hint{margin:8px 0 0}.import-panel[hidden]{display:none!important}.mobile-steps{padding-left:22px;line-height:1.7}.mobile-steps li+li{margin-top:8px}.privacy{padding:12px 14px;border-radius:12px;background:#ecfdf3;color:#05603a}.note{padding:12px 14px;border-radius:12px;background:#f6f8fb;color:#526174;line-height:1.6}.file-import-grid{display:grid;grid-template-columns:minmax(0,42fr) minmax(0,58fr);gap:18px;align-items:start}.file-import-column{min-width:0}.file-box{display:block;margin:18px 0;padding:22px;border:2px dashed #b8c8dd;border-radius:16px;background:#f8fbff;text-align:center;font-weight:750}.file-box input{display:block;width:100%;min-width:0;margin-top:12px}.file-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.table-wrap{overflow:auto}.schema{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;overflow:auto;background:#101828;color:#e5e7eb;border-radius:14px;padding:16px}.method-active{box-shadow:inset 0 0 0 2px var(--shell-accent,#2563eb)}@media(max-width:899px){.file-import-grid{grid-template-columns:1fr}}@media(max-width:700px){.bookmark-bar-hint{display:none}}@media(max-width:540px){main{padding:12px}.card{padding:14px}th:nth-child(4),td:nth-child(4){display:none}.file-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
     .file-import-grid{width:100%;max-width:100%;min-width:0}.file-import-column,.import-schema-panel,.file-import-column>.card{width:100%;max-width:100%;min-width:0}.file-box,.file-box input,.schema{max-width:100%;min-width:0}.schema{width:100%;white-space:pre;overflow-x:auto}@media(max-width:899px){.file-import-grid{grid-template-columns:minmax(0,1fr)}}
+    .file-calendar-context{margin:16px 0;padding:14px;border:1px solid var(--shell-line,#dbe3ef);border-radius:12px}.file-calendar-context label{display:block;margin:12px 0 4px;font-weight:650}.file-calendar-context input{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid var(--shell-line,#dbe3ef);border-radius:9px;background:var(--shell-glass-strong,#fff);color:var(--shell-ink,#14213d);font:inherit}.file-calendar-context :focus-visible{outline:3px solid #3486e4;outline-offset:2px}.schedule-time-row{display:grid;grid-template-columns:minmax(0,5em) repeat(2,minmax(0,1fr));gap:8px;align-items:end;margin:8px 0}.schedule-time-row label{min-width:0!important}.schedule-time-row output{align-self:center}.schedule-equal-toggle{display:flex!important;align-items:center;gap:8px;min-height:44px}.schedule-equal-toggle input{width:auto!important;min-height:20px!important}.schedule-duration input{max-width:9em}.file-calendar-choice{display:flex;gap:8px;flex-wrap:wrap}.file-calendar-choice button{min-height:44px}.schedule-time-row [hidden],.schedule-duration[hidden],.file-calendar-context [hidden]{display:none!important}@media(max-width:540px){.schedule-time-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.schedule-time-row strong{grid-column:1/-1}}
   </style>
-  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v011-settings-safety-20260921">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v020-compact-schedule-preview">
+  <link rel="stylesheet" href="/assets/timetable/reimport-review.css?v=v020-phase4b">
+  <style>
+    body[data-shell-page="import"] main.shell{max-width:var(--page-max-width,1240px)}
+    #import-entry h1,#import-entry h2,#preview h2{color:var(--shell-ink,#14213d)}
+    .import-table-wrap{scrollbar-gutter:stable both-edges;padding-inline-end:8px}
+    .import-table-wrap table{width:calc(100% - 12px);margin-inline-end:12px;color:var(--shell-ink,#14213d)}
+    .import-table-wrap th{position:sticky;top:0;z-index:2;color:var(--shell-ink,#14213d);background:var(--shell-surface-strong,#fff);background-clip:padding-box;box-shadow:inset 0 -1px 0 var(--shell-line,#dbe3ef)}
+    .import-table-wrap td{color:var(--shell-ink,#14213d);border-color:var(--shell-line,#dbe3ef)}
+    #file-import,#filePreview,.file-preview-controls,.file-preview-list,.file-preview-scroll{min-width:0;min-inline-size:0}
+    #filePreview{--file-preview-surface:var(--shell-surface-strong,#fffdf8);width:100%;max-width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;color:var(--shell-ink,#14213d)}
+    #filePreview[hidden]{display:none!important}
+    .file-preview-controls{border-bottom:1px solid var(--shell-line);padding-bottom:4px}
+    .file-preview-list{display:grid;grid-template-rows:auto minmax(0,auto);min-height:0}
+    .file-preview-list h3{margin:0 0 10px;color:var(--shell-ink)}
+    .file-preview-scroll{max-height:clamp(320px,52dvh,640px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding-bottom:24px}
+    #filePreview .file-preview-scroll{background:var(--file-preview-surface)}
+    #filePreview .file-preview-scroll th{position:sticky;top:0;z-index:2;background:var(--file-preview-surface);background-clip:padding-box;box-shadow:inset 0 -1px 0 var(--shell-line)}
+    .file-preview-scroll:focus-visible,#filePreview button:focus-visible{outline:3px solid var(--shell-blue,#2563eb);outline-offset:2px}
+    .file-preview-scroll table{width:100%;table-layout:fixed}
+    .file-preview-scroll th:first-child,.file-preview-scroll td:first-child{width:46%}
+    .file-preview-scroll th:nth-child(2),.file-preview-scroll td:nth-child(2){width:23%}
+    .file-preview-scroll th:nth-child(3),.file-preview-scroll td:nth-child(3){width:31%}
+    .file-preview-scroll td{min-width:0;overflow-wrap:anywhere;word-break:normal;vertical-align:top}
+    #filePreview .file-preview-actions{position:static;margin:4px 0 0;gap:10px;border-top:1px solid var(--shell-line);padding-top:14px}
+    #filePreview .file-preview-actions [hidden],#filePreview[data-import-state="SUCCESS"] .file-preview-controls,#filePreview[data-import-state="SUCCESS"] .file-preview-list{display:none!important}
+    #filePreview .file-metadata{margin:12px 0;padding:12px 14px;border:1px solid var(--shell-line);border-radius:12px;background:var(--shell-surface-soft);min-width:0}
+    #filePreview .file-metadata h3{margin:0 0 10px}
+    #fileImportTarget{margin:0 0 10px;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+    .target-advisory-action{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:auto;max-width:100%;min-height:44px;margin-left:-6px;padding:0 6px;border:0;background:transparent;color:var(--shell-blue,#2563eb);font-size:13px;font-weight:650;text-align:left;text-decoration:underline;text-underline-offset:3px;touch-action:manipulation;overflow-wrap:anywhere}
+    .target-advisory-action:hover{background:transparent;text-decoration-thickness:2px}
+    .target-advisory-action:focus-visible{outline:3px solid var(--shell-blue,#2563eb);outline-offset:2px}
+    #filePreview .file-metadata-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+    #filePreview .file-metadata label{display:block;margin:0 0 5px;font-weight:650}
+    #filePreview .file-metadata input{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:9px 10px;border:1px solid var(--shell-line);border-radius:9px;background:var(--shell-glass-strong);color:var(--shell-ink);font:inherit}
+    #filePreview .file-metadata input:focus-visible{outline:3px solid var(--shell-blue,#2563eb);outline-offset:2px}
+    #fileCalendarContext,.file-date-field,.file-date-control,#fileTimezoneFallback{min-width:0;min-inline-size:0;max-width:100%;max-inline-size:100%}
+    .file-date-field,.file-date-control{box-sizing:border-box;width:100%;inline-size:100%}
+    #filePreview .file-date-control{position:relative;display:flex;align-items:center;min-height:44px;padding:0;border:1px solid var(--shell-line,#dbe3ef);border-radius:9px;background:var(--shell-glass-strong,#fff);overflow:hidden}
+    #filePreview .file-date-control:focus-within{outline:3px solid #3486e4;outline-offset:2px}
+    .clipboard-label,.clipboard-ai-help label{display:block;margin:14px 0 6px;font-weight:650}
+    .clipboard-text{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;resize:vertical;padding:12px;border:1px solid var(--shell-line,#dbe3ef);border-radius:10px;background:var(--shell-glass-strong,#fff);color:var(--shell-ink,#14213d);font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow:auto}
+    .clipboard-text:focus-visible,.clipboard-ai-help summary:focus-visible,#clipboardRead:focus-visible,#clipboardPreview:focus-visible,#clipboardCopyPrompt:focus-visible{outline:3px solid var(--shell-blue,#2563eb);outline-offset:2px}
+    #clipboardMessage{margin:8px 0 12px;overflow-wrap:anywhere}.clipboard-ai-help{margin-top:18px;border-top:1px solid var(--shell-line);padding-top:14px}.clipboard-ai-help summary{cursor:pointer;font-weight:650}.clipboard-ai-help ol{line-height:1.6;padding-left:22px}.clipboard-ai-help button{min-height:44px}
+    #fileSemesterStart{position:static;display:block;inline-size:100%;min-width:0;min-height:44px;box-sizing:border-box;margin:0;padding:9px 10px;border:0;background:transparent;color:var(--shell-ink,#14213d);opacity:1;pointer-events:auto;font:16px/1.35 inherit;cursor:pointer;color-scheme:light dark}
+    #filePreview #fileSemesterStart:focus-visible{outline:none}
+    #fileDateDisplay{display:none}
+    #fileDateDisplay[data-empty="true"]{color:var(--shell-muted)}
+    #filePreview .file-calendar-context{width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+    #filePreview #filePeriodHint{white-space:pre-line}
+    #filePreview .file-field-error,#filePreview .file-submit-message{margin:6px 0 0;line-height:1.45;font-size:13px;overflow-wrap:anywhere}
+    #filePreview .file-submit-message{white-space:pre-line}
+    #filePreview .file-field-error,#filePreview .file-submit-message.error{color:#b42318}
+    #filePreview .file-submit-message.ok{color:#067647}
+    #fileConflictWarning{margin:6px 0 14px;padding:10px 12px;border:1px solid #e7b873;border-radius:10px;background:#fff7e8;color:#70440c;line-height:1.5;font-size:13px;overflow-wrap:anywhere}
+    .file-conflict-review{margin:6px 0 14px;padding:8px 12px;border:1px solid #e7b873;border-radius:10px;overflow-wrap:anywhere}
+    .file-conflict-review summary{min-height:44px;display:list-item;cursor:pointer;font-weight:700;color:var(--shell-ink)}
+    .file-conflict-item{padding:10px 0;border-top:1px solid var(--shell-line);line-height:1.5;color:var(--shell-ink)}
+    .file-conflict-item.file-conflict-exiting{opacity:.35;transform:scale(.99);transition:opacity 180ms ease,transform 180ms ease}
+    .file-conflict-group{border-top:1px solid var(--shell-line)}
+    .file-conflict-group>summary{min-height:44px;padding:10px 0;font-weight:700;cursor:pointer;overflow-wrap:anywhere}
+    .file-conflict-group>div{padding-left:10px}
+    .file-conflict-item p{margin:4px 0}.file-conflict-confirm{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:650;color:var(--shell-ink)}
+    .file-conflict-confirm input{flex:none;width:20px;height:20px}
+    #fileConflictConfirmHelp,#fileNameProgress,.file-name-choice-feedback{margin:3px 0;line-height:1.35;font-size:13px;overflow-wrap:anywhere}
+    .file-conflict-item[data-resolution="SKIP"]{opacity:.7}
+    .file-conflict-item[data-resolution="MERGE_WITH_EXISTING"] .file-name-choice-feedback,.file-conflict-item[data-resolution="SKIP"] .file-name-choice-feedback{font-weight:700;color:var(--shell-ink)}
+    .file-conflict-item .actions button[aria-pressed="true"]{outline:2px solid var(--shell-blue,#2563eb);outline-offset:1px}
+    .file-conflict-item .actions button[aria-pressed="false"]{opacity:.7}
+    #filePendingEditor,#filePendingEditor .file-metadata-grid,#filePendingEditor .file-metadata-grid>div{min-width:0;max-width:100%;box-sizing:border-box}
+    #filePendingEditor label{display:block;margin:10px 0 5px;font-weight:650}
+    #filePendingEditor select,#filePendingEditor input{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:44px;font:inherit}
+    #filePendingEditor .actions button{min-width:0;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+    #fileConflictItems .actions button{min-width:0;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+    #fileConflictProgress,.file-conflict-status{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+    #fileEditReturnStatus{margin:6px 0 14px;padding:10px 12px;border:1px solid var(--shell-line);border-radius:10px;line-height:1.45;scroll-margin-block:80px}
+    .file-conflict-item,.file-conflict-group,#fileNameSummary,#fileConflictProgress{scroll-margin-block:80px}
+    .file-edit-return-target{outline:2px solid var(--shell-blue,#2563eb);outline-offset:3px}
+    @media(prefers-reduced-motion:reduce){.file-conflict-item.file-conflict-exiting{transition:none}}
+    #filePreview{padding-bottom:calc(var(--app-dock-clearance,90px) + env(safe-area-inset-bottom,0px) + 24px)}
+    #filePreview .file-preview-actions .file-submit-message{flex:1 0 100%;margin:0}
+    #filePreview .file-preview-actions #fileSubmitBlockers{flex:1 0 100%;margin:0;color:var(--shell-muted);font-size:13px;line-height:1.45}
+    #filePreview .file-preview-actions #fileSave:disabled{background:var(--shell-surface-soft);color:var(--shell-muted);border:1px solid var(--shell-line);opacity:1}
+    @media(prefers-color-scheme:dark){#filePreview{--file-preview-surface:#111c2e}#filePreview .file-field-error,#filePreview .file-submit-message.error{color:#ffb4a9}#filePreview .file-submit-message.ok{color:#86efac}#fileConflictWarning{border-color:#9b6a2d;background:#372918;color:#ffe0a8}}
+    .file-time-status{display:flex;align-items:center;justify-content:space-between;gap:6px 12px;min-width:0;flex-wrap:wrap}
+    #filePreview .file-time-status p{flex:1 1 185px;min-width:0;margin:5px 0;line-height:1.45}
+    #fileTimeNow{flex:0 0 auto;min-height:44px;padding:7px 11px;border:1px solid var(--shell-line);border-radius:9px;background:var(--shell-surface-soft);color:var(--shell-ink);font-size:13px;line-height:1.2;white-space:nowrap}
+    #fileTimeNow:hover,#fileTimeNow:focus-visible{background:var(--shell-surface-strong)}
+    .receiver-target{margin:14px 0;padding:12px 14px;border:1px solid var(--shell-line);border-radius:12px;background:var(--shell-surface-soft);min-width:0;overflow-wrap:anywhere}
+    .receiver-target p{margin:0 0 8px;line-height:1.5}.receiver-target p:last-child{margin-bottom:0}
+    .receiver-target button{min-height:44px}.receiver-target button:focus-visible{outline:3px solid var(--shell-blue,#2563eb);outline-offset:2px}
+    .receiver-target [hidden]{display:none!important}
+    @media(max-width:700px){
+      body[data-shell-page="import"].file-preview-active{--safe-bottom-content:calc(var(--app-dock-clearance,90px) + env(safe-area-inset-bottom) + 16px)}
+      #filePreview{gap:14px;padding:14px;max-height:none;grid-template-rows:none;scroll-margin-top:calc(env(safe-area-inset-top) + 10px)}
+      #filePreview .file-summary{margin:10px 0;gap:7px}
+      #filePreview .metric{padding:8px 10px}
+      #filePreview .metric strong{font-size:16px;overflow-wrap:anywhere}
+      #filePreview .file-calendar-context{margin:9px 0;padding:10px;min-width:0;min-inline-size:0}
+      #filePreview .file-metadata{margin:9px 0;padding:10px}
+      #filePreview .file-metadata-grid{grid-template-columns:minmax(0,1fr)}
+      #filePendingEditor .file-metadata-grid{display:grid;grid-template-columns:minmax(0,1fr)}
+      #filePendingEditor select,#filePendingEditor input{inline-size:100%;max-inline-size:100%;min-inline-size:0}
+      #filePreview .file-calendar-context h3{margin:0 0 8px}
+      #filePreview .file-date-field label{margin:8px 0 6px}
+      #filePreview .file-calendar-context p{margin:7px 0}
+      #filePreview .file-date-field+p{margin-top:10px}
+      #filePreview #fileTimezoneInfo{margin-top:10px}
+      .file-preview-list{min-height:0}
+      .file-preview-scroll{height:auto;max-height:clamp(340px,58dvh,560px);min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding-block:8px;border-radius:12px}
+      .file-preview-scroll table,.file-preview-scroll tbody,.file-preview-scroll tr,.file-preview-scroll td{display:block;width:100%!important}
+      .file-preview-scroll thead{display:none}
+      .file-preview-scroll tbody{box-sizing:border-box;padding:8px}
+      .file-preview-scroll tr{margin:0 0 8px;padding:11px 12px;border:1px solid var(--shell-line);border-radius:11px;background:var(--shell-surface-soft)}
+      .file-preview-scroll tr:last-child{margin-bottom:0}
+      .file-preview-scroll td{padding:0;border:0;line-height:1.4;overflow-wrap:anywhere}
+      .file-preview-scroll .file-course-name{font-weight:750;color:var(--shell-ink)}
+      .file-preview-scroll .file-course-time{margin-top:5px;color:var(--shell-muted);font-size:13px}
+      .file-preview-scroll .file-course-location{margin-top:4px;color:var(--shell-muted);font-size:13px}
+      #filePreview .file-time-status p{flex-basis:100%}
+      #filePreview #fileTimeNow{margin-left:auto}
+      #filePreview .file-preview-actions .file-submit-message,#filePreview .file-preview-actions #fileSubmitBlockers{grid-column:1/-1}
+      #filePreview .file-preview-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;padding-bottom:0;background:transparent}
+      #filePreview .file-preview-actions button{min-width:0;min-height:44px;white-space:normal}
+    }
+    @media(max-width:540px){
+      .import-table-wrap table{min-width:660px}
+      .import-table-wrap th:nth-child(4),.import-table-wrap td:nth-child(4){display:table-cell}
+    }
+  </style>
 </head>
 <body data-shell-page="import">
 <main class="shell">
@@ -27,6 +160,7 @@
     <button id="chooseComputer" class="shell-choice import-method-button" type="button" data-import-method="desktop" aria-expanded="false" aria-controls="computer-import"><strong>电脑导入</strong><span>从电脑上的个人课表导入。</span></button>
     <button id="chooseMobile" class="shell-choice import-method-button" type="button" data-import-method="mobile" aria-expanded="false" aria-controls="mobile-import"><strong>手机 / iPad 导入</strong><span>通过 Safari 分享菜单导入。</span></button>
     <button id="chooseFile" class="shell-choice import-method-button" type="button" data-import-method="file" aria-expanded="false" aria-controls="file-import"><strong>已有课程文件</strong><span>选择之前生成的课表文件。</span></button>
+    <button id="chooseClipboard" class="shell-choice import-method-button" type="button" data-import-method="clipboard" aria-expanded="false" aria-controls="clipboard-import"><strong>JSON / AI 辅助导入</strong><span>粘贴 JSON，或用 AI 从截图生成 JSON 后预览保存。</span></button>
   </div>
 </section>
 <section id="computer-import" class="card import-panel" data-import-panel="desktop" hidden>
@@ -43,17 +177,7 @@
   <p id="copyBookmarkletStatus" class="muted import-copy-status" role="status" hidden></p>
   </div>
   <p id="message" class="muted import-receiver-message" role="status" hidden></p>
-  <div id="preview" class="import-preview" hidden>
-    <div class="import-preview-heading"><h2>课表已读取</h2><button id="reselectImport" class="import-reselect" type="button">重新选择导入方式</button></div>
-    <div class="summary">
-      <div class="metric">学期<b id="semester">—</b></div>
-      <div class="metric">课程安排<b id="meetingCount">0</b></div>
-      <div class="metric">课程<b id="courseCount">0</b></div>
-      <div class="metric">调课记录<b id="adjustedCount">0</b></div>
-    </div>
-    <div class="actions"><button id="save" class="primary">保存到本机</button><button id="cancel" class="secondary">取消</button></div>
-    <div class="import-table-wrap"><table><thead><tr><th>课程名称</th><th>星期 / 节次</th><th>地点</th><th>教师</th></tr></thead><tbody id="rows"></tbody></table></div>
-  </div>
+  <div class="actions"><button id="prepareReceiverTarget" class="primary" type="button" hidden>打开统一导入预览</button></div>
 </section>
 <section id="mobile-import" class="card import-panel" data-import-panel="mobile" hidden>
   <h2>手机 / iPad 导入</h2>
@@ -65,8 +189,8 @@
     <li>在分享菜单中运行课表导入快捷指令。</li>
     <li>在打开的 AnyClass 页面选择生成的课表文件。</li>
   </ol>
-  <div class="actions"><a class="button primary" href="https://www.icloud.com/shortcuts/de98e25371614480bc8bd7871415e050" target="_blank" rel="noopener">添加课表导入快捷指令</a><button class="secondary" type="button" data-import-method="file">已有文件，直接导入</button></div>
-  <p class="note"><strong>快捷指令目标：</strong><span class="code">https://anyclass.heyaaron.asia/import/?method=file</span></p>
+  <div class="actions"><a id="addImportShortcut" class="button primary" href="https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37" target="_blank" rel="noopener">添加课表导入快捷指令</a><button class="secondary" type="button" data-import-method="file">已有文件，直接导入</button></div>
+  <p class="note"><strong>快捷指令目标：</strong><span id="importShortcutTarget" class="code">https://anyclass.heyaaron.asia/import/?method=file</span></p>
   <p class="privacy"><strong>隐私保护：</strong>课程数据只在当前设备处理，不会上传服务器。</p>
   <p class="muted">Safari 出于安全限制仍会要求手动选择一次生成的文件，这是预期行为。</p>
 </section>
@@ -79,18 +203,6 @@
         <p class="privacy">文件只在此浏览器内读取，课程数据不会上传服务器。</p>
         <label class="file-box">选择本机 JSON 文件<input id="fileInput" type="file" accept=".json,application/json"></label>
         <p id="fileMessage" class="muted" aria-live="polite">尚未选择文件</p>
-      </section>
-      <section id="filePreview" class="card" hidden>
-        <h2>导入预览</h2>
-        <div class="summary file-summary">
-          <div class="metric"><span>学校</span><strong id="fileSchool">—</strong></div>
-          <div class="metric"><span>学期</span><strong id="fileSemester">—</strong></div>
-          <div class="metric"><span>课程安排</span><strong id="fileMeetingCount">0</strong></div>
-          <div class="metric"><span>课程</span><strong id="fileCourseCount">0</strong></div>
-        </div>
-        <div class="actions"><button id="fileSave" class="primary">确认并保存到本机</button><button id="fileCancel" class="secondary">取消</button></div>
-        <div class="table-wrap"><table><thead><tr><th>课程名称</th><th>星期 / 节次</th><th>地点</th></tr></thead><tbody id="fileRows"></tbody></table></div>
-        <p id="filePreviewLimit" class="muted" hidden>为保持页面流畅，预览只显示前 50 条；保存仍包含全部已校验课程安排。</p>
       </section>
     </div>
     <section class="card import-schema-panel">
@@ -105,45 +217,122 @@
     </section>
   </div>
 </section>
+<section id="clipboard-import" class="card import-panel" data-import-panel="clipboard" hidden>
+  <h2>从剪贴板导入</h2>
+  <p class="muted">粘贴 AnyClass JSON，校验通过后可预览并保存。课程数据只在本机处理。</p>
+  <button id="clipboardRead" class="secondary" type="button">读取剪贴板</button>
+  <label for="clipboardText" class="clipboard-label">AnyClass JSON</label>
+  <textarea id="clipboardText" class="clipboard-text" rows="8" spellcheck="false" maxlength="5242880" aria-describedby="clipboardMessage"></textarea>
+  <p id="clipboardMessage" role="status" aria-live="polite" class="muted">也可以直接长按或使用快捷键粘贴。</p>
+  <button id="clipboardPreview" class="primary" type="button">校验并预览</button>
+  <details class="clipboard-ai-help"><summary>AI 辅助：从课程表截图生成 JSON</summary>
+    <ol><li>截图课程表</li><li>复制下方课程表提示词</li><li>将截图和提示词发送给你选择的 AI</li><li>复制 AI 返回的 JSON</li><li>回到 AnyClass 粘贴并预览</li><li>核对后保存</li></ol>
+    <p class="muted">AI 辅助导入目前仍处于实验阶段，可能误识别星期、节次、周次、地点等信息。请以原课表和导入预览为准，核对无误后再保存。AnyClass 不上传截图，也不调用 AI 服务。</p>
+    <button id="clipboardCopyPrompt" class="secondary" type="button">复制课程表提示词</button>
+    <p id="clipboardPromptStatus" role="status" aria-live="polite" class="muted"></p>
+    <label for="clipboardPrompt">提示词（也可手动选择复制）</label><textarea id="clipboardPrompt" class="clipboard-text" rows="6" readonly></textarea>
+  </details>
+</section>
+<section id="shared-file-preview" class="import-panel" data-import-panel="shared-preview" hidden>
+  <section id="filePreview" class="card" hidden>
+    <div class="file-preview-controls">
+        <h2>导入预览</h2>
+        <div class="summary file-summary">
+          <div class="metric"><span>学校</span><strong id="fileSchool">—</strong></div>
+          <div class="metric"><span>学期</span><strong id="fileSemester">—</strong></div>
+          <div class="metric"><span>课程安排</span><strong id="fileMeetingCount">0</strong></div>
+          <div class="metric"><span>课程</span><strong id="fileCourseCount">0</strong></div>
+        </div>
+        <p id="fileConflictWarning" class="file-conflict-warning" role="status" hidden></p>
+        <p id="fileEditReturnStatus" role="status" aria-live="polite" hidden></p>
+        <section id="fileExactDuplicateReview" class="file-conflict-review" aria-label="已存在课程安排" hidden><h3>已存在的课程安排</h3><p id="fileExactDuplicateSummary" class="muted"></p><div id="fileExactDuplicateItems"></div></section>
+        <section id="fileConflictReview" class="file-conflict-review" aria-label="导入课程时间冲突详情" hidden><details id="fileConflictDetails"><summary>上课时间重叠 · 查看课程与时间</summary><div id="fileConflictItems"></div><p id="fileConflictProgress" class="muted" role="status" aria-live="polite"></p><div class="actions"><button id="fileConflictEdit" type="button" class="secondary">编辑待导入安排并重新检查</button></div></details><label class="file-conflict-confirm"><input id="fileConflictConfirm" type="checkbox">我已核对冲突课程，确认仍要保存</label><p id="fileConflictConfirmHelp" class="muted" role="status" aria-live="polite"></p></section>
+        <section id="fileNameReview" class="file-conflict-review" aria-label="课程名称校对" hidden><h3>课程名称需校对</h3><p id="fileNameSummary" class="muted"></p><p id="fileNameProgress" class="muted" role="status" aria-live="polite"></p><div id="fileNameItems"></div><p class="muted">同一课程的多条上课安排会保留。你也可以取消本次导入。</p></section>
+        <section id="filePendingEditor" class="file-conflict-review" aria-label="编辑待导入课程" hidden><h3>编辑导入课程</h3><label for="filePendingGroup">选择课程</label><select id="filePendingGroup"></select><label for="filePendingMeeting">选择上课安排</label><select id="filePendingMeeting"></select><div class="file-metadata-grid"><div><label for="filePendingName">课程名称</label><input id="filePendingName" type="text" maxlength="300"></div><div><label for="filePendingTeacher">教师</label><input id="filePendingTeacher" type="text" maxlength="300"></div><div><label for="filePendingLocation">地点</label><input id="filePendingLocation" type="text" maxlength="300"></div><div><label for="filePendingWeekday">星期（1–7）</label><input id="filePendingWeekday" type="number" min="1" max="7"></div><div><label for="filePendingStart">开始节次</label><input id="filePendingStart" type="number" min="1" max="30"></div><div><label for="filePendingEnd">结束节次</label><input id="filePendingEnd" type="number" min="1" max="30"></div><div><label for="filePendingWeeks">周次（逗号分隔）</label><input id="filePendingWeeks" type="text"></div></div><p id="filePendingError" class="file-field-error" role="alert" hidden></p><div class="actions"><button id="filePendingCancel" type="button" class="secondary">返回预览</button><button id="filePendingApply" type="button" class="primary">应用修改并重新检查</button></div></section>
+        <div class="file-metadata" aria-labelledby="fileMetadataTitle">
+          <h3 id="fileMetadataTitle">课表信息</h3>
+          <p id="fileImportTarget" class="muted" role="status" aria-live="polite"></p>
+          <div id="fileImportMatch" class="file-import-match" hidden><p id="fileImportMatchText" class="muted"></p><button id="fileChangeTarget" class="target-advisory-action" type="button"></button></div>
+          <div class="file-metadata-grid">
+            <div><label for="fileSchoolName">学校名称</label><input id="fileSchoolName" type="text" maxlength="300" autocomplete="organization" placeholder="请填写学校名称" aria-describedby="fileSchoolNameError"><p id="fileSchoolNameError" class="file-field-error" role="alert" hidden></p></div>
+            <div><label for="fileTimetableName">课表名称</label><input id="fileTimetableName" type="text" maxlength="100" placeholder="课表名称" aria-describedby="fileTimetableNameError"><p id="fileTimetableNameError" class="file-field-error" role="alert" hidden></p></div>
+          </div>
+        </div>
+        <div id="fileCalendarContext" class="file-calendar-context" hidden>
+          <h3>需要补充的信息</h3>
+          <div class="file-date-field"><label for="fileSemesterStart">学期第一周的星期一</label><div class="file-date-control"><output id="fileDateDisplay" for="fileSemesterStart" aria-hidden="true" data-empty="true">YYYY/MM/DD</output><input id="fileSemesterStart" type="date" aria-describedby="fileSemesterStartError"></div><p id="fileSemesterStartError" class="file-field-error" role="alert" hidden></p></div>
+          <p class="muted">用于计算周次对应的实际日期。</p>
+          <p id="fileTimezoneInfo" class="muted"></p>
+          <div id="fileTimezoneFallback" hidden><label for="fileTimezone">无法检测设备时区，请选择 IANA 时区</label><input id="fileTimezone" type="text" autocomplete="off" placeholder="例如 Asia/Shanghai" aria-describedby="fileTimezoneError"><p id="fileTimezoneError" class="file-field-error" role="alert" hidden></p></div>
+          <div class="file-time-status"><p id="filePeriodHint" class="muted">上课时间：默认作息 · 第1节 08:00 开始<br>可在课表设置中修改。</p><button id="fileTimeNow" type="button" aria-controls="fileTimeEditor" aria-expanded="false">修改</button></div>
+          <div id="fileTimeEditor" hidden></div><p id="fileTimeError" class="file-field-error" role="alert" hidden></p>
+        </div>
+    </div>
+    <div class="file-preview-list">
+      <h3>课程预览</h3>
+      <div class="table-wrap file-preview-scroll" role="region" aria-label="课程预览，可滚动" tabindex="0"><table><thead><tr><th scope="col">课程名称</th><th scope="col">星期 / 节次</th><th scope="col">地点</th></tr></thead><tbody id="fileRows"></tbody></table></div>
+      <p id="filePreviewLimit" class="muted" hidden>为保持页面流畅，预览只显示前 50 条；保存仍包含全部已校验课程安排。</p>
+    </div>
+    <div class="actions file-preview-actions"><p id="fileSubmitMessage" class="file-submit-message muted" role="status" aria-live="polite" hidden></p><p id="fileSubmitBlockers" role="status" aria-live="polite" hidden></p><button id="fileSave" class="primary" type="button" aria-describedby="fileSubmitBlockers">确认并保存到本机</button><button id="fileCancel" class="secondary" type="button">取消</button><button id="fileSaved" class="primary" type="button" disabled hidden>✓ 已保存</button><button id="fileGoToday" class="secondary" type="button" hidden>立即前往</button></div>
+  </section>
+</section>
+<section id="reimportReview" class="card" hidden aria-labelledby="reimportReviewTitle">
+  <h2 id="reimportReviewTitle" tabindex="-1">课程更新需要确认</h2>
+  <p class="reimport-review-intro">部分课程与你保存的修改不同。确认每项选择后，课表才会更新。刷新或关闭页面后，请重新选择原文件或重新导入；现有课表不会改变。</p>
+  <p id="reimportReviewSummary" class="reimport-review-summary"></p>
+  <p id="reimportReviewProgress" class="reimport-review-progress" role="status"></p>
+  <div id="reimportReviewItems" class="reimport-review-list"></div>
+  <div class="reimport-review-actions"><p id="reimportReviewFeedback" class="reimport-review-feedback" role="alert" hidden></p><button id="reimportReviewCommit" class="primary" type="button" disabled>确认更新课表</button><button id="reimportReviewCancel" class="secondary" type="button">取消本次更新</button></div>
+</section>
 </main>
-<script src="/assets/timetable/import-file-core.js?v=v011-unified-import-20260919"></script>
-<script src="/assets/timetable/school-config.js"></script>
+<script src="/assets/timetable/normalized-import.js?v=v020-bookmark-preview-repair"></script>
+<script src="/assets/timetable/import-file-core.js?v=v020-ai-school-contract"></script>
+<script src="/assets/timetable/school-profile.js"></script>
+<script src="/assets/timetable/school-config.js?v=v020-default-period-times"></script>
 <script src="/assets/adapters/zhengfang-v9.js"></script>
 <script src="/assets/adapters/adapter-registry.js"></script>
 <script src="/assets/adapters/system-detector.js"></script>
-<script src="/assets/timetable/phaseb-engine.js"></script>
-<script src="/assets/timetable/storage-v2.js"></script>
-<script src="/assets/timetable/import-file-storage.js?v=v011-unified-import-20260919"></script>
-<script src="/assets/timetable/import-file-app.js?v=v011-unified-import-20260919"></script>
+<script src="/assets/timetable/phaseb-engine.js?v=v020-ai-school-contract"></script>
+<script src="/assets/timetable/course-model.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/course-resolver.js"></script>
+<script src="/assets/timetable/effective-occurrences.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/schema4-plan.js"></script>
+<script src="/assets/timetable/storage-v2.js?v=v020-ai-school-contract"></script>
+<script src="/assets/timetable/timetable-repository.js?v=v020-scheduling-ux"></script>
+<script src="/assets/timetable/session-grouping.js"></script>
+<script src="/assets/timetable/import-file-storage.js?v=v020-default-period-times"></script>
+<script src="/assets/timetable/schedule-times.js?v=v020-compact-schedule-preview"></script>
+<script src="/assets/timetable/reimport-review.js?v=v020-phase4b"></script>
+<script src="/assets/timetable/course-name-review.js"></script>
+<script src="/assets/timetable/import-file-app.js?v=v020-bookmark-preview-repair"></script>
+<script src="/assets/timetable/clipboard-import.js?v=v020-ai-school-contract"></script>
+<script src="/assets/timetable/import-client-channels.js?v=v020-bookmark-channel-wiring"></script>
 <script>
 (()=>{"use strict";
-const SOURCE_ORIGIN="https://jw.example.edu",PROTOCOL="timetable-import-v1",BOOKMARKLET_ID="anyclass-import",BOOKMARKLET_VERSION="3.0.0";
-const $=id=>document.getElementById(id),message=$("message"),preview=$("preview"),save=$("save"),entry=$("import-entry"),instructions=$("import-instructions"),computer=$("computer-import");let pending=null,reply=null;
-const methodNames=new Set(["desktop","mobile","file"]);
+const profileRegistry=AnyClassSchoolProfileRegistry,trustedOrigins=[...new Set(profileRegistry.list().flatMap(item=>item.knownOrigins))],PROTOCOL="timetable-import-v1",BOOKMARKLET_ID="anyclass-import",BOOKMARKLET_VERSION="3.0.0";
+const declaredSourceOrigin=(()=>{try{const value=new URL(location.href).searchParams.get("sourceOrigin"),url=new URL(value||"");return url.protocol==="https:"&&!url.username&&!url.password?url.origin:null}catch(_){return null}})();if(declaredSourceOrigin&&!profileRegistry.matchOrigin(declaredSourceOrigin,"zhengfang-v9").length){profileRegistry.register(AnyClassSchoolProfile.create({id:"public-zhengfang-v9",displayName:"待确认学校",profileVersion:"public-generic-v1",adapterId:"zhengfang-v9",adapterVersion:"legacy-v1",knownOrigins:[declaredSourceOrigin],timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC",semesterMapping:{termCodes:{"3":"1","12":"2"}},semesterStartDate:"1970-01-05",totalWeeks:null,weekStart:1,periodDefinitions:AnyClassDefaultPeriodTimes.clone(),campusAliases:{},locationNormalizationVersion:"public-generic-v1"}));trustedOrigins.push(declaredSourceOrigin)}
+const $=id=>document.getElementById(id),message=$("message"),entry=$("import-entry"),instructions=$("import-instructions"),computer=$("computer-import"),prepare=$("prepareReceiverTarget");let pending=null,bookmarkActive=false,receiving=false;
+const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})();$("addImportShortcut").href=importChannel.shortcutICloudUrl;$("addImportShortcut").setAttribute("aria-label",`添加${importChannel.shortcutDisplayName}`);$("importShortcutTarget").textContent=importChannel.shortcutTargetImportUrl;
+const methodNames=new Set(["desktop","mobile","file","clipboard"]);
 const methodButtons=()=>[...document.querySelectorAll("[data-import-method]")];
-const activateMethod=(method,{updateUrl=true}={})=>{const selected=methodNames.has(method)?method:null;for(const panel of document.querySelectorAll("[data-import-panel]"))panel.hidden=panel.dataset.importPanel!==selected;for(const button of methodButtons()){const active=button.dataset.importMethod===selected;button.classList.toggle("method-active",active);if(button.hasAttribute("aria-controls"))button.setAttribute("aria-expanded",String(active))}if(updateUrl){const url=new URL(location.href);if(selected)url.searchParams.set("method",selected);else url.searchParams.delete("method");history.replaceState({method:selected},"",url)}};
+const activateMethod=(method,{updateUrl=true}={})=>{const selected=methodNames.has(method)?method:null;for(const panel of document.querySelectorAll("[data-import-panel]")){const shared=panel.dataset.importPanel==="shared-preview"&&((selected==="file"||selected==="clipboard")||(selected==="desktop"&&bookmarkActive));panel.hidden=panel.dataset.importPanel!==selected&&!shared}for(const button of methodButtons()){const active=button.dataset.importMethod===selected;button.classList.toggle("method-active",active);if(button.hasAttribute("aria-controls"))button.setAttribute("aria-expanded",String(active))}if(updateUrl){const url=new URL(location.href);if(selected)url.searchParams.set("method",selected);else url.searchParams.delete("method");history.replaceState({method:selected},"",url)}};
 const copyText=async text=>{if(navigator.clipboard&&isSecureContext)return navigator.clipboard.writeText(text);const area=document.createElement("textarea");area.value=text;area.setAttribute("readonly","");area.style.position="fixed";area.style.opacity="0";document.body.append(area);area.select();const ok=document.execCommand("copy");area.remove();if(!ok)throw Error("COPY_FAILED")};
 const setMessage=(text,kind="muted")=>{message.textContent=text;message.className=`import-receiver-message ${kind}`;message.hidden=!text;if(window.AnyClassShell){if(kind==="error")AnyClassShell.setImportError(text);else{AnyClassShell.setImportError(false);AnyClassShell.setStorageError(false)}}};
-const getDataset=(key,factory)=>AnyClassStorageV2.getLegacyDataset(key,factory);
-const putDataset=(data,factory)=>AnyClassStorageV2.putLegacyAndMigrate(data,TimetableSchoolConfigs.demo,factory);
 const persistenceFactory=async()=>{if(window.parent===window)return indexedDB;if(typeof document.requestStorageAccess!=="function")throw Error("UNPARTITIONED_INDEXEDDB_UNSUPPORTED");const handle=await document.requestStorageAccess({indexedDB:true});if(!handle?.indexedDB)throw Error("UNPARTITIONED_INDEXEDDB_DENIED");return handle.indexedDB};
 const tests=[["1-5周",[1,2,3,4,5]],["11周",[11]],["1-3周,6-7周,10周",[1,2,3,6,7,10]],["1-3周(单)",[1,3]],["1-3周(单),7-8周,16周",[1,3,7,8,16]],["1-6周(双)",[2,4,6]]];
-const adapter=AnyClassAdapterRegistry.get("zhengfang-v9"),profile=AnyClassSchoolProfiles.demo;
-const testPass=tests.every(([x,y])=>JSON.stringify(adapter.parseWeeks(x))===JSON.stringify(y));
+const adapterReady=adapter=>adapter&&tests.every(([x,y])=>JSON.stringify(adapter.parseWeeks(x))===JSON.stringify(y));
 const valid=m=>m&&typeof m.courseName==="string"&&m.courseName.trim()&&Number.isInteger(m.weekday)&&m.weekday>=1&&m.weekday<=7&&Number.isInteger(m.startPeriod)&&m.startPeriod>0&&Number.isInteger(m.endPeriod)&&m.endPeriod>=m.startPeriod&&Array.isArray(m.weeks)&&m.weeks.length>0&&m.weeks.every((w,i,a)=>Number.isInteger(w)&&w>0&&(!i||w>a[i-1]));
-const stableMeetings=meetings=>meetings.map(m=>({courseName:m.courseName,weekday:m.weekday,startPeriod:m.startPeriod,endPeriod:m.endPeriod,weeks:[...m.weeks],teacher:m.teacher,locationRaw:m.locationRaw,isAdjusted:m.isAdjusted})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
-const fingerprint=async(semester,meetings)=>{const canonical=JSON.stringify({semester,meetings:stableMeetings(meetings)}),digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical));return[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,"0")).join("")};
-const showInitial=clear=>{if(clear)pending=null;entry.hidden=false;instructions.hidden=false;preview.hidden=true;setMessage("");activateMethod(null)};
-const renderPreview=data=>{activateMethod("desktop");entry.hidden=false;computer.hidden=false;instructions.hidden=true;$("semester").textContent=`${data.semester.academicYear} 第${data.semester.term}学期`;$('meetingCount').textContent=data.meetings.length;$('courseCount').textContent=new Set(data.meetings.map(m=>m.courseName)).size;$('adjustedCount').textContent=data.meetings.filter(m=>m.isAdjusted).length;const rows=document.createDocumentFragment();for(const m of data.meetings){const tr=document.createElement("tr");for(const value of [m.courseName,`周${m.weekday} / ${m.startPeriod}-${m.endPeriod}节`,m.locationRaw||"—",m.teacher||"—"]){const td=document.createElement("td");td.textContent=value;tr.appendChild(td)}rows.appendChild(tr)}$("rows").replaceChildren(rows);setMessage("");preview.hidden=false};
+const stableMeetings=meetings=>meetings.map(m=>({courseName:m.courseName,weekday:m.weekday,startPeriod:m.startPeriod,endPeriod:m.endPeriod,weeks:[...m.weeks],teacher:m.teacher,locationRaw:m.locationRaw,isAdjusted:m.isAdjusted,...(m.teachingClassId||m.sourceTeachingClassId?{sourceTeachingClassId:m.teachingClassId||m.sourceTeachingClassId}:{})})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+const fingerprint=async(semester,meetings)=>{const legacyShape=meetings.map(({sourceTeachingClassId,...rest})=>rest);const canonical=JSON.stringify({semester,meetings:legacyShape.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))}),digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical));return[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,"0")).join("")};
+const enterSharedPreview=async()=>{if(!pending||receiving)return;receiving=true;prepare.disabled=true;try{const factory=await persistenceFactory();bookmarkActive=true;activateMethod("desktop");entry.hidden=false;computer.hidden=false;instructions.hidden=true;prepare.hidden=true;await AnyClassSharedJsonImport.previewDataset(pending,"bookmark",{factory});setMessage("");computer.hidden=true;}catch(_){bookmarkActive=false;computer.hidden=false;prepare.hidden=false;setMessage("请允许读取本机课表，然后打开统一导入预览；本次数据尚未保存。","error");}finally{prepare.disabled=false;receiving=false;}};
+prepare.addEventListener("click",enterSharedPreview);
 const friendlyImportError=error=>{const code=error?.code||error?.message||"";if(code==="LOW_CONFIDENCE_SYSTEM"||code==="AMBIGUOUS_SYSTEM"||code==="UNSUPPORTED_SYSTEM")return"没有识别到可导入的个人课表。请确认页面正确后重试。";return"没有收到有效的课表数据。请确认你是在个人课表页面运行书签，然后重试。"};
-addEventListener("message",async event=>{if(event.origin!==SOURCE_ORIGIN||event.source!==window.parent||pending)return;const p=event.data;if(!p||p.protocol!==PROTOCOL||p.type!=="HTML_IMPORT"||p.nonce!==nonce||p.source?.system!=="zhengfang-v9"||p.source?.origin!==SOURCE_ORIGIN)return;if(p.client?.id!==BOOKMARKLET_ID||p.client?.version!==BOOKMARKLET_VERSION){event.source.postMessage({protocol:PROTOCOL,type:"ACK",nonce:p.nonce,status:"FAIL",code:"OUTDATED_CAPTURE_CLIENT",meetingCount:0},SOURCE_ORIGIN);setMessage("书签版本已过期，请重新复制 AnyClass 导入书签。","error");return}let status="VALIDATION_FAILED",count=0,stats={};try{if(!testPass)throw Error("WEEK_UNIT_TEST_FAILED");const capture={captureVersion:1,sourceOrigin:p.source.origin,semesterSource:p.semesterSource,tableHtml:p.tableHtml};const detection=AnyClassSystemDetector.detect(adapter.captureSignals(capture));if(detection.outcome!=="MATCH")throw Error(detection.outcome==="LOW_CONFIDENCE"?"LOW_CONFIDENCE_SYSTEM":detection.outcome==="AMBIGUOUS"?"AMBIGUOUS_SYSTEM":"UNSUPPORTED_SYSTEM");const parsed=adapter.parse(capture,profile),meetings=parsed.meetings,validated=meetings.filter(valid).length;stats={domBlocks:meetings.length,parsedMeetings:meetings.length,validatedMeetings:validated,invalidWeekdays:0,periodFailures:0,weekFailures:0,missingTitles:0,inheritedTitles:parsed.diagnostics.inheritedTitles,adjustedBlocks:parsed.diagnostics.adjustedBlocks,adapterId:parsed.diagnostics.adapterId,adapterVersion:parsed.diagnostics.adapterVersion,profileVersion:parsed.diagnostics.profileVersion};if(validated!==meetings.length)throw Error("VALIDATION_FAILED");const semesterResult=adapter.extractSemester(capture,profile),semester={academicYear:semesterResult.academicYear,term:semesterResult.termCode,raw:[semesterResult.sourceCodes.xnm,semesterResult.sourceCodes.xqm].filter(Boolean).join("/")};const persisted=stableMeetings(meetings);pending={schemaVersion:1,key:`demo::${semester.academicYear}::${semester.term}`,school:{id:"demo",name:profile.name,sourceSystem:adapter.id},semester,meetings:persisted,importedAt:null,source:adapter.id,fingerprint:await fingerprint(semester,persisted),diagnostics:{inheritedTitles:stats.inheritedTitles,adapterId:adapter.id,adapterVersion:adapter.version,profileVersion:profile.profileVersion}};reply={window:event.source,nonce:p.nonce};count=meetings.length;status="PASS";renderPreview(pending)}catch(e){setMessage(friendlyImportError(e),"error")}event.source.postMessage({protocol:PROTOCOL,type:"ACK",nonce:p.nonce,status,meetingCount:count,stats},SOURCE_ORIGIN)});
-const random=new Uint32Array(4);crypto.getRandomValues(random);const nonce=[...random].map(x=>x.toString(16).padStart(8,"0")).join("");if(window.parent!==window)window.parent.postMessage({protocol:PROTOCOL,type:"READY",nonce},SOURCE_ORIGIN);
-save.addEventListener("click",async()=>{if(!pending)return;save.disabled=true;try{const factory=await persistenceFactory(),old=await getDataset(pending.key,factory);if(old?.fingerprint===pending.fingerprint){setMessage("课表没有变化","ok");return}const data={...pending,importedAt:new Date().toISOString()};await putDataset(data,factory);pending=data;dispatchEvent(new CustomEvent("anyclass:timetable-updated",{detail:{source:"bookmarklet"}}));setMessage(`${old?"课表已更新":"课表已保存到此设备"}\n${data.meetings.length} 个课程安排`,"ok")}catch(e){setMessage(e?.name==="NotAllowedError"?"保存需要允许此页面访问 AnyClass 的本机课表存储":"保存失败，原有课表未被修改","error");if(window.AnyClassShell){AnyClassShell.setImportError(false);AnyClassShell.setStorageError("无法写入本机课程数据。")}}finally{save.disabled=false}});
-$("cancel").addEventListener("click",()=>showInitial(true));
-$("reselectImport").addEventListener("click",()=>showInitial(false));
-for(const button of methodButtons())button.addEventListener("click",()=>{const method=button.dataset.importMethod;if(method==="desktop"&&pending)renderPreview(pending);else activateMethod(method);const panel=document.querySelector(`[data-import-panel="${method}"]`);panel?.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+addEventListener("message",async event=>{if(event.source!==window.parent||pending)return;const p=event.data;if(!p||p.protocol!==PROTOCOL||p.type!=="HTML_IMPORT"||p.nonce!==nonce||p.source?.origin!==event.origin)return;const candidates=profileRegistry.matchOrigin(event.origin,p.source?.system);if(candidates.length!==1){event.source.postMessage({protocol:PROTOCOL,type:"ACK",nonce:p.nonce,status:"FAIL",code:"UNSUPPORTED_SOURCE",meetingCount:0},event.origin);setMessage("没有识别到受支持的课表来源。","error");return}const profile=candidates[0],adapter=AnyClassAdapterRegistry.get(profile.adapterId);if(p.client?.id!==BOOKMARKLET_ID||p.client?.version!==BOOKMARKLET_VERSION){event.source.postMessage({protocol:PROTOCOL,type:"ACK",nonce:p.nonce,status:"FAIL",code:"OUTDATED_CAPTURE_CLIENT",meetingCount:0},event.origin);setMessage("书签版本已过期，请重新复制 AnyClass 导入书签。","error");return}let status="VALIDATION_FAILED",count=0,stats={};try{if(!adapterReady(adapter))throw Error("WEEK_UNIT_TEST_FAILED");const capture={captureVersion:1,sourceOrigin:p.source.origin,semesterSource:p.semesterSource,tableHtml:p.tableHtml};const detection=AnyClassSystemDetector.detect(adapter.captureSignals(capture));if(detection.outcome!=="MATCH")throw Error(detection.outcome==="LOW_CONFIDENCE"?"LOW_CONFIDENCE_SYSTEM":detection.outcome==="AMBIGUOUS"?"AMBIGUOUS_SYSTEM":"UNSUPPORTED_SYSTEM");const parsed=adapter.parse(capture,profile),meetings=parsed.meetings,validated=meetings.filter(valid).length;stats={domBlocks:meetings.length,parsedMeetings:meetings.length,validatedMeetings:validated,invalidWeekdays:0,periodFailures:0,weekFailures:0,missingTitles:0,inheritedTitles:parsed.diagnostics.inheritedTitles,adjustedBlocks:parsed.diagnostics.adjustedBlocks,adapterId:parsed.diagnostics.adapterId,adapterVersion:parsed.diagnostics.adapterVersion,profileVersion:parsed.diagnostics.profileVersion};if(validated!==meetings.length)throw Error("VALIDATION_FAILED");const semesterResult=adapter.extractSemester(capture,profile),semester={academicYear:semesterResult.academicYear,term:semesterResult.termCode,raw:[semesterResult.sourceCodes.xnm,semesterResult.sourceCodes.xqm].filter(Boolean).join("/")};const persisted=stableMeetings(meetings);pending=AnyClassNormalizedImport.create({profile,adapter,semester,meetings:persisted,source:adapter.id,diagnostics:{inheritedTitles:stats.inheritedTitles,adapterId:adapter.id,adapterVersion:adapter.version,profileVersion:profile.profileVersion}});pending.fingerprint=await fingerprint(semester,persisted);count=meetings.length;status="PASS";prepare.hidden=false;setMessage("课表已读取。请打开统一导入预览并确认本机存储访问。","ok");void enterSharedPreview()}catch(e){setMessage(friendlyImportError(e),"error")}event.source.postMessage({protocol:PROTOCOL,type:"ACK",nonce:p.nonce,status,meetingCount:count,stats},event.origin)});
+const random=new Uint32Array(4);crypto.getRandomValues(random);const nonce=[...random].map(x=>x.toString(16).padStart(8,"0")).join("");let readyTimer=null,readyDeadline=0;const stopReady=()=>{if(readyTimer!==null)clearInterval(readyTimer);readyTimer=null},sendReady=()=>{if(window.parent===window)return;for(const origin of trustedOrigins)window.parent.postMessage({protocol:PROTOCOL,type:"READY",nonce},origin);if(performance.now()>=readyDeadline)stopReady()};if(window.parent!==window){readyDeadline=performance.now()+12000;sendReady();readyTimer=setInterval(sendReady,500)}addEventListener("pagehide",stopReady,{once:true});
+addEventListener("anyclass:bookmark-preview-reset",()=>{pending=null;bookmarkActive=false;instructions.hidden=false;prepare.hidden=true;activateMethod("desktop");setMessage("已取消，本次书签数据未保存。")});
+for(const button of methodButtons())button.addEventListener("click",()=>{const method=button.dataset.importMethod;activateMethod(method);const panel=document.querySelector(`[data-import-panel="${method}"]`);panel?.scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 addEventListener("popstate",()=>activateMethod(new URL(location.href).searchParams.get("method"),{updateUrl:false}));
-$("copyBookmarklet").addEventListener("click",async()=>{const status=$("copyBookmarkletStatus");try{const response=await fetch("/assets/timetable/bookmarklet.txt",{credentials:"same-origin"});if(!response.ok)throw Error("ASSET_UNAVAILABLE");const text=(await response.text()).trim();if(!text.startsWith("javascript:"))throw Error("INVALID_BOOKMARKLET");await copyText(text);status.textContent="✓ 已复制";status.className="ok import-copy-status";status.hidden=false}catch(_error){status.textContent="复制失败，请重试。";status.className="error import-copy-status";status.hidden=false}});
+$("copyBookmarklet").addEventListener("click",async()=>{const status=$("copyBookmarkletStatus");try{const response=await fetch("/assets/timetable/bookmarklet.txt",{credentials:"same-origin"});if(!response.ok)throw Error("ASSET_UNAVAILABLE");const source=(await response.text()).trim();if(!source.startsWith("javascript:"))throw Error("INVALID_BOOKMARKLET");const channel=AnyClassImportClientChannels.forPageOrigin(location.origin),text=AnyClassImportClientChannels.buildBookmarklet(source,channel,{clientId:BOOKMARKLET_ID,clientVersion:BOOKMARKLET_VERSION});await copyText(text);status.textContent=`✓ 已复制 ${channel.bookmarkDisplayName}`;status.className="ok import-copy-status";status.hidden=false}catch(_error){status.textContent="复制失败，请重试。";status.className="error import-copy-status";status.hidden=false}});
 const initialMethod=new URL(location.href).searchParams.get("method");activateMethod(initialMethod,{updateUrl:false});
 })();
 </script>

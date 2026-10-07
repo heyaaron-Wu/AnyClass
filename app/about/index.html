@@ -1,9 +1,11 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
+  <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
+  <meta name="anyclass-release" content="v020-import-v02-channel-repair-20260929-224025">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
   <title>关于 AnyClass</title>
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico">
@@ -34,11 +36,20 @@
     </section>
     <section class="panel about-version">
       <h2>版本信息</h2>
-      <dl class="product-version-list"><dt>产品</dt><dd>AnyClass 当前版本</dd><dt>本地数据格式</dt><dd>2</dd></dl>
+      <dl class="product-version-list"><dt>产品</dt><dd>AnyClass 当前版本</dd><dt>本机数据库版本</dt><dd id="localDatabaseVersion">—</dd></dl>
       <details class="shell-disclosure about-advanced"><summary>高级信息</summary><dl><dt>Build</dt><dd>closure-reopen-20260918</dd></dl></details>
+      <h3 class="about-project-heading">项目链接</h3>
+      <div class="settings-link-list">
+        <a id="aboutGithubLink" class="settings-link-row about-repo-link" href="https://github.com/heyaaron-Wu/AnyClass" target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开 AnyClass GitHub 开源项目">
+          <span><strong>GitHub / 开源项目</strong><small>查看源码、版本发布与项目进展</small><small class="about-repo-url">github.com/heyaaron-Wu/AnyClass</small></span>
+          <span class="about-external-mark" aria-hidden="true">↗</span>
+        </a>
+      </div>
     </section>
   </div>
 </main>
 <script src="/assets/timetable/product-shell.js?v=import-nav-cleanup-20260918"></script>
+<script src="/assets/timetable/storage-v2.js"></script>
+<script>document.getElementById("localDatabaseVersion").textContent=String(AnyClassStorageV2.DB_VERSION);</script>
 </body>
 </html>
