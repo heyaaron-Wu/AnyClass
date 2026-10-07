@@ -37,7 +37,7 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> Hosted Production is currently **v0.2.1**. The latest source release published on GitHub remains **v0.1.1**. The repository's `main` branch temporarily corresponds to the **public v0.2.0 source baseline**; GitHub source releases are being restored in semantic order, and the v0.2.0 Release has not yet been published.
+> Hosted Production is currently **v0.2.1**. The [**v0.2.0**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0) source release is now published on GitHub. The repository's `main` branch temporarily corresponds to the **public v0.2.0 source baseline**; the v0.2.1 source release has not been published yet.
 
 ## Features
 
@@ -110,13 +110,13 @@ Roadmap items are plans, not currently available features.
 
 ## Open-source status
 
-**The public source release for AnyClass v0.1.1 is available in this repository.**
+**The public source release for AnyClass v0.2.0 is available:** [AnyClass v0.2.0](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.0)
 
 **AnyClass v0.2.1 is deployed to the hosted Production app; the corresponding GitHub source release has not been published yet.**
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** the current `main` branch temporarily corresponds to the public v0.2.0 source baseline and is independent from the hosted v0.2.1 Production deployment identity. GitHub v0.2.0 and v0.2.1 source releases will be published separately in semantic order.
+> **Repository source status:** the current `main` branch temporarily corresponds to the public v0.2.0 source baseline and is independent from the hosted v0.2.1 Production deployment identity. The GitHub v0.2.0 source release is published; the v0.2.1 source release is not yet published.
 
 ## Contributing
 
