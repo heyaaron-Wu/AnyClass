@@ -25,7 +25,8 @@
     "test:phase4b": "node tests/phase4b-review-browser.test.js && node tests/date-shell-cross-browser.test.js",
     "test:clipboard": "node tests/clipboard-import-browser.test.js && node tests/clipboard-import-flow-browser.test.js",
     "test:navigation-feedback": "node tests/navigation-feedback-browser.test.js",
-    "privacy:gate": "node tools/public-repository-privacy-gate.js --repo . --history"
+    "privacy:gate": "node tools/public-repository-privacy-gate.js --repo . --history",
+    "test:issue039:browser": "node tests/issue039-scroll-restore-browser.test.js"
   },
   "engines": {
     "node": ">=20"
