@@ -27,6 +27,7 @@
     "test:navigation-feedback": "node tests/navigation-feedback-browser.test.js",
     "privacy:gate": "node tools/public-repository-privacy-gate.js --repo . --history",
     "test:issue039:browser": "node tests/issue039-scroll-restore-browser.test.js",
+    "test:p2:browser": "node tests/p2-import-feedback-contrast-browser.test.js",
     "generate:beta-manifest": "node tools/generate-beta-manifest.js",
     "build:beta-candidate": "node tools/build-beta-candidate.js",
     "test:beta-candidate-packaging": "node tests/beta-candidate-packaging.test.js"

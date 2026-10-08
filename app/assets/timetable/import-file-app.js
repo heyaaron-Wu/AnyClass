@@ -221,6 +221,10 @@
       else AnyClassShell.setImportError(false);
     }
   };
+  const showFileValidationError = error => {
+    setState(STATES.IDLE);
+    setMessage(`文件校验失败：${error.message || "未知错误"}`, "error");
+  };
 
   const resetPreview = () => {
     nameRevision++;namePlan=null;nameSignature=null;nameChoices.clear();nameReviewStates.clear();renamedFeedback="";timeReviewSignature=null;conflictChoices.clear();exactDuplicateChoices.clear();conflictPairs=[];exactDuplicatePairs=[];exactDuplicateSignature="[]";conflictReady=false;targetBundle=null;conflictFeedback="";editOrigin=null;editReturnRevision++;$("fileEditReturnStatus").hidden=true;$("fileNameReview").hidden=true;$("fileExactDuplicateReview").hidden=true;$("filePendingEditor").hidden=true;
@@ -353,13 +357,19 @@
       else if (source === "bookmark") setMessage("书签课表已读取，请补充并核对信息后保存。", "ok");
       return dataset;
     } catch (error) {
-      setState(STATES.IDLE);
-      if (source === "file") setMessage(`文件校验失败：${error.message || "未知错误"}`, "error");
+      if (source === "file") showFileValidationError(error);
+      else setState(STATES.IDLE);
       throw error;
     }
   };
   const previewText = async (text, source = "file", options = {}) => {
-    const dataset = AnyClassTimetableFile.parseText(text);
+    let dataset;
+    try {
+      dataset = AnyClassTimetableFile.parseText(text);
+    } catch (error) {
+      if (source === "file") showFileValidationError(error);
+      throw error;
+    }
     return previewDataset(dataset,source,options);
   };
   window.AnyClassSharedJsonImport = Object.freeze({previewText,previewDataset});
@@ -384,10 +394,12 @@
       setMessage("文件超过 5 MB 限制", "error");
       return;
     }
+    setMessage("正在读取并校验文件…");
     try {
       await previewText(await file.text());
     } catch (error) {
-      // previewText already presents file validation feedback.
+      // Parsing/preview failures already report themselves; a file read can fail first.
+      if (!message.classList.contains("error")) showFileValidationError(Error("读取文件失败，请重试或重新选择文件"));
     }
   });
 

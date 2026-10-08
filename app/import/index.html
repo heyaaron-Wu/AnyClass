@@ -105,7 +105,7 @@
     #filePreview .file-preview-actions .file-submit-message{flex:1 0 100%;margin:0}
     #filePreview .file-preview-actions #fileSubmitBlockers{flex:1 0 100%;margin:0;color:var(--shell-muted);font-size:13px;line-height:1.45}
     #filePreview .file-preview-actions #fileSave:disabled{background:var(--shell-surface-soft);color:var(--shell-muted);border:1px solid var(--shell-line);opacity:1}
-    @media(prefers-color-scheme:dark){#filePreview{--file-preview-surface:#111c2e}#filePreview .file-field-error,#filePreview .file-submit-message.error{color:#ffb4a9}#filePreview .file-submit-message.ok{color:#86efac}#fileConflictWarning{border-color:#9b6a2d;background:#372918;color:#ffe0a8}}
+    @media(prefers-color-scheme:dark){#filePreview{--file-preview-surface:#111c2e}#filePreview .file-field-error,#filePreview .file-submit-message.error,#fileMessage.error{color:#ffb4a9}#filePreview .file-submit-message.ok,#fileMessage.ok{color:#86efac}#fileConflictWarning{border-color:#9b6a2d;background:#372918;color:#ffe0a8}}
     .file-time-status{display:flex;align-items:center;justify-content:space-between;gap:6px 12px;min-width:0;flex-wrap:wrap}
     #filePreview .file-time-status p{flex:1 1 185px;min-width:0;margin:5px 0;line-height:1.45}
     #fileTimeNow{flex:0 0 auto;min-height:44px;padding:7px 11px;border:1px solid var(--shell-line);border-radius:9px;background:var(--shell-surface-soft);color:var(--shell-ink);font-size:13px;line-height:1.2;white-space:nowrap}
@@ -205,7 +205,7 @@
         <p class="muted">选择一份 AnyClass 课表 JSON 文件，校验通过后先预览，再由你确认保存。</p>
         <p class="privacy">文件只在此浏览器内读取，课程数据不会上传服务器。</p>
         <label class="file-box">选择本机 JSON 文件<input id="fileInput" type="file" accept=".json,application/json"></label>
-        <p id="fileMessage" class="muted" aria-live="polite">尚未选择文件</p>
+        <p id="fileMessage" class="muted" role="status" aria-live="polite" aria-atomic="true">尚未选择文件</p>
       </section>
     </div>
     <section class="card import-schema-panel">
