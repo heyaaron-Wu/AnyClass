@@ -35,7 +35,7 @@
     delete root.dataset.sheetScrollLocked;
     root.style.overflow = state.rootOverflow;
     Object.assign(body.style,state.body);
-    scrollTo({top:state.y,left:state.x,behavior:"auto"});
+    scrollTo({top:state.y,left:state.x,behavior:"instant"});
   };
   const cancelDialogClose = dialog => {
     const state = dialogStates.get(dialog);
