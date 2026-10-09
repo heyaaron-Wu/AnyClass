@@ -11,7 +11,7 @@
   let pending = null;
   let timeEditor = null;
   let detectedTimezone = null;
-  let usingDefaultTimes = false;
+  let initialPeriodTimes = {}, initialPeriodSources = {}, timeChoice = null, reviewedTimeSignature = null;
   let importSource = "file";
   let storageFactory = indexedDB;
   let importTarget = null;
@@ -153,6 +153,7 @@
       if (!$("fileConflictReview").hidden && !$("fileConflictConfirm").checked) reasons.push("请核对并确认保留的时间冲突。");
     }
     if (document.body.classList.contains("reimport-review-active")) reasons.push("请完成下方的课表更新核对。");
+    if (!$('fileTimeReview').hidden && !timeChoice) reasons.push("请选择保留已有上课时间，或使用本次预览时间。");
     if (timeEditor && !$("fileTimeEditor").hidden) try { timeEditor.read(); } catch (_) { reasons.push("请检查上课时间设置。"); }
     return {canSubmit:reasons.length===0,reasons};
   };
@@ -192,12 +193,47 @@
     $("fileDateDisplay").dataset.empty = String(!hasDate);
   };
   const updateTimingStatus = () => {
-    let count = 0, invalid = false;
-    if (timeEditor) try { count = Object.keys(timeEditor.read()).length; } catch (_) { invalid = true; }
+    let times = initialPeriodTimes, sources = initialPeriodSources, invalid = false;
+    if (timeEditor && !$('fileTimeEditor').hidden) try {
+      times = timeEditor.read();
+      sources = Object.fromEntries(Object.entries(times).map(([key,row])=>[key,initialPeriodTimes[key]?.start===row.start&&initialPeriodTimes[key]?.end===row.end ? initialPeriodSources[key] : "USER_EDITED"]));
+    } catch (_) { invalid = true; }
+    const existing=targetBundle?.term;
+    const sameTerm=existing&&pending&&existing.academicYear===pending.semester.academicYear&&String(existing.termCode)===String(pending.semester.term);
+    const retainsExisting=Boolean(!invalid&&sameTerm&&(timeChoice==="PRESERVE"||(!timeChoice&&Object.values(sources).every(source=>source==="DEFAULT")))&&!AnyClassImportPeriodTimes.sameTimes(existing.periodTimes,times));
+    const displayTimes=retainsExisting?existing.periodTimes:times;
+    const displaySources=retainsExisting?Object.fromEntries(Object.keys(existing.periodTimes||{}).map(key=>[key,existing.periodTimeSources?.[key]||"EXISTING"])):sources;
     const highest = pending ? AnyClassScheduleTimes.maxPeriod(pending.meetings) : 0;
-    const defaultStart = AnyClassDefaultPeriodTimes.clone()[1].start;
-    $("filePeriodHint").textContent = invalid ? "上课时间：正在填写。请检查时间顺序。" : usingDefaultTimes ? highest > AnyClassDefaultPeriodTimes.highest ? `上课时间：默认作息 · 第1节 ${defaultStart} 开始\n目前覆盖前 ${AnyClassDefaultPeriodTimes.highest} 节；其余可在课表设置中补充。` : `上课时间：默认作息 · 第1节 ${defaultStart} 开始\n可在课表设置中修改。` : count === 0 ? "上课时间：未设置。可稍后在「课表设置」中补充。" : count >= highest ? "上课时间：已设置。" : "上课时间：已填写部分节次；其余可稍后补充。";
-    $("fileTimeNow").textContent = count > 0 ? "修改" : "现在设置";
+    const used = Array.from({length:highest},(_,index)=>String(index+1));
+    const labels={JSON:"JSON 提供",DEFAULT:"AnyClass 默认作息补全",USER_EDITED:"用户修改",EXISTING:"保留已有课表"};
+    const kinds=new Set(used.map(key=>displaySources[key]).filter(Boolean));
+    const sourceLabel=kinds.size>1?"混合（"+[...kinds].map(kind=>labels[kind]).join(" + ")+"）":labels[[...kinds][0]]||"未设置";
+    const legacyDefault=kinds.size===1&&kinds.has("DEFAULT") ? `上课时间：默认作息 · 第1节 ${displayTimes[1]?.start||"08:00"} 开始\n${highest>AnyClassDefaultPeriodTimes.highest?`目前覆盖前 ${AnyClassDefaultPeriodTimes.highest} 节；其余可在课表设置中补充。`:"可在课表设置中修改。"}\n来源：${sourceLabel}。` : null;
+    $("filePeriodHint").textContent = invalid ? "上课时间：正在填写。请检查时间顺序。" : legacyDefault || `上课时间来源：${sourceLabel}。${kinds.has("USER_EDITED")?"已设置，请核对后保存。":""}`;
+    $("fileTimeDetails").textContent = invalid ? "请检查时间顺序后再保存。" : used.map(key=>displayTimes[key] ? `第${key}节 ${displayTimes[key].start}–${displayTimes[key].end}（${labels[displaySources[key]]||"未标记"}）` : `第${key}节 未设置，请手动补充`).join("；");
+    $("fileTimeNow").textContent = Object.keys(times).length > 0 ? "修改" : "现在设置";
+    if(invalid){$("fileTimeReview").hidden=true;timeChoice=null;reviewedTimeSignature=null;}
+    else updateTimeReview(times);
+  };
+  const currentTimeSelection = () => {
+    const periodTimes = timeEditor && !$('fileTimeEditor').hidden ? timeEditor.read() : initialPeriodTimes;
+    const periodTimeSources = Object.fromEntries(Object.entries(periodTimes).map(([key,row])=>[key,initialPeriodTimes[key]?.start===row.start&&initialPeriodTimes[key]?.end===row.end ? initialPeriodSources[key] : "USER_EDITED"]));
+    return {periodTimes,periodTimeSources};
+  };
+  const periodTimeSignature = times => JSON.stringify(Object.entries(times||{}).sort(([a],[b])=>Number(a)-Number(b)));
+  const defaultOnly = sources => Object.values(sources||{}).every(source=>source==="DEFAULT");
+  const updateTimeReview = times => {
+    const term=targetBundle?.term;
+    const sameTerm=term&&pending&&term.academicYear===pending.semester.academicYear&&String(term.termCode)===String(pending.semester.term);
+    const different=Boolean(sameTerm&&!defaultOnly(currentTimeSelection().periodTimeSources)&&!AnyClassImportPeriodTimes.sameTimes(term.periodTimes,times));
+    const signature=different?`${importTarget?.id}|${periodTimeSignature(term.periodTimes)}|${periodTimeSignature(times)}`:null;
+    if(signature!==reviewedTimeSignature){timeChoice=null;for(const radio of document.querySelectorAll('input[name="fileTimeChoice"]'))radio.checked=false;reviewedTimeSignature=signature;}
+    $("fileTimeReview").hidden=!different;
+    if(different){
+      const keys=[...new Set([...Object.keys(term.periodTimes||{}),...Object.keys(times||{})])].sort((a,b)=>Number(a)-Number(b));
+      const changed=keys.filter(key=>term.periodTimes?.[key]?.start!==times?.[key]?.start||term.periodTimes?.[key]?.end!==times?.[key]?.end);
+      $("fileTimeDifference").textContent=`不同节次：${changed.map(key=>`第${key}节 ${term.periodTimes?.[key] ? `${term.periodTimes[key].start}–${term.periodTimes[key].end}` : "未设置"} → ${times?.[key] ? `${times[key].start}–${times[key].end}` : "未设置"}`).join("；")}。请明确选择；不会自动覆盖已有时间。`;
+    }
   };
   const updateImportTarget = () => {
     const name = $("fileTimetableName").value.trim() || "待填写";
@@ -242,7 +278,7 @@
     $("fileCalendarContext").hidden = true;
     $("fileTimeEditor").hidden = true;
     timeEditor = null;
-    usingDefaultTimes = false;
+    initialPeriodTimes={};initialPeriodSources={};timeChoice=null;reviewedTimeSignature=null;$("fileTimeReview").hidden=true;$("fileTimeDetails").textContent="";
     $("fileTimeNow").setAttribute("aria-expanded", "false");
     $("fileSemesterStart").value = "";
     $("fileSchoolName").value = "";
@@ -313,8 +349,9 @@
       $("fileTimezoneInfo").textContent = detectedTimezone ? `时区：跟随设备（${detectedTimezone}）` : "无法检测设备时区，请在下方填写。";
       $("fileTimezone").value = "";
       $("fileTimeEditor").hidden = true;
-      usingDefaultTimes = true;
-      timeEditor = AnyClassScheduleTimes.editor($("fileTimeEditor"),Math.max(AnyClassDefaultPeriodTimes.highest,AnyClassScheduleTimes.maxPeriod(dataset.meetings)),AnyClassDefaultPeriodTimes.clone());
+      const resolved=AnyClassImportPeriodTimes.resolve(dataset.providedPeriodTimes,AnyClassScheduleTimes.maxPeriod(dataset.meetings),AnyClassDefaultPeriodTimes.clone());
+      initialPeriodTimes=resolved.periodTimes;initialPeriodSources=resolved.periodTimeSources;
+      timeEditor = AnyClassScheduleTimes.editor($("fileTimeEditor"),Math.max(AnyClassDefaultPeriodTimes.highest,AnyClassScheduleTimes.maxPeriod(dataset.meetings)),initialPeriodTimes);
       updateTimingStatus();
     }
     const fragment = document.createDocumentFragment();
@@ -417,15 +454,16 @@
     if (!matchingTarget || !defaultTarget) return;
     importTarget = importTarget?.id === matchingTarget.id ? defaultTarget : matchingTarget;
     if (!timetableNameEdited) $("fileTimetableName").value = importTarget.label || pending?.timetableName || "课程表";
-    updateImportTarget();nameChoices.clear();nameReviewStates.clear();renamedFeedback="";conflictReady=false;void refreshNameReview();refreshValidation();
+    updateImportTarget();targetBundle=null;updateTimingStatus();nameChoices.clear();nameReviewStates.clear();renamedFeedback="";conflictReady=false;void refreshNameReview();refreshValidation();
   });
-  $("fileTimeEditor").addEventListener("input",()=>{usingDefaultTimes=false;updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
-  $("fileTimeEditor").addEventListener("change",()=>{usingDefaultTimes=false;updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
+  $("fileTimeReview").addEventListener("change",event=>{if(event.target.name!=="fileTimeChoice")return;timeChoice=event.target.value;updateTimingStatus();refreshValidation();});
+  $("fileTimeEditor").addEventListener("input",()=>{updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
+  $("fileTimeEditor").addEventListener("change",()=>{updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
   $("fileTimeNow").addEventListener("click",()=>{ $("fileTimeEditor").hidden = false; $("fileTimeNow").setAttribute("aria-expanded", "true"); $("fileTimeEditor").querySelector("input")?.focus(); });
   const readCalendarContext = dataset => {
     try {
-      const periodTimes = $("fileTimeEditor").hidden ? AnyClassDefaultPeriodTimes.clone() : timeEditor.read();
-      const context = {semesterStartDate:$("fileSemesterStart").value,timezone:detectedTimezone || $("fileTimezone").value.trim(),periodTimes};
+      const {periodTimes,periodTimeSources}=currentTimeSelection();
+      const context = {semesterStartDate:$("fileSemesterStart").value,timezone:detectedTimezone || $("fileTimezone").value.trim(),periodTimes,periodTimeSources};
       return AnyClassTimetableFileStorage.validateCalendarContext(dataset,context);
     }
     catch (error) {
@@ -443,6 +481,7 @@
       const bundle=target?await AnyClassTimetableRepository.readTimetableBundle(target,storageFactory):null;
       if(revision!==nameRevision||dataset!==pending||target!==(importTarget?.id||null))return;
       targetBundle=bundle;
+      updateTimingStatus();
       const sourceKey=sourceKeyFor(bundle,dataset);
        const exact=AnyClassTimetableFile.classifyExistingMeetings(dataset.meetings,bundle?.model?.courses||[],bundle?.model?.courseOverrides||[],sourceKey).exactDuplicates;
        const plan=AnyClassCourseNameReview.plan(dataset.meetings,bundle?.model?.courses||[],bundle?.model?.courseOverrides||[],sourceKey,exact);
@@ -706,6 +745,12 @@
       const chosenTargetId = importTarget?.id || null;
       const reviewedNameRevision=nameRevision;
       const freshBundle=chosenTargetId?await AnyClassTimetableRepository.readTimetableBundle(chosenTargetId,storageFactory):null;
+      const freshTerm=freshBundle?.term;
+      if(freshTerm&&freshTerm.academicYear===pending.semester.academicYear&&String(freshTerm.termCode)===String(pending.semester.term)&&!defaultOnly(calendarContext?.periodTimeSources)&&!AnyClassImportPeriodTimes.sameTimes(freshTerm.periodTimes,calendarContext?.periodTimes)&&!timeChoice){targetBundle=freshBundle;updateTimingStatus();setState(STATES.VALIDATION_REQUIRED);setSubmitMessage("已有课表的上课时间与本次预览不同，请先选择保留或替换。","error");return;}
+      if(reviewedTimeSignature){
+        const expected=`${chosenTargetId}|${periodTimeSignature(freshBundle?.term?.periodTimes)}|${periodTimeSignature(calendarContext?.periodTimes)}`;
+        if(expected!==reviewedTimeSignature){targetBundle=freshBundle;updateTimingStatus();setState(STATES.VALIDATION_REQUIRED);setSubmitMessage("已有课表的上课时间发生变化，请重新核对并选择。","error");return;}
+      }
       const freshSourceKey=sourceKeyFor(freshBundle,pending);
       const freshInteractions=AnyClassTimetableFile.classifyExistingMeetings(pending.meetings,freshBundle?.model?.courses||[],freshBundle?.model?.courseOverrides||[],freshSourceKey);
       const freshExactSignature=JSON.stringify(freshInteractions.exactDuplicates.map(item=>exactDuplicateKey(pending.meetings[item.incomingIndex],item.existing)).sort());
@@ -723,7 +768,7 @@
       dataset.fingerprint=await AnyClassTimetableFile.fingerprint(dataset);
       await AnyClassReimportReview.start({
         sourceLabel:importSource === "clipboard" ? "剪贴板导入" : importSource === "bookmark" ? "书签导入" : "导入文件",
-        commit: hooks => AnyClassTimetableFileStorage.putDataset(dataset,storageFactory,{...hooks,...(chosenTargetId ? {targetTimetableId:chosenTargetId} : {})}),
+        commit: hooks => AnyClassTimetableFileStorage.putDataset(dataset,storageFactory,{...hooks,...(chosenTargetId ? {targetTimetableId:chosenTargetId} : {}),periodTimesChoice:timeChoice,expectedPeriodTimesSignature:freshBundle?.term?periodTimeSignature(freshBundle.term.periodTimes):null}),
         onSuccess: async result => {
           try {
             const storedKey = result?.graph?.term?.importMetadata?.legacyKey || dataset.key;

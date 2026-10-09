@@ -135,8 +135,9 @@
       cleaned[period]={start:value.start,end:value.end};
     }
     const timingStatus=Array.from({length:highest},(_,index)=>cleaned[index+1]).every(Boolean)?"COMPLETE":"INCOMPLETE";
-    const snapshot=term.schoolProfileSnapshot ? {...term.schoolProfileSnapshot,periodTimes:cleaned,timingStatus,maxPeriod:highest} : null;
-    const updated={...term,periodTimes:cleaned,timingStatus,maxPeriod:highest,...(snapshot ? {schoolProfileSnapshot:snapshot} : {}),updatedAt:new Date().toISOString()};
+    const periodTimeSources=Object.fromEntries(Object.keys(cleaned).map(key=>[key,term.periodTimes?.[key]?.start===cleaned[key].start&&term.periodTimes?.[key]?.end===cleaned[key].end ? term.periodTimeSources?.[key]||'DEFAULT' : 'USER_EDITED']));
+    const snapshot=term.schoolProfileSnapshot ? {...term.schoolProfileSnapshot,periodTimes:cleaned,periodTimeSources,timingStatus,maxPeriod:highest} : null;
+    const updated={...term,periodTimes:cleaned,periodTimeSources,timingStatus,maxPeriod:highest,...(snapshot ? {schoolProfileSnapshot:snapshot} : {}),updatedAt:new Date().toISOString()};
     terms.put(updated);
     return updated;
   }, factory);

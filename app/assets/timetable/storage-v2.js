@@ -353,16 +353,21 @@
       const confirmedSchoolName = hooks.preserveTargetMetadata && existing?.schoolName ? existing.schoolName : dataset.school.name;
       const timetable = existing ? {...existing,...(importedName ? {label:importedName} : {}),...(missingSchoolId ? {routingKey:route} : {}),schoolId:dataset.school.id,schoolName:confirmedSchoolName,activeTermId:graph.term.termId,updatedAt:new Date().toISOString()} : {...graph.timetable,timetableId,routingKey:route,label:importedName || graph.timetable.label,schoolName:dataset.school.name};
       const term = {...graph.term,timetableId};
-      // A later import carrying only application defaults must not replace this timetable's saved times.
-      if (existingTerm && config.preserveExistingPeriodTimesWhenDefault) {
+      const periodTimeSignature = value => JSON.stringify(Object.entries(value||{}).sort(([a],[b])=>Number(a)-Number(b)));
+      if(existingTerm&&hooks.expectedPeriodTimesSignature!==undefined&&hooks.expectedPeriodTimesSignature!==null&&periodTimeSignature(existingTerm.periodTimes)!==hooks.expectedPeriodTimesSignature)throw Error('IMPORT_PERIOD_TIMES_CHANGED');
+      const timeDifference=Boolean(existingTerm&&periodTimeSignature(existingTerm.periodTimes)!==periodTimeSignature(term.periodTimes));
+      if(timeDifference&&!config.preserveExistingPeriodTimesWhenDefault&&!['PRESERVE','REPLACE'].includes(hooks.periodTimesChoice))throw Error('IMPORT_PERIOD_TIMES_REVIEW_REQUIRED');
+      // Defaults never replace existing local times; other differences require a reviewed choice.
+      if (existingTerm && (config.preserveExistingPeriodTimesWhenDefault || (timeDifference&&hooks.periodTimesChoice==='PRESERVE'))) {
         term.periodTimes = existingTerm.periodTimes;
+        term.periodTimeSources = existingTerm.periodTimeSources || {};
         term.timingStatus = existingTerm.timingStatus;
         term.maxPeriod = existingTerm.maxPeriod;
-        term.schoolProfileSnapshot = {...term.schoolProfileSnapshot,periodTimes:existingTerm.periodTimes,timingStatus:existingTerm.timingStatus,maxPeriod:existingTerm.maxPeriod};
+        term.schoolProfileSnapshot = {...term.schoolProfileSnapshot,periodTimes:existingTerm.periodTimes,periodTimeSources:term.periodTimeSources,timingStatus:existingTerm.timingStatus,maxPeriod:existingTerm.maxPeriod};
       }
       ownedGraph = {...graph,timetable,term};
       const previousLegacy=existing&&writeLegacy?await requestValue(transaction.objectStore(STORES.legacy).get(dataset.key)):null;
-      if(previousLegacy&&existingTerm&&canonicalLegacy(previousLegacy)===canonicalLegacy(dataset)){
+      if(previousLegacy&&existingTerm&&canonicalLegacy(previousLegacy)===canonicalLegacy(dataset)&&periodTimeSignature(existingTerm.periodTimes)===periodTimeSignature(term.periodTimes)){
         if (timetable.label !== existing.label || timetable.schoolName !== existing.schoolName) {
           tables.put(timetable);
           if (writeLegacy) transaction.objectStore(STORES.legacy).put(dataset);

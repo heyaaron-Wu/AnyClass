@@ -102,6 +102,7 @@
       semesterStartDate: profile.semesterStartDate,
       totalWeeks: profile.totalWeeks,
       periodTimes: profile.periodTimes,
+      ...(profile.periodTimeSources ? {periodTimeSources:profile.periodTimeSources} : {}),
       timingStatus: profile.timingStatus || "COMPLETE",
       maxPeriod: profile.maxPeriod || Math.max(...dataset.meetings.map(meeting=>meeting.endPeriod)),
       schoolProfileSnapshot: profile,

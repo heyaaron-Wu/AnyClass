@@ -116,6 +116,14 @@
     }
     const dataset = root.AnyClassNormalizedImport.create({school, semester, meetings, source: "file", diagnostics: {exactDuplicateCount}});
     dataset.timetableName = optionalText(input.timetableName, "课表名称");
+    if (input.periodTimes !== undefined) {
+      if (!root.AnyClassImportPeriodTimes) fail("PERIOD_TIMES_UNAVAILABLE", "上课时间校验组件不可用");
+      try {
+        dataset.providedPeriodTimes = root.AnyClassImportPeriodTimes.validateProvided(input.periodTimes);
+        if (root.AnyClassDefaultPeriodTimes) root.AnyClassImportPeriodTimes.resolve(dataset.providedPeriodTimes,Math.max(...dataset.meetings.map(meeting=>meeting.endPeriod)),root.AnyClassDefaultPeriodTimes.clone());
+      }
+      catch (error) { fail("INVALID_PERIOD_TIMES", error.message); }
+    }
     return dataset;
   };
 

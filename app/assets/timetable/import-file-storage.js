@@ -28,14 +28,22 @@
       periodTimes[period] = {start:item.start,end:item.end};
     }
     const timingStatus = Array.from({length:highest},(_,index)=>periodTimes[index+1]).every(Boolean) ? "COMPLETE" : "INCOMPLETE";
-    return {semesterStartDate:date,timezone,periodTimes,timingStatus};
+    const periodTimeSources={};
+    for(const key of Object.keys(periodTimes)){
+      const source=context?.periodTimeSources?.[key];
+      if(source!==undefined&&!['JSON','DEFAULT','USER_EDITED'].includes(source))throw Error('FILE_PERIOD_TIME_SOURCE_INVALID');
+      periodTimeSources[key]=source||'DEFAULT';
+    }
+    return {semesterStartDate:date,timezone,periodTimes,periodTimeSources,timingStatus};
   };
   const configForDataset = dataset => {
     const profile = root.AnyClassSchoolProfileRegistry.get(dataset?.school?.id);
+    if (dataset.providedPeriodTimes && !dataset.calendarContext) throw new Error("FILE_CALENDAR_CONTEXT_REQUIRED_FOR_JSON_TIMES");
     if (profile && !dataset.calendarContext) return profile;
     const calendar = validateCalendarContext(dataset,dataset.calendarContext);
     const maxPeriod = Math.max(...dataset.meetings.map(meeting=>meeting.endPeriod),...Object.keys(calendar.periodTimes).map(Number));
-    return {semesterStartDate:calendar.semesterStartDate,periodTimes:calendar.periodTimes,timingStatus:calendar.timingStatus,maxPeriod,preserveExistingPeriodTimesWhenDefault:root.AnyClassDefaultPeriodTimes?.isDefault(calendar.periodTimes)===true,snapshot(totalWeeks) { return {schoolId:dataset.school.id,schoolName:dataset.school.name,schoolProfileVersion:"file-local-v1",adapterId:"file",adapterVersion:"1",timezone:calendar.timezone,semesterStartDate:calendar.semesterStartDate,totalWeeks,weekStart:1,periodTimes:calendar.periodTimes,timingStatus:calendar.timingStatus,maxPeriod,semesterSourceMapping:{},campusAliases:{},locationNormalizationVersion:"none"}; }};
+    const defaultOnly=Object.values(calendar.periodTimeSources).every(source=>source==='DEFAULT');
+    return {semesterStartDate:calendar.semesterStartDate,periodTimes:calendar.periodTimes,periodTimeSources:calendar.periodTimeSources,timingStatus:calendar.timingStatus,maxPeriod,preserveExistingPeriodTimesWhenDefault:defaultOnly&&root.AnyClassDefaultPeriodTimes?.isDefault(calendar.periodTimes)===true,snapshot(totalWeeks) { return {schoolId:dataset.school.id,schoolName:dataset.school.name,schoolProfileVersion:"file-local-v1",adapterId:"file",adapterVersion:"1",timezone:calendar.timezone,semesterStartDate:calendar.semesterStartDate,totalWeeks,weekStart:1,periodTimes:calendar.periodTimes,periodTimeSources:calendar.periodTimeSources,timingStatus:calendar.timingStatus,maxPeriod,semesterSourceMapping:{},campusAliases:{},locationNormalizationVersion:"none"}; }};
   };
   // A validated AnyClass file is the complete exported timetable for its term.
   const putDataset = (dataset, factory = indexedDB, hooks = {}) => api().putLegacyAndMigrate({...dataset,completeness:"COMPLETE"},configForDataset(dataset),factory,hooks);

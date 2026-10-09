@@ -110,6 +110,10 @@
     #filePreview .file-time-status p{flex:1 1 185px;min-width:0;margin:5px 0;line-height:1.45}
     #fileTimeNow{flex:0 0 auto;min-height:44px;padding:7px 11px;border:1px solid var(--shell-line);border-radius:9px;background:var(--shell-surface-soft);color:var(--shell-ink);font-size:13px;line-height:1.2;white-space:nowrap}
     #fileTimeNow:hover,#fileTimeNow:focus-visible{background:var(--shell-surface-strong)}
+    #fileTimeDetails{max-height:96px;overflow-y:auto;overscroll-behavior:contain;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+    #fileTimeReview{min-width:0;margin:12px 0;padding:12px;border:1px solid var(--shell-line);border-radius:10px;color:var(--shell-ink)}
+    #fileTimeReview label{display:block;margin-top:10px;line-height:1.5}
+    #fileTimeReview input{margin-right:7px}
     .receiver-target{margin:14px 0;padding:12px 14px;border:1px solid var(--shell-line);border-radius:12px;background:var(--shell-surface-soft);min-width:0;overflow-wrap:anywhere}
     .receiver-target p{margin:0 0 8px;line-height:1.5}.receiver-target p:last-child{margin-bottom:0}
     .receiver-target button{min-height:44px}.receiver-target button:focus-visible{outline:3px solid var(--shell-blue,#2563eb);outline-offset:2px}
@@ -268,6 +272,9 @@
           <p id="fileTimezoneInfo" class="muted"></p>
           <div id="fileTimezoneFallback" hidden><label for="fileTimezone">无法检测设备时区，请选择 IANA 时区</label><input id="fileTimezone" type="text" autocomplete="off" placeholder="例如 Asia/Shanghai" aria-describedby="fileTimezoneError"><p id="fileTimezoneError" class="file-field-error" role="alert" hidden></p></div>
           <div class="file-time-status"><p id="filePeriodHint" class="muted">上课时间：默认作息 · 第1节 08:00 开始<br>可在课表设置中修改。</p><button id="fileTimeNow" type="button" aria-controls="fileTimeEditor" aria-expanded="false">修改</button></div>
+          <p id="fileTimeDetails" class="muted" aria-live="polite"></p>
+          <p id="fileTimeReminder" class="muted">保存前请对照学校课表核实每节课的开始和结束时间；AnyClass 默认时间不是学校提供的时间。</p>
+          <fieldset id="fileTimeReview" hidden><legend>已有课表的上课时间与本次导入不同</legend><p id="fileTimeDifference"></p><label><input type="radio" name="fileTimeChoice" value="PRESERVE"> 保留已有课表的上课时间</label><label><input type="radio" name="fileTimeChoice" value="REPLACE"> 使用本次预览的上课时间</label></fieldset>
           <div id="fileTimeEditor" hidden></div><p id="fileTimeError" class="file-field-error" role="alert" hidden></p>
         </div>
     </div>
@@ -289,6 +296,7 @@
 </section>
 </main>
 <script src="/assets/timetable/normalized-import.js?v=v020-bookmark-preview-repair"></script>
+<script src="/assets/timetable/import-period-times.js"></script>
 <script src="/assets/timetable/import-file-core.js?v=v020-ai-school-contract"></script>
 <script src="/assets/timetable/school-profile.js"></script>
 <script src="/assets/timetable/school-config.js?v=v020-default-period-times"></script>
