@@ -386,7 +386,8 @@
     resetPreview();
     setState(STATES.PARSING);
     try {
-      storageFactory = options.factory || indexedDB;
+      // Keep the Receiver's authorized storage context across subsequent previews.
+      storageFactory = options.factory || storageFactory;
       if (!dataset || !Array.isArray(dataset.meetings)) throw Error("INVALID_IMPORT_DATASET");
       dataset.fingerprint = dataset.fingerprint || await AnyClassTimetableFile.fingerprint(dataset);
       importSource = source;
@@ -709,7 +710,7 @@
   const showExactDuplicateNoChange=async dataset=>{
     clearRedirect();
     const targetId=importTarget?.id||null;
-    if(targetId)await AnyClassTimetableRepository.setActiveTimetable(targetId);
+    if(targetId)await AnyClassTimetableRepository.setActiveTimetable(targetId,storageFactory);
     pending=null;input.value="";setMessage("");document.body.classList.remove("file-preview-active");setState(STATES.SUCCESS);
     let remaining=3;const update=()=>renderStableSuccess(["没有新的课程安排；完全重复项未再次写入，当前课表保持不变。"],remaining);update();void navigateImportTarget(submitMessage);
     if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-saved"));
@@ -778,14 +779,17 @@
         onSuccess: async result => {
           try {
             const storedKey = result?.graph?.term?.importMetadata?.legacyKey || dataset.key;
-            const stored = await AnyClassTimetableFileStorage.getDataset(storedKey);
-            const keyCount = await AnyClassTimetableFileStorage.countKey(storedKey);
+            const stored = await AnyClassTimetableFileStorage.getDataset(storedKey,storageFactory);
+            const keyCount = await AnyClassTimetableFileStorage.countKey(storedKey,storageFactory);
             if (!stored || stored.fingerprint !== dataset.fingerprint || stored.school?.name !== dataset.school.name || keyCount !== 1) throw Error("COMMITTED_READBACK_FAILED");
+            const ownerId = result?.graph?.timetable?.timetableId;
+            const bundle = ownerId ? await AnyClassTimetableRepository.readTimetableBundle(ownerId,storageFactory) : null;
+            if (!bundle || bundle.table.timetableId !== ownerId || bundle.term?.timetableId !== ownerId || bundle.term?.termId !== result.graph.term.termId || bundle.dataset?.fingerprint !== dataset.fingerprint || !bundle.model) throw Error("CANONICAL_READBACK_FAILED");
           } catch (_) { committedButUnverified("保存已提交，但读取校验未通过，请不要重复导入，先检查本机课表。"); return; }
           const timetableId = result?.graph?.timetable?.timetableId;
           if (!timetableId) { committedButUnverified("保存已提交，但无法确认课表归属，请不要重复导入，先检查本机课表。"); return; }
           try {
-            await AnyClassTimetableRepository.setActiveTimetable(timetableId);
+            await AnyClassTimetableRepository.setActiveTimetable(timetableId,storageFactory);
             const active = await AnyClassTimetableRepository.getActiveTimetable(storageFactory);
             if (active?.timetableId !== timetableId || active.schoolName !== dataset.school.name || active.label !== dataset.timetableName) throw Error("ACTIVE_TIMETABLE_READBACK_FAILED");
           } catch (_) { committedButUnverified("保存已提交，但未能确认当前课表，请不要重复导入，先检查本机课表。"); return; }
