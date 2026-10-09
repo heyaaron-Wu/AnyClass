@@ -357,6 +357,10 @@
       if(existingTerm&&hooks.expectedPeriodTimesSignature!==undefined&&hooks.expectedPeriodTimesSignature!==null&&periodTimeSignature(existingTerm.periodTimes)!==hooks.expectedPeriodTimesSignature)throw Error('IMPORT_PERIOD_TIMES_CHANGED');
       const timeDifference=Boolean(existingTerm&&periodTimeSignature(existingTerm.periodTimes)!==periodTimeSignature(term.periodTimes));
       if(timeDifference&&!config.preserveExistingPeriodTimesWhenDefault&&!['PRESERVE','REPLACE'].includes(hooks.periodTimesChoice))throw Error('IMPORT_PERIOD_TIMES_REVIEW_REQUIRED');
+      if(existingTerm&&!timeDifference&&existingTerm.periodTimeSources){
+        term.periodTimeSources=existingTerm.periodTimeSources;
+        term.schoolProfileSnapshot={...term.schoolProfileSnapshot,periodTimeSources:existingTerm.periodTimeSources};
+      }
       // Defaults never replace existing local times; other differences require a reviewed choice.
       if (existingTerm && (config.preserveExistingPeriodTimesWhenDefault || (timeDifference&&hooks.periodTimesChoice==='PRESERVE'))) {
         term.periodTimes = existingTerm.periodTimes;
