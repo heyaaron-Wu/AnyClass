@@ -41,6 +41,8 @@
 
 ## Features
 
+Local v0.2.2-beta.4 candidate: [client clock capture and floating preview](docs/v022-beta4-candidate.md). This candidate has not been deployed; hosted and historical release identities remain separate.
+
 - Today's classes and current / next class
 - Weekly timetable
 - Multiple timetable management and active timetable switching

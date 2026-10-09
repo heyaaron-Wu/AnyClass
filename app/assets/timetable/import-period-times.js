@@ -27,7 +27,8 @@
     return result;
   };
 
-  const resolve = (provided, highest, defaults) => {
+  const resolve = (provided, highest, defaults, providedSource = "JSON") => {
+    if (!["JSON", "SOURCE_PAGE"].includes(providedSource)) throw Error("上课时间来源无效。");
     const source = validateProvided(provided);
     const fallback = defaults || {};
     const max = source ? Math.max(highest, ...Object.keys(source).map(Number)) : Math.max(highest, ...Object.keys(fallback).map(Number));
@@ -37,7 +38,7 @@
       const row = source && own(source, key) ? source[key] : fallback[key];
       if (!row) continue;
       periodTimes[key] = {start: row.start, end: row.end};
-      periodTimeSources[key] = source && own(source, key) ? "JSON" : "DEFAULT";
+      periodTimeSources[key] = source && own(source, key) ? providedSource : "DEFAULT";
     }
     let previous = null;
     for (const key of periodKeys(periodTimes)) {

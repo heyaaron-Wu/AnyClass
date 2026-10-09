@@ -16,5 +16,5 @@ assert(betaShortcut.includes('id: null')&&betaShortcut.includes('name: null'),"u
 assert.equal(betaShortcut,stableShortcut,"Shortcut parser semantics must be shared byte-for-byte");
 assert.equal(beta.shortcut.parserSha256,stable.shortcut.parserSha256,"Shortcut parser semantics must be shared");
 assert.equal(stable.shortcut.stableICloudUrl,"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37");assert.equal(beta.shortcut.stableICloudUrl,null);
-assert.equal(beta.shortcut.published,true);assert.equal(stable.shortcut.published,true);
+assert.equal(beta.shortcut.published,false);assert.equal(stable.shortcut.published,false);
 console.log(JSON.stringify({result:"IMPORT_CLIENT_CHANNELS_PASS",bookmarkVersion:beta.bookmark.version,shortcutVersion:beta.shortcut.version,protocol:beta.importProtocol,schema:beta.storageSchema,parserParity:"IDENTICAL"},null,2));

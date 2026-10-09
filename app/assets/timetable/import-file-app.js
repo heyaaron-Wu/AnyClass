@@ -178,6 +178,7 @@
     $("fileSaved").hidden = next !== STATES.SUCCESS;
     $("fileGoToday").hidden = next !== STATES.SUCCESS;
     input.disabled = next === STATES.SAVING || next === STATES.SUCCESS;
+    if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-preview-state", {detail:{dirty:next !== STATES.SUCCESS && next !== STATES.IDLE,busy:next === STATES.SAVING || next === STATES.COMMITTED_UNVERIFIED}}));
   };
   const goToday = () => {
     if (navigating || state !== STATES.SUCCESS) return;
@@ -205,7 +206,7 @@
     const displaySources=retainsExisting?Object.fromEntries(Object.keys(existing.periodTimes||{}).map(key=>[key,existing.periodTimeSources?.[key]||"EXISTING"])):sources;
     const highest = pending ? AnyClassScheduleTimes.maxPeriod(pending.meetings) : 0;
     const used = Array.from({length:highest},(_,index)=>String(index+1));
-    const labels={JSON:"JSON 提供",DEFAULT:"AnyClass 默认作息补全",USER_EDITED:"用户修改",EXISTING:"保留已有课表"};
+    const labels={JSON:"JSON 提供",SOURCE_PAGE:"教务课表页面提供",DEFAULT:"AnyClass 默认作息补全",USER_EDITED:"用户修改",EXISTING:"保留已有课表"};
     const kinds=new Set(used.map(key=>displaySources[key]).filter(Boolean));
     const sourceLabel=kinds.size>1?"混合（"+[...kinds].map(kind=>labels[kind]).join(" + ")+"）":labels[[...kinds][0]]||"未设置";
     const legacyDefault=kinds.size===1&&kinds.has("DEFAULT") ? `上课时间：默认作息 · 第1节 ${displayTimes[1]?.start||"08:00"} 开始\n${highest>AnyClassDefaultPeriodTimes.highest?`目前覆盖前 ${AnyClassDefaultPeriodTimes.highest} 节；其余可在课表设置中补充。`:"可在课表设置中修改。"}\n来源：${sourceLabel}。` : null;
@@ -349,7 +350,7 @@
       $("fileTimezoneInfo").textContent = detectedTimezone ? `时区：跟随设备（${detectedTimezone}）` : "无法检测设备时区，请在下方填写。";
       $("fileTimezone").value = "";
       $("fileTimeEditor").hidden = true;
-      const resolved=AnyClassImportPeriodTimes.resolve(dataset.providedPeriodTimes,AnyClassScheduleTimes.maxPeriod(dataset.meetings),AnyClassDefaultPeriodTimes.clone());
+      const resolved=AnyClassImportPeriodTimes.resolve(dataset.providedPeriodTimes,AnyClassScheduleTimes.maxPeriod(dataset.meetings),AnyClassDefaultPeriodTimes.clone(),dataset.providedPeriodTimeSource||"JSON");
       initialPeriodTimes=resolved.periodTimes;initialPeriodSources=resolved.periodTimeSources;
       timeEditor = AnyClassScheduleTimes.editor($("fileTimeEditor"),Math.max(AnyClassDefaultPeriodTimes.highest,AnyClassScheduleTimes.maxPeriod(dataset.meetings)),initialPeriodTimes);
       updateTimingStatus();
@@ -548,6 +549,7 @@
     const remaining=pending.meetings.filter((_,rowIndex)=>rowIndex!==index);
     const parsed=AnyClassTimetableFile.validateAndNormalize({schemaVersion:1,school:pending.school,semester:pending.semester,timetableName:pending.timetableName,meetings:remaining});
     parsed.timetableName=pending.timetableName;parsed.fingerprint=await AnyClassTimetableFile.fingerprint(parsed);
+    parsed.providedPeriodTimes=pending.providedPeriodTimes;parsed.providedPeriodTimeSource=pending.providedPeriodTimeSource;parsed.periodTimeProvenance=pending.periodTimeProvenance;
     pending=parsed;nameChoices.clear();nameReviewStates.clear();nameSignature=null;
     conflictFeedback="✓ 已跳过一条待导入安排并重新检查。";
     updateMeetingUi(parsed);setState(STATES.VALIDATION_REQUIRED);stabilize();await refreshNameReview();
@@ -646,6 +648,7 @@
       const meetings=pending.meetings.map((row,rowIndex)=>({...row,...(group.indices.includes(rowIndex)?{courseName:name}:{}),...(rowIndex===index?{teacher:$("filePendingTeacher").value.trim()||null,locationRaw:$("filePendingLocation").value.trim()||null,weekday:Number($("filePendingWeekday").value),startPeriod:Number($("filePendingStart").value),endPeriod:Number($("filePendingEnd").value),weeks}:{} )}));
       const parsed=AnyClassTimetableFile.validateAndNormalize({schemaVersion:1,school:pending.school,semester:pending.semester,timetableName:pending.timetableName,meetings});
       parsed.timetableName=pending.timetableName;parsed.fingerprint=await AnyClassTimetableFile.fingerprint(parsed);
+      parsed.providedPeriodTimes=pending.providedPeriodTimes;parsed.providedPeriodTimeSource=pending.providedPeriodTimeSource;parsed.periodTimeProvenance=pending.periodTimeProvenance;
       const origin=editOrigin;editOrigin=null;
       pending=parsed;nameChoices.delete(group.key);if(origin?.kind==="name")nameReviewStates.set(group.key,NAME_STATES.RENAMED);else if(nameReviewStates.get(group.key)===NAME_STATES.RENAME_PENDING)nameReviewStates.delete(group.key);nameSignature=null;
       renamedFeedback=" ✓ 已修改并重新校验；如仍出现同名安排，请继续处理。";
@@ -697,6 +700,7 @@
     let remaining = 3;
     const update = () => renderStableSuccess([headline,...(detail?[detail]:[])],remaining);
     update();
+    if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-saved"));
     void navigateImportTarget(submitMessage);
     countdownTimer = setInterval(() => { remaining -= 1; if (remaining > 0) update(); },1000);
     redirectTimer = setTimeout(goToday,3000);
@@ -707,6 +711,7 @@
     if(targetId)await AnyClassTimetableRepository.setActiveTimetable(targetId);
     pending=null;input.value="";setMessage("");document.body.classList.remove("file-preview-active");setState(STATES.SUCCESS);
     let remaining=3;const update=()=>renderStableSuccess(["没有新的课程安排；完全重复项未再次写入，当前课表保持不变。"],remaining);update();void navigateImportTarget(submitMessage);
+    if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-saved"));
     countdownTimer=setInterval(()=>{remaining-=1;if(remaining>0)update()},1000);redirectTimer=setTimeout(goToday,3000);
   };
   const clearFieldErrors = () => {

@@ -39,7 +39,7 @@
     if(source.split(targetNeedle).length!==2)throw Error("BOOKMARK_TARGET_SOURCE_DRIFT");
     const clientNeedle=`CLIENT=Object.freeze({id:"${clientId}",version:"${clientVersion}"})`;
     if(source.split(clientNeedle).length!==2)throw Error("BOOKMARK_CLIENT_SOURCE_DRIFT");
-    const result=source
+    const result=source.replace(/\r?\n/g,"")
       .replace(targetNeedle,`const TARGET_ORIGIN="${channel.bookmarkTargetOrigin}"`)
       .replace(clientNeedle,`CLIENT=Object.freeze({id:"${clientId}",version:"${clientVersion}",channel:"${channel.id}"})`);
     if(!result.includes(`TARGET_ORIGIN="${channel.bookmarkTargetOrigin}"`)||!result.includes(`channel:"${channel.id}"`))throw Error("BOOKMARK_CHANNEL_BUILD_FAILED");

@@ -1,6 +1,6 @@
 /*
  * AnyClass - ZhengFang V9 Safari Shortcut Parser
- * V2-C Phase 3
+ * V2-C Phase 4
  * Read-only boundary:
  * - Reads only the current page's timetable DOM and semester selectors.
  * - Does not read cookies, browser storage, credentials, or unrelated page data.
@@ -114,12 +114,24 @@
     return checkedText(container ? container.textContent : "", selector, false);
   };
 
+  const explicitSinglePeriodClock = (text, startPeriod, endPeriod) => {
+    const ranges = [...String(text || "").matchAll(/\b([01]\d|2[0-3]):[0-5]\d\s*[-—–~至]\s*([01]\d|2[0-3]):[0-5]\d\b/g)];
+    const clockTokens = String(text || "").match(/\d+:\d+/g) || [];
+    if (clockTokens.length && (ranges.length !== 1 || clockTokens.length !== 2)) fail("SOURCE_PERIOD_CLOCK_INVALID", "页面给出的时间格式无效，请核对学校作息表");
+    if (ranges.length > 1) fail("SOURCE_PERIOD_CLOCK_INVALID", "页面给出多个相互矛盾的单节时间，请核对学校作息表");
+    if (ranges.length !== 1) return null;
+    const values = ranges[0][0].match(/([01]\d|2[0-3]):[0-5]\d/g);
+    if (!values || values[0] >= values[1]) fail("SOURCE_PERIOD_CLOCK_INVALID", "页面给出的单节结束时间必须晚于开始时间");
+    if (startPeriod !== endPeriod) return null;
+    return {start: values[0], end: values[1]};
+  };
+
   const parseTimetable = table => {
     const allBlocks = [...table.querySelectorAll(BLOCK_SELECTOR)];
     if (!allBlocks.length) fail("EMPTY_TIMETABLE", "当前页面未发现课程安排");
     if (allBlocks.length > MAX_MEETINGS) fail("TOO_MANY_MEETINGS", "课程安排数量超出限制");
 
-    const meetings = [];
+    const meetings = [], clockCandidates = new Map(), clockConflicts = new Set();
     for (const cell of table.querySelectorAll("td[id]")) {
       let previousTitle = null;
       for (const block of cell.querySelectorAll(BLOCK_SELECTOR)) {
@@ -151,9 +163,11 @@
         if (!Number.isInteger(startPeriod) || !Number.isInteger(endPeriod) || startPeriod < 1 || endPeriod < startPeriod || endPeriod > 30) {
           fail("PERIOD_PARSE_FAILED", "存在无效节次范围");
         }
-
+        const clock = explicitSinglePeriodClock(timeText,startPeriod,endPeriod);
+        if(clock){const key=String(startPeriod),prior=clockCandidates.get(key);if(prior&&(prior.start!==clock.start||prior.end!==clock.end))clockConflicts.add(key);else clockCandidates.set(key,clock)}
         const weekExpression = timeText
           .replace(/[（(]\s*\d+\s*[-—–~至]\s*\d+\s*节\s*[）)]/, "")
+          .replace(/\b(?:[01]\d|2[0-3]):[0-5]\d\s*[-—–~至]\s*(?:[01]\d|2[0-3]):[0-5]\d\b/g, "")
           .replace(/^[^0-9]+/, "")
           .trim();
         const adjustedByClass = Boolean(titleNode && titleNode.matches(".showJxbtkjl"));
@@ -174,7 +188,8 @@
     if (meetings.length !== allBlocks.length) {
       fail("BLOCK_COUNT_MISMATCH", "部分课程块不在可识别的课表单元格中");
     }
-    return meetings;
+    if(clockConflicts.size)fail("SOURCE_PERIOD_CLOCK_CONFLICT", "同一节次的页面时间不一致，请核对学校作息表");
+    return {meetings,periodTimes:Object.fromEntries([...clockCandidates].sort(([a],[b])=>Number(a)-Number(b)))};
   };
 
   try {
@@ -186,7 +201,7 @@
 
     const academicYear = parseAcademicYear(document.getElementById("xnm"));
     const term = parseTerm(document.getElementById("xqm"));
-    const meetings = parseTimetable(tables[0]);
+    const {meetings,periodTimes} = parseTimetable(tables[0]);
     const dataset = {
       schemaVersion: 1,
       school: {
@@ -197,7 +212,8 @@
         academicYear,
         term
       },
-      meetings
+      meetings,
+      ...(Object.keys(periodTimes).length ? {periodTimes,periodTimeProvenance:"zhengfang-v9:explicit-single-period-clock-text"} : {})
     };
 
     completion({

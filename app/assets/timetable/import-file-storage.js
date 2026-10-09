@@ -31,7 +31,7 @@
     const periodTimeSources={};
     for(const key of Object.keys(periodTimes)){
       const source=context?.periodTimeSources?.[key];
-      if(source!==undefined&&!['JSON','DEFAULT','USER_EDITED'].includes(source))throw Error('FILE_PERIOD_TIME_SOURCE_INVALID');
+      if(source!==undefined&&!['JSON','SOURCE_PAGE','DEFAULT','USER_EDITED'].includes(source))throw Error('FILE_PERIOD_TIME_SOURCE_INVALID');
       periodTimeSources[key]=source||'DEFAULT';
     }
     return {semesterStartDate:date,timezone,periodTimes,periodTimeSources,timingStatus};

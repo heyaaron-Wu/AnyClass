@@ -1,5 +1,5 @@
 {
-  "webVersion": "0.2.0",
+  "webVersion": "0.2.2-beta.4",
   "importProtocol": "timetable-import-v1",
   "normalizedImportSchema": 1,
   "storageSchema": 4,
@@ -10,7 +10,7 @@
   },
   "shortcut": {
     "id": "anyclass-ios-shortcut",
-    "version": "v2-c-phase3",
+    "version": "v2-c-phase4",
     "source": "app/assets/timetable/ios-shortcut-parser.js",
     "exportSource": "app/assets/timetable/ios-shortcut-parser-shortcut.txt",
     "stableICloudUrl": "https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37"

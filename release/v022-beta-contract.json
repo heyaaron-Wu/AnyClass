@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "productVersion": "0.2.2-beta.3",
-  "candidateReleaseId": "v022-beta3-20261009-130521",
+  "productVersion": "0.2.2-beta.4",
+  "candidateReleaseId": "v022-beta4-20261009-144828",
   "releaseMode": "beta-candidate",
   "channel": "beta",
-  "sourceBaseCommit": "be4ac96cfa16d1ca41f6c4ece9e8c4940d0d156c",
+  "sourceBaseCommit": "0bb01e959afad82ad970e3bf6b9b2827573c9a3d",
   "rollbackReleaseId": "v022-beta1-20261008-132109",
   "databaseVersion": 4,
   "appRoot": "app",
