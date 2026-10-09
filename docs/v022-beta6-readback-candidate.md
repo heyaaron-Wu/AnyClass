@@ -1,6 +1,6 @@
 # v0.2.2-beta.6 local readback repair candidate
 
-Build: `v022-beta6-20261009-190849`. Database schema: 4 (unchanged).
+Build: `v022-beta6-20261009-202030`. Database schema: 4 (unchanged).
 
 Parent: immutable beta.5 commit `274ecb44ce3ac5e099a3b188fca149613c736daa`.
 
@@ -15,8 +15,21 @@ This candidate passes the same factory to legacy readback, key counting and both
 active-timetable updates. Subsequent previews retain the authorized factory.
 Existing verification remains enabled; canonical bundle ownership, term identity,
 source fingerprint and model existence are also required before reporting success.
-Storage transactions, origin/nonce validation, capture parsers, schema and user
-data are not changed.
+Origin/nonce validation, capture parsers and database schema remain unchanged.
+
+The independent canonical ownership defect is also repaired: unsupported
+different-source writes to an occupied target are rejected before any mutation.
+No timetable is silently created or selected. The current single-active-import
+model is preserved, and pending Course/meeting/snapshot/term ownership is checked
+within the transaction before commit. Existing user data is never automatically
+repaired. Supported same-source Clipboard/Bookmark transitions preserve user
+course/occurrence edits, manual courses, customized times and other workspaces.
+
+The multi-timetable browser harness now waits for the native dialog close event
+and opener-focus restoration before its next keyboard sequence. Previously the
+late close event could occur between Tab and Shift+Tab, making Enter activate
+Edit Information and causing the observed navigation/context-destruction error.
+This is a proven test lifecycle race, not an application navigation change.
 
 Permanent regression: `npm run test:postcommit:browser`. Isolated synthetic
 namespaces cover standalone Shortcut JSON, actual Bookmark shell/Receiver,

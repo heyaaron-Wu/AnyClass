@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "productVersion": "0.2.2-beta.6",
-  "candidateReleaseId": "v022-beta6-20261009-190849",
+  "candidateReleaseId": "v022-beta6-20261009-202030",
   "releaseMode": "beta-candidate",
   "channel": "beta",
   "sourceBaseCommit": "274ecb44ce3ac5e099a3b188fca149613c736daa",

@@ -119,6 +119,27 @@
     meetings: dataset.meetings, fingerprint: dataset.fingerprint || null
   });
 
+  // Read pending records in this transaction, before completion can make them durable.
+  const verifyCanonicalOwnership = async (transaction, timetableId) => {
+    const table = await requestValue(transaction.objectStore(STORES.timetables).get(timetableId));
+    const term = table?.activeTermId ? await requestValue(transaction.objectStore(STORES.terms).get(table.activeTermId)) : null;
+    if (!table || !term || term.timetableId !== timetableId) throw Error("TIMETABLE_TERM_OWNER_CONFLICT");
+    const meetings = new Map((await requestValue(transaction.objectStore(STORES.baseMeetings).index("termId").getAll(term.termId))).map(row=>[row.baseMeetingId,row]));
+    const snapshots = new Map((await requestValue(transaction.objectStore(STORES.importSnapshots).index("timetableId").getAll(timetableId))).map(row=>[row.snapshotId,row]));
+    const courses = (await requestValue(transaction.objectStore(STORES.courses).index("timetableId").getAll(timetableId))).filter(row=>row.suppressed!==true);
+    const activeSnapshots = new Set();
+    for (const course of courses) {
+      if (course.sourceType === "manual") {
+        if (course.termId !== term.termId || course.sourceMeetingId || course.sourceSnapshotId) throw Error("TIMETABLE_COURSE_OWNER_CONFLICT");
+        continue;
+      }
+      const meeting = meetings.get(course.sourceMeetingId), snapshot = snapshots.get(course.sourceSnapshotId);
+      if (!meeting || meeting.termId !== term.termId || !snapshot || snapshot.timetableId !== timetableId || snapshot.sourceKey !== course.sourceKey || snapshot.semester?.academicYear !== term.academicYear || String(snapshot.semester?.term) !== String(term.termCode)) throw Error("TIMETABLE_COURSE_OWNER_CONFLICT");
+      activeSnapshots.add(snapshot.snapshotId);
+    }
+    if (activeSnapshots.size > 1) throw Error("TIMETABLE_ACTIVE_SOURCE_AMBIGUOUS");
+  };
+
   const schema3Model = (dataset, graph) => {
     if (!root.AnyClassCourseModel) throw new Error("COURSE_MODEL_REQUIRED");
     return root.AnyClassCourseModel.build(dataset, graph);
@@ -349,6 +370,11 @@
       timetableId = targetId || existing?.timetableId || `timetable:academic:${root.AnyClassPhaseB.idComponent([route])}`;
       if (!existing && await requestValue(tables.get(timetableId))) throw new Error("TIMETABLE_ID_COLLISION");
       if (existing && existing.activeTermId && existing.activeTermId !== graph.term.termId) throw new Error("ROUTE_TERM_CONFLICT");
+      const currentCourses = await requestValue(transaction.objectStore(STORES.courses).index("timetableId").getAll(timetableId));
+      // Schema 4 currently has one active imported source per term. Do not delete
+      // another source's meetings while keeping courses/overrides that reference them.
+      if (currentCourses.some(row=>row.suppressed!==true && row.sourceType!=="manual" && row.sourceKey!==dataset.key)) throw Error("IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED");
+      if (existing?.activeTermId) await verifyCanonicalOwnership(transaction,timetableId);
       const importedName = String(dataset.timetableName == null ? "" : dataset.timetableName).trim();
       const confirmedSchoolName = hooks.preserveTargetMetadata && existing?.schoolName ? existing.schoolName : dataset.school.name;
       const timetable = existing ? {...existing,...(importedName ? {label:importedName} : {}),...(missingSchoolId ? {routingKey:route} : {}),schoolId:dataset.school.id,schoolName:confirmedSchoolName,activeTermId:graph.term.termId,updatedAt:new Date().toISOString()} : {...graph.timetable,timetableId,routingKey:route,label:importedName || graph.timetable.label,schoolName:dataset.school.name};
@@ -398,6 +424,7 @@
       if (hooks.beforeCommit) {
         hooks.beforeCommit({transaction, graph:ownedGraph});
       }
+      await verifyCanonicalOwnership(transaction,timetableId);
       await completed;
       } catch (error) {
         try { transaction.abort(); } catch (_) {}

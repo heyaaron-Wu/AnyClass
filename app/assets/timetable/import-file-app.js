@@ -797,7 +797,7 @@
           showSuccess(dataset,result);
         },
         onCancel:()=>{setState(STATES.PREVIEW_READY);setSubmitMessage("已取消本次更新，原有课表未改变。");},
-        onFailure:()=>{setState(STATES.SAVE_FAILED);setSubmitMessage("保存失败，原有课表未被修改。","error");}
+        onFailure:error=>{setState(STATES.SAVE_FAILED);setSubmitMessage(error?.message === "IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED" ? "当前课表已有另一导入来源，本次未保存，原有课表和修改均未改变。请使用原来源更新，或明确选择一个空课表后再导入。" : "保存失败，原有课表未被修改。","error");}
       });
     } catch (error) {
       setState(error.field ? STATES.VALIDATION_REQUIRED : STATES.SAVE_FAILED);
