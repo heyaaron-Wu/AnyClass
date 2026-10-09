@@ -186,6 +186,8 @@ body[data-shell-page="today"] .today-content-enter { animation:today-content-ent
 .shell-disclosure-toggle[aria-expanded="true"] .shell-disclosure-indicator { transform:rotate(180deg); }
 .shell-disclosure-content { padding:0 15px 15px; }
 .import-method-button { width:100%; border:0; text-align:left; font:inherit; cursor:pointer; }
+/* Shared save-result presentation; resetPreview restores the method chooser. */
+body.import-save-success #import-entry { display:none; }
 .import-method-button[aria-expanded="true"] { border-color:#7aa2f7; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
 body[data-shell-page="import"] h1,body[data-shell-page="import"] h2,body[data-shell-page="import"] .card strong { color:var(--shell-ink); }
 .import-copy-status,.import-receiver-message { margin:10px 0 0; font-weight:700; }

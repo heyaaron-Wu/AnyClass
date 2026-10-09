@@ -165,6 +165,7 @@
   const setState = next => {
     state = next;
     preview.dataset.importState = next;
+    document.body.classList.toggle("import-save-success", next === STATES.SUCCESS);
     const editable = [STATES.VALIDATION_REQUIRED,STATES.PREVIEW_READY,STATES.SAVE_FAILED].includes(next);
     const eligibility = submitEligibility();
     save.hidden = !(editable || next === STATES.SAVING);
@@ -211,7 +212,7 @@
     const sourceLabel=kinds.size>1?"混合（"+[...kinds].map(kind=>labels[kind]).join(" + ")+"）":labels[[...kinds][0]]||"未设置";
     const legacyDefault=kinds.size===1&&kinds.has("DEFAULT") ? `上课时间：默认作息 · 第1节 ${displayTimes[1]?.start||"08:00"} 开始\n${highest>AnyClassDefaultPeriodTimes.highest?`目前覆盖前 ${AnyClassDefaultPeriodTimes.highest} 节；其余可在课表设置中补充。`:"可在课表设置中修改。"}\n来源：${sourceLabel}。` : null;
     $("filePeriodHint").textContent = invalid ? "上课时间：正在填写。请检查时间顺序。" : legacyDefault || `上课时间来源：${sourceLabel}。${kinds.has("USER_EDITED")?"已设置，请核对后保存。":""}`;
-    $("fileTimeDetails").textContent = invalid ? "请检查时间顺序后再保存。" : used.map(key=>displayTimes[key] ? `第${key}节 ${displayTimes[key].start}–${displayTimes[key].end}（${labels[displaySources[key]]||"未标记"}）` : `第${key}节 未设置，请手动补充`).join("；");
+    $("fileTimeDetails").textContent = invalid ? "请检查时间顺序后再保存。" : used.map(key=>displayTimes[key] ? `第${key}节 ${displayTimes[key].start}–${displayTimes[key].end}${kinds.size>1 ? `（${labels[displaySources[key]]||"未标记"}）` : ""}` : `第${key}节 未设置，请手动补充`).join("；");
     $("fileTimeNow").textContent = Object.keys(times).length > 0 ? "修改" : "现在设置";
     if(invalid){$("fileTimeReview").hidden=true;timeChoice=null;reviewedTimeSignature=null;}
     else updateTimeReview(times);

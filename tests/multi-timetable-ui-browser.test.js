@@ -12,7 +12,16 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, {"content-type": file.endsWith(".js") ? "application/javascript" : file.endsWith(".css") ? "text/css" : "text/html", "cache-control":"no-store"});
   res.end(fs.readFileSync(file));
 });
-const listen = () => new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+// Windows can allocate 5060 for an ephemeral listener; Chrome rejects that
+// SIP port before the application loads. Rebind instead of bypassing Chrome.
+const listen = async () => {
+  for (let attempt=0;attempt<5;attempt++) {
+    await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+    if(server.address().port!==5060)return;
+    await new Promise(resolve=>server.close(resolve));
+  }
+  throw new Error("No browser-safe local listener available");
+};
 (async () => {
   await listen();
   fs.mkdirSync(evidence,{recursive:true});

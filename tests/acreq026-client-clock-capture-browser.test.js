@@ -42,13 +42,13 @@ const expected={"1":{start:"08:00",end:"08:45"},"2":{start:"08:55",end:"09:40"}}
         await receiver.locator("#prepareReceiverTarget").click();
       }
       await receiver.locator("#filePreview:not([hidden])").waitFor();
-      const bookmarkDetails=await receiver.locator("#fileTimeDetails").innerText();
-      check(withClock?/教务课表页面提供/.test(bookmarkDetails):/AnyClass 默认作息补全/.test(bookmarkDetails),"Bookmark transport reaches shared source-aware preview");
+      const bookmarkHint=await receiver.locator("#filePeriodHint").innerText();
+      check(withClock?/教务课表页面提供/.test(bookmarkHint):/AnyClass 默认作息补全/.test(bookmarkHint),"Bookmark transport reaches shared source-aware preview");
       const preview=await context.newPage();await preview.goto(app+"/import/?method=file");
       await preview.evaluate(data=>AnyClassSharedJsonImport.previewText(JSON.stringify(data),"file"),payload);
       await preview.locator("#filePreview:not([hidden])").waitFor();
-      const details=await preview.locator("#fileTimeDetails").innerText(),reminder=await preview.locator("#fileTimeReminder").innerText();
-      check(withClock?/教务课表页面提供/.test(details):/AnyClass 默认作息补全/.test(details),"shared preview identifies the effective timing source");
+      const details=await preview.locator("#fileTimeDetails").innerText(),hint=await preview.locator("#filePeriodHint").innerText(),reminder=await preview.locator("#fileTimeReminder").innerText();
+      check(withClock?/教务课表页面提供/.test(hint):/AnyClass 默认作息补全/.test(hint),"shared preview identifies the effective timing source");
       check(/对照学校课表核实/.test(reminder),"shared preview asks for school-clock verification");
       await preview.close();
     }

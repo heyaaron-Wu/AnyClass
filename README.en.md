@@ -43,6 +43,8 @@
 
 Local v0.2.2-beta.4 candidate: [client clock capture and floating preview](docs/v022-beta4-candidate.md). This candidate has not been deployed; hosted and historical release identities remain separate.
 
+Separate local v0.2.2-beta.5 candidate: [floating-preview visual consistency](docs/v022-beta5-candidate.md). Not deployed; physical Safari acceptance remains pending.
+
 - Today's classes and current / next class
 - Weekly timetable
 - Multiple timetable management and active timetable switching
