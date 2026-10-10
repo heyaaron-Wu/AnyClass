@@ -18,7 +18,9 @@ const html='<!doctype html><meta charset="utf-8"><style>body{height:3000px}</sty
   if(await f.locator("#prepareReceiverTarget").isVisible()){await f.locator("#prepareReceiverTarget").evaluate(()=>Object.defineProperty(document,"requestStorageAccess",{configurable:true,value:()=>Promise.resolve({indexedDB})}));await f.locator("#prepareReceiverTarget").click()}
   await f.locator("#filePreview:not([hidden])").waitFor();const receiver=page.frames().find(x=>x.url().startsWith(beta));
   // Even correctly-originated messages cannot close an unsaved preview; nonce must also match.
-  await receiver.evaluate(()=>{const n=new URL(location.href).searchParams.get("nonce");parent.postMessage({protocol:"timetable-import-v1",type:"NAVIGATION_RESULT",status:"OPENED",nonce:n},"https://portal.example.invalid")});
+  const nonce=await page.evaluate(()=>window.__messages.find(x=>x.type==="READY").nonce);
+  await receiver.evaluate(n=>parent.postMessage({protocol:"timetable-import-v1",type:"NAVIGATION_RESULT",status:"OPENED",nonce:n},"https://portal.example.invalid"),nonce);
+  await page.waitForFunction(()=>window.__messages.some(x=>x.type==="NAVIGATION_RESULT"));
   check(await popup.isVisible(),"navigation result before verified save is ignored");
   await f.locator("#fileSchoolName").fill("Synthetic School");await f.locator("#fileSemesterStart").fill("2026-08-31");await f.locator("#fileSave").waitFor({state:"visible"});await page.waitForTimeout(400);
   await f.locator("#fileSave").click();await page.waitForFunction(()=>window.__messages.some(x=>x.type==="IMPORT_SAVED"),null,{timeout:10000});
@@ -39,6 +41,7 @@ const html='<!doctype html><meta charset="utf-8"><style>body{height:3000px}</sty
    await receiver.evaluate(()=>{window.open=window.__realOpen});await f.locator("#fileGoToday").click();
   }
   const today=await nextPage;await today.waitForURL(beta+"/today/");await today.locator("#app").waitFor({state:"visible"});await popup.waitFor({state:"detached"});
+  check(context.pages().length===2,"exactly one standalone tab created");
   check(page.url()===source+"/","school top-level remains unchanged");check(await page.evaluate(()=>scrollY===900&&document.activeElement.id==="opener"),"source scroll and focus restored");
   check(await today.evaluate(()=>opener===null),"new tab has no opener");await today.screenshot({path:path.join(evidence,mode+"-today.png")});
   await today.goto(beta+"/import/?method=file");const after=await today.evaluate(()=>AnyClassTimetableRepository.readActiveBundle());check(after.table.timetableId===before.table.timetableId&&after.model.courses.length===1,"first-party readback uses saved canonical timetable");await today.reload();check((await today.evaluate(()=>AnyClassTimetableRepository.readActiveBundle())).model.courses.length===1,"reload persistence");
