@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "productVersion": "0.2.2-beta.6",
-  "candidateReleaseId": "v022-beta6-20261009-202030",
+  "productVersion": "0.2.2-beta.7",
+  "candidateReleaseId": "v022-beta7-20261009-225018",
   "releaseMode": "beta-candidate",
   "channel": "beta",
-  "sourceBaseCommit": "274ecb44ce3ac5e099a3b188fca149613c736daa",
-  "rollbackReleaseId": "v022-beta5-20261009-164038",
+  "sourceBaseCommit": "6e5b09585e9fb089baf897e7c66cabfa316b404e",
+  "rollbackReleaseId": "v022-beta6-20261009-202030",
   "databaseVersion": 4,
   "appRoot": "app",
   "publicPrivateBoundary": "public-core-only"

@@ -13,7 +13,7 @@ header.className="ac-popup-header";title.textContent="AnyClass · 导入预览";
 status.id=statusId;status.setAttribute("role","status");status.setAttribute("aria-live","polite");status.setAttribute("aria-atomic","true");retry.type="button";retry.textContent="重试";retry.dataset.anyclassPopupRetry="";retry.hidden=true;
 frame.id=frameId;frame.title="AnyClass 导入预览";frame.allow="storage-access";
 header.append(title,retry,close);popup.append(style,header,status,frame);document.body.append(popup);
-let sentNonce="",dirty=false,busy=false,timeout=0,transportDone=false,closed=false;
+let sentNonce="",dirty=false,busy=false,timeout=0,transportDone=false,closed=false,saved=false;
 const setStatus=(text,error=false)=>{status.textContent=text;popup.dataset.state=error?"error":"ready";retry.hidden=!error};
 const cleanup=()=>{if(closed)return;closed=true;clearTimeout(timeout);removeEventListener("message",onMessage);removeEventListener("keydown",onKey);frame.removeEventListener("error",onLoadError);popup.remove();if(window[cleanupId]===dismiss)delete window[cleanupId];if(opener?.isConnected&&typeof opener.focus==="function")opener.focus({preventScroll:true});if(scrollX!==position.x||scrollY!==position.y)scrollTo({left:position.x,top:position.y,behavior:"instant"})};
 const dismiss=()=>{if(busy){setStatus("正在保存，请等待读取校验完成后关闭。");return false}if(dirty&&!confirm("本次导入尚未保存。关闭会放弃预览中的修改，是否关闭？"))return false;cleanup();return true};
@@ -37,12 +37,14 @@ const onMessage=event=>{
  if(message.type==="PREVIEW_STATE"){dirty=message.dirty===true;busy=message.busy===true;return}
  if(message.type==="CLOSE_REQUEST"){dismiss();return}
  if(message.type==="IMPORT_CANCELLED"){dirty=false;busy=false;cleanup();return}
- if(message.type==="IMPORT_SAVED"){dirty=false;busy=false;setStatus("已保存并通过本机读取校验。可以关闭此窗口，返回教务课表。");return}
+ if(message.type==="IMPORT_SAVED"){saved=true;dirty=false;busy=false;setStatus("已保存并通过本机读取校验。可以关闭此窗口，返回教务课表。");return}
+ if(saved&&message.type==="NAVIGATION_RESULT"&&message.status==="OPENED"){dirty=false;busy=false;cleanup();return}
+ if(saved&&message.type==="NAVIGATION_RESULT"&&message.status==="BLOCKED"){dirty=false;busy=false;setStatus("已保存并通过本机读取校验。浏览器未允许自动打开 AnyClass，请点击预览中的“立即前往”。");return}
  if(message.type==="RECEIVER_ERROR")setStatus("预览暂未打开；数据尚未保存。请在窗口内允许本机存储访问后重试。",true);
 };
 const start=()=>{
  if(busy)return;if(dirty&&!confirm("重试会放弃本次尚未保存的预览，是否继续？"))return;
- dirty=false;sentNonce="";transportDone=false;clearTimeout(timeout);setStatus("正在建立安全传输通道…");popup.dataset.state="loading";
+ dirty=false;saved=false;sentNonce="";transportDone=false;clearTimeout(timeout);setStatus("正在建立安全传输通道…");popup.dataset.state="loading";
  frame.src=`${TARGET_ORIGIN}/import/?method=desktop&sourceOrigin=${encodeURIComponent(SOURCE_ORIGIN)}`;
  timeout=setTimeout(()=>{if(!transportDone)setStatus("课表传输失败\nReceiver 未能完成初始化，请检查网络后重试。",true)},15000);
 };

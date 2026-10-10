@@ -181,8 +181,29 @@
     input.disabled = next === STATES.SAVING || next === STATES.SUCCESS;
     if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-preview-state", {detail:{dirty:next !== STATES.SUCCESS && next !== STATES.IDLE,busy:next === STATES.SAVING || next === STATES.COMMITTED_UNVERIFIED}}));
   };
-  const goToday = () => {
+  const showBookmarkNavigationFallback = () => {
+    const countdown=submitMessage.querySelector("[data-import-countdown]");
+    if(countdown){
+      countdown.textContent="";
+      if(countdown.nextSibling)countdown.nextSibling.textContent=" 浏览器未允许自动打开；请点击下方“立即前往”。";
+    }
+  };
+  const goToday = (mode = "manual") => {
     if (navigating || state !== STATES.SUCCESS) return;
+    if(importSource === "bookmark" && window.parent !== window){
+      clearRedirect();
+      let opened=null;
+      try{opened=window.open("/today/","_blank")}catch(_){}
+      if(opened){
+        navigating=true;
+        try{opened.opener=null}catch(_){}
+        dispatchEvent(new CustomEvent("anyclass:bookmark-navigation",{detail:{status:"OPENED",mode}}));
+      }else{
+        showBookmarkNavigationFallback();
+        dispatchEvent(new CustomEvent("anyclass:bookmark-navigation",{detail:{status:"BLOCKED",mode}}));
+      }
+      return;
+    }
     navigating = true;
     clearRedirect();
     location.assign("/today/");
@@ -705,7 +726,7 @@
     if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-saved"));
     void navigateImportTarget(submitMessage);
     countdownTimer = setInterval(() => { remaining -= 1; if (remaining > 0) update(); },1000);
-    redirectTimer = setTimeout(goToday,3000);
+    redirectTimer = setTimeout(()=>goToday("automatic"),3000);
   };
   const showExactDuplicateNoChange=async dataset=>{
     clearRedirect();
@@ -714,7 +735,7 @@
     pending=null;input.value="";setMessage("");document.body.classList.remove("file-preview-active");setState(STATES.SUCCESS);
     let remaining=3;const update=()=>renderStableSuccess(["没有新的课程安排；完全重复项未再次写入，当前课表保持不变。"],remaining);update();void navigateImportTarget(submitMessage);
     if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-saved"));
-    countdownTimer=setInterval(()=>{remaining-=1;if(remaining>0)update()},1000);redirectTimer=setTimeout(goToday,3000);
+    countdownTimer=setInterval(()=>{remaining-=1;if(remaining>0)update()},1000);redirectTimer=setTimeout(()=>goToday("automatic"),3000);
   };
   const clearFieldErrors = () => {
     for (const [field,error] of [["fileSchoolName","fileSchoolNameError"],["fileTimetableName","fileTimetableNameError"],["fileSemesterStart","fileSemesterStartError"],["fileTimezone","fileTimezoneError"],["fileTimeNow","fileTimeError"]]) clearFieldError(field,error);
@@ -822,7 +843,7 @@
     else if (cancelledSource === "clipboard") $("clipboardMessage").textContent = "已取消，本次内容未保存。";
     else if (cancelledSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-preview-reset"));
   });
-  $("fileGoToday").addEventListener("click",goToday);
+  $("fileGoToday").addEventListener("click",()=>goToday("manual"));
   addEventListener("pagehide",clearRedirect);
   document.addEventListener("visibilitychange",()=>{if (document.visibilityState === "hidden") clearRedirect();});
   document.addEventListener("click",event=>{if (state === STATES.SUCCESS && event.target.closest("a[href]")) clearRedirect();},true);

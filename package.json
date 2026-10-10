@@ -1,7 +1,7 @@
 {
   "name": "anyclass",
   "private": true,
-  "version": "0.2.2-beta.6",
+  "version": "0.2.2-beta.7",
   "description": "AnyClass / 有课吗 — Local-first timetable web application",
   "scripts": {
     "test:postcommit:browser": "node tests/postcommit-storage-context-browser.test.js",

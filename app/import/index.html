@@ -4,7 +4,7 @@
   <!-- Opt in before the larger page styles load; the shared sheet defines the animation. -->
   <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
-  <meta name="anyclass-release" content="v022-beta6-20261009-202030">
+  <meta name="anyclass-release" content="v022-beta7-20261009-225018">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
@@ -333,6 +333,7 @@ let authenticatedParentOrigin=null;
 const notifyParent=(type,detail={})=>{if(window.parent!==window&&authenticatedParentOrigin)window.parent.postMessage({protocol:PROTOCOL,nonce,type,...detail},authenticatedParentOrigin)};
 addEventListener("anyclass:bookmark-preview-state",event=>notifyParent("PREVIEW_STATE",{dirty:event.detail?.dirty===true,busy:event.detail?.busy===true}));
 addEventListener("anyclass:bookmark-saved",()=>notifyParent("IMPORT_SAVED"));
+addEventListener("anyclass:bookmark-navigation",event=>notifyParent("NAVIGATION_RESULT",{status:event.detail?.status,mode:event.detail?.mode}));
 addEventListener("keydown",event=>{if(event.key==="Escape"&&authenticatedParentOrigin){event.preventDefault();notifyParent("CLOSE_REQUEST")}});
 addEventListener("message",event=>{const p=event.data;if(event.source===window.parent&&p?.protocol===PROTOCOL&&p.type==="HTML_IMPORT"&&p.nonce===nonce&&p.source?.origin===event.origin&&profileRegistry.matchOrigin(event.origin,p.source?.system).length===1&&p.client?.id===BOOKMARKLET_ID&&p.client?.version===BOOKMARKLET_VERSION)authenticatedParentOrigin=event.origin});
 const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})();$("addImportShortcut").href=importChannel.shortcutICloudUrl;$("addImportShortcut").setAttribute("aria-label",`添加${importChannel.shortcutDisplayName}`);$("importShortcutTarget").textContent=importChannel.shortcutTargetImportUrl;

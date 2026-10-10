@@ -11,7 +11,7 @@
       bookmarkDisplayName:"AnyClass 导入课表 Beta",
       bookmarkTargetOrigin:"https://beta.anyclass.heyaaron.asia",
       shortcutDisplayName:"AnyClass 导入课程 Beta",
-      shortcutICloudUrl:"https://www.icloud.com/shortcuts/2d1a3282109345918058db7cf1efd818",
+      shortcutICloudUrl:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9",
       shortcutTargetImportUrl:"https://beta.anyclass.heyaaron.asia/import/?method=file"
     }),
     stable:Object.freeze({
