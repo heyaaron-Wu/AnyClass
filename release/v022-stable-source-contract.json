@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "productVersion": "0.2.2",
+  "candidateReleaseId": "v0.2.2",
+  "releaseMode": "source-release",
+  "sourceBaseCommit": "61321b97336bb93e24d8bc2cd38250c65111e6f2",
+  "databaseVersion": 4,
+  "appRoot": "app",
+  "publicPrivateBoundary": "public-core-only",
+  "published": false
+}

@@ -20,14 +20,16 @@
     let priorEnd = -1;
     for (const [key,item] of Object.entries(times).sort(([a],[b])=>Number(a)-Number(b))) {
       const period = Number(key);
-      if (!Number.isInteger(period) || period < 1 || period > Math.max(highest,root.AnyClassDefaultPeriodTimes?.highest||0)) throw new Error("FILE_PERIOD_TIMES_INVALID");
+      if (!/^(?:[1-9]|[12]\d|30)$/.test(key) || !Number.isInteger(period) || period < 1 || period > 30) throw new Error("FILE_PERIOD_TIMES_INVALID");
       if (!item || !/^([01]\d|2[0-3]):[0-5]\d$/.test(item.start) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(item.end) || item.start >= item.end) throw new Error("FILE_PERIOD_TIMES_INVALID");
       const startMinutes=Number(item.start.slice(0,2))*60+Number(item.start.slice(3));
       if(startMinutes<priorEnd)throw Error("FILE_PERIOD_TIMES_OVERLAP");
       priorEnd=Number(item.end.slice(0,2))*60+Number(item.end.slice(3));
       periodTimes[period] = {start:item.start,end:item.end};
     }
-    const timingStatus = Array.from({length:highest},(_,index)=>periodTimes[index+1]).every(Boolean) ? "COMPLETE" : "INCOMPLETE";
+    if (!root.AnyClassImportPeriodTimes) throw Error("FILE_PERIOD_TIMES_VALIDATOR_UNAVAILABLE");
+    root.AnyClassImportPeriodTimes.validateSequence(periodTimes, Math.max(highest, ...Object.keys(periodTimes).map(Number)));
+    const timingStatus = "COMPLETE";
     const periodTimeSources={};
     for(const key of Object.keys(periodTimes)){
       const source=context?.periodTimeSources?.[key];

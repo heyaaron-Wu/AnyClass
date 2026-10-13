@@ -27,11 +27,20 @@
     return result;
   };
 
+  const validateSequence = (value, highest = 0) => {
+    validateProvided(value);
+    for (let period = 1; period <= highest; period += 1) {
+      if (!own(value, String(period))) throw Error(`缺少第 ${period} 节，请补齐上课时间。`);
+    }
+    return value;
+  };
   const resolve = (provided, highest, defaults, providedSource = "JSON") => {
+    if (!Number.isInteger(highest) || highest < 1 || highest > 30) throw Error("课程节次范围无效。");
     if (!["JSON", "SOURCE_PAGE"].includes(providedSource)) throw Error("上课时间来源无效。");
     const source = validateProvided(provided);
     const fallback = defaults || {};
-    const max = source ? Math.max(highest, ...Object.keys(source).map(Number)) : Math.max(highest, ...Object.keys(fallback).map(Number));
+    const max = Math.max(highest, ...Object.keys(source || {}).map(Number), ...Object.keys(fallback).map(Number));
+    if (max > 30) throw Error("节次不能超过 30。");
     const periodTimes = {}, periodTimeSources = {};
     for (let period = 1; period <= max; period += 1) {
       const key = String(period);
@@ -47,10 +56,11 @@
       if (previous && minutes(row.start) < minutes(previous.end)) throw Error(`第 ${key} 节与第 ${previous.key} 节的有效时间重叠；请修改 JSON 时间或补全默认时段。`);
       previous = {key, end: row.end};
     }
+    validateSequence(periodTimes, max);
     return {periodTimes, periodTimeSources};
   };
 
-  const api = Object.freeze({validateProvided, resolve, sameTimes});
+  const api = Object.freeze({validateProvided, validateSequence, resolve, sameTimes});
   root.AnyClassImportPeriodTimes = api;
   if (typeof module === "object" && module.exports) module.exports = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

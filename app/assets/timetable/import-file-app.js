@@ -154,7 +154,7 @@
     }
     if (document.body.classList.contains("reimport-review-active")) reasons.push("请完成下方的课表更新核对。");
     if (!$('fileTimeReview').hidden && !timeChoice) reasons.push("请选择保留已有上课时间，或使用本次预览时间。");
-    if (timeEditor && !$("fileTimeEditor").hidden) try { timeEditor.read(); } catch (_) { reasons.push("请检查上课时间设置。"); }
+    if (pending && timeEditor) try { const selected=currentTimeSelection(); AnyClassImportPeriodTimes.validateSequence(selected.periodTimes,Math.max(AnyClassScheduleTimes.maxPeriod(pending.meetings),...Object.keys(selected.periodTimes).map(Number))); } catch (error) { reasons.push(`请检查上课时间设置：${error.message}`); }
     return {canSubmit:reasons.length===0,reasons};
   };
   const clearRedirect = () => {
@@ -248,7 +248,8 @@
   const updateTimeReview = times => {
     const term=targetBundle?.term;
     const sameTerm=term&&pending&&term.academicYear===pending.semester.academicYear&&String(term.termCode)===String(pending.semester.term);
-    const different=Boolean(sameTerm&&!defaultOnly(currentTimeSelection().periodTimeSources)&&!AnyClassImportPeriodTimes.sameTimes(term.periodTimes,times));
+    const customized=Boolean(sameTerm&&(Object.values(term.periodTimeSources||{}).some(source=>source==="USER_EDITED")||!AnyClassDefaultPeriodTimes.isDefault(term.periodTimes)));
+    const different=Boolean(sameTerm&&(customized||!defaultOnly(currentTimeSelection().periodTimeSources))&&!AnyClassImportPeriodTimes.sameTimes(term.periodTimes,times));
     const signature=different?`${importTarget?.id}|${periodTimeSignature(term.periodTimes)}|${periodTimeSignature(times)}`:null;
     if(signature!==reviewedTimeSignature){timeChoice=null;for(const radio of document.querySelectorAll('input[name="fileTimeChoice"]'))radio.checked=false;reviewedTimeSignature=signature;}
     $("fileTimeReview").hidden=!different;
@@ -774,7 +775,8 @@
       const reviewedNameRevision=nameRevision;
       const freshBundle=chosenTargetId?await AnyClassTimetableRepository.readTimetableBundle(chosenTargetId,storageFactory):null;
       const freshTerm=freshBundle?.term;
-      if(freshTerm&&freshTerm.academicYear===pending.semester.academicYear&&String(freshTerm.termCode)===String(pending.semester.term)&&!defaultOnly(calendarContext?.periodTimeSources)&&!AnyClassImportPeriodTimes.sameTimes(freshTerm.periodTimes,calendarContext?.periodTimes)&&!timeChoice){targetBundle=freshBundle;updateTimingStatus();setState(STATES.VALIDATION_REQUIRED);setSubmitMessage("已有课表的上课时间与本次预览不同，请先选择保留或替换。","error");return;}
+      const freshCustomized=Boolean(freshTerm&&(Object.values(freshTerm.periodTimeSources||{}).some(source=>source==="USER_EDITED")||!AnyClassDefaultPeriodTimes.isDefault(freshTerm.periodTimes)));
+      if(freshTerm&&freshTerm.academicYear===pending.semester.academicYear&&String(freshTerm.termCode)===String(pending.semester.term)&&(freshCustomized||!defaultOnly(calendarContext?.periodTimeSources))&&!AnyClassImportPeriodTimes.sameTimes(freshTerm.periodTimes,calendarContext?.periodTimes)&&!timeChoice){targetBundle=freshBundle;updateTimingStatus();setState(STATES.VALIDATION_REQUIRED);setSubmitMessage("已有课表的上课时间与本次预览不同，请先选择保留或替换。","error");return;}
       if(reviewedTimeSignature){
         const expected=`${chosenTargetId}|${periodTimeSignature(freshBundle?.term?.periodTimes)}|${periodTimeSignature(calendarContext?.periodTimes)}`;
         if(expected!==reviewedTimeSignature){targetBundle=freshBundle;updateTimingStatus();setState(STATES.VALIDATION_REQUIRED);setSubmitMessage("已有课表的上课时间发生变化，请重新核对并选择。","error");return;}

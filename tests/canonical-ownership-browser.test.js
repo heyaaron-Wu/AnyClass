@@ -29,16 +29,17 @@ const app=path.resolve(process.env.ANYCLASS_TEST_APP_ROOT||path.join(__dirname,'
    const other=await r.createTimetable({label:'Other workspace',schoolName:'Other school'},f);
    await file.putDataset(make(null,'Other course'),f,{targetTimetableId:other.timetableId});
    await r.setActiveTimetable(id,f);const before=await snapshot(),checks=[];
-   const rejected=async(d,hooks,code)=>{let error;try{await file.putDataset(d,f,{targetTimetableId:id,...hooks})}catch(e){error=e.message}if(![code,...(code==='IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED'?['ROUTE_TERM_CONFLICT']:[])].includes(error))throw Error('WRONG_REJECTION:'+error);if(JSON.stringify(await snapshot())!==JSON.stringify(before))throw Error('NON_ATOMIC_REJECTION');checks.push(error)};
+   const rejected=async(d,hooks,code)=>{let error;try{await file.putDataset(d,f,{targetTimetableId:id,periodTimesChoice:'PRESERVE',...hooks})}catch(e){error=e.message}if(![code,...(code==='IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED'?['ROUTE_TERM_CONFLICT']:[])].includes(error))throw Error('WRONG_REJECTION:'+error);if(JSON.stringify(await snapshot())!==JSON.stringify(before))throw Error('NON_ATOMIC_REJECTION');checks.push(error)};
    await rejected(make(schoolId===null?'school-demo':null),{},'IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED');
    await rejected(make('another-synthetic-school'),{},'IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED');
    // Changing transport without changing canonical source identity is legitimate.
    const update=make(schoolId,'Synthetic A','Updated teacher');
+   await rejected(update,{periodTimesChoice:undefined},'IMPORT_PERIOD_TIMES_REVIEW_REQUIRED');
    const corrupt=kind=>({beforeCommit:({transaction,graph})=>{const store=transaction.objectStore('courses');const q=store.index('timetableId').getAll(id);q.onsuccess=()=>{const row=q.result.find(x=>x.sourceType!=='manual'&&x.suppressed!==true);store.put({...row,...(kind==='meeting'?{sourceMeetingId:'missing-meeting'}:{sourceSnapshotId:'missing-snapshot'})})}}});
    await rejected(update,corrupt('meeting'),'TIMETABLE_COURSE_OWNER_CONFLICT');
    await rejected(update,corrupt('snapshot'),'TIMETABLE_COURSE_OWNER_CONFLICT');
    await rejected(update,{beforeCommit:()=>{throw Error('SYNTHETIC_INTERRUPTION')}},'SYNTHETIC_INTERRUPTION');
-   await file.putDataset(update,f,{targetTimetableId:id});
+   await file.putDataset(update,f,{targetTimetableId:id,periodTimesChoice:'PRESERVE'});
    const after=await r.readTimetableBundle(id,f),all=await snapshot();
    if(after.model.courseOverrides[0].fields.title!=='User title'||after.model.occurrenceOverrides[0].fields.cancelled!==true||!after.model.courses.some(c=>c.sourceType==='manual')||after.term.periodTimes[1].start!=='07:30')throw Error('USER_EDITS_LOST');
    const otherBefore=before.courses.filter(c=>c.timetableId===other.timetableId),otherAfter=all.courses.filter(c=>c.timetableId===other.timetableId);if(JSON.stringify(otherBefore)!==JSON.stringify(otherAfter))throw Error('OTHER_WORKSPACE_CHANGED');
@@ -46,7 +47,7 @@ const app=path.resolve(process.env.ANYCLASS_TEST_APP_ROOT||path.join(__dirname,'
    if(split&&(await r.listTimetables()).length!==0)throw Error('WRONG_FACTORY_WRITTEN');
    return {schoolId,split,checks,userEdits:true,manual:true,customTimes:true,otherWorkspace:true,activeUnchanged:true,canonicalReadable:true,factoryIsolation:true};
   },{schoolId,split,baseline});
-  if(baseline){assert.equal(result.error,'TIMETABLE_COURSE_OWNER_CONFLICT');assert(result.committed&&result.oldCourseRetained&&result.oldMeetingRemoved);assertions+=4}else{assert.equal(result.checks.length,5);assert(result.canonicalReadable&&result.userEdits&&result.manual&&result.customTimes&&result.otherWorkspace&&result.activeUnchanged&&result.factoryIsolation);assertions+=12}records.push(result);await context.close();
+  if(baseline){assert.equal(result.error,'TIMETABLE_COURSE_OWNER_CONFLICT');assert(result.committed&&result.oldCourseRetained&&result.oldMeetingRemoved);assertions+=4}else{assert.equal(result.checks.length,6);assert(result.canonicalReadable&&result.userEdits&&result.manual&&result.customTimes&&result.otherWorkspace&&result.activeUnchanged&&result.factoryIsolation);assertions+=13}records.push(result);await context.close();
  }
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({assertions,records},null,2));console.log(JSON.stringify({result:baseline?'FROZEN_BETA5_OWNERSHIP_FAILURE_REPRODUCED':'CANONICAL_OWNERSHIP_ATOMICITY_PASS',assertions,records,evidence:out}));
  }finally{await browser.close()}
