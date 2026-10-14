@@ -35,9 +35,11 @@
     "test:beta-candidate-packaging": "node tests/beta-candidate-packaging.test.js",
     "generate:shortcut-install-page": "node tools/render-shortcut-install-page.js",
     "test:dec059:option-a": "node tests/dec059-option-a-distribution.test.js && node tests/dec059-option-a-browser.test.js",
+    "test:shortcut-entry-hotfix": "node tests/shortcut-entry-integration-browser.test.js && node tests/import-client-channels.test.js && node tests/bookmark-channel-page-browser.test.js",
     "build:dec059:option-a": "node tools/build-dec059-option-a-candidate.js",
     "build:v022:final-distribution": "node tools/build-v022-final-distribution-candidate.js",
-    "build:v022:production-distribution": "node tools/build-v022-production-distribution.js"
+    "build:v022:production-distribution": "node tools/build-v022-production-distribution.js",
+    "build:v022:shortcut-entry-hotfix": "node tools/build-v022-shortcut-entry-hotfix.js"
   },
   "engines": {
     "node": ">=20"

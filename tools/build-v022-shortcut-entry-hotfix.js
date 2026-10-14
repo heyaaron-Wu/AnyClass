@@ -1,0 +1,72 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib'),cp=require('node:child_process');
+const renderer=require('./render-shortcut-install-page.js');
+const root=path.resolve(__dirname,'..'),destination=path.resolve(process.argv[2]||''),build=process.argv[3],previous=path.resolve(process.argv[4]||'');
+const PREVIOUS_BUILD='v022-production-20261014-182137';
+const PREVIOUS_PACKAGE_SHA='02f47b9e0b9668c5892d0e49f9def05599eceb1a678ff3dfed9bbf1efea6c0ed';
+const PREVIOUS_MANIFEST_SHA='1e53a03ae152915ef35c48dca483863cd3d52ab8b779434f7455bc4634acbf3b';
+const INSTALL_URL='https://anyclass.heyaaron.asia/shortcuts/install';
+const OFFICIAL_ICLOUD='https://www.icloud.com/shortcuts/89145db4f66e409fbaa5fd3e5257b124';
+const LEGACY_ICLOUD='https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37';
+if(!process.argv[2]||!/^v022-production-\d{8}-\d{6}$/.test(build||'')||!process.argv[4])throw Error('EXPLICIT_DESTINATION_BUILD_AND_PREVIOUS_ARTIFACT_REQUIRED');
+if(destination===root||destination.startsWith(root+path.sep)||fs.existsSync(destination))throw Error('NEW_EXTERNAL_DESTINATION_REQUIRED');
+if(!fs.statSync(previous).isDirectory())throw Error('PREVIOUS_ARTIFACT_DIRECTORY_REQUIRED');
+const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
+const list=(dir,prefix='')=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{if(entry.isSymbolicLink())throw Error('SYMLINK_REJECTED');return entry.isDirectory()?list(path.join(dir,entry.name),path.posix.join(prefix,entry.name)):[path.posix.join(prefix,entry.name)]}).sort();
+if(sha(fs.readFileSync(path.join(previous,'release.tar.gz')))!==PREVIOUS_PACKAGE_SHA)throw Error('PREVIOUS_PACKAGE_DRIFT');
+if(sha(fs.readFileSync(path.join(previous,'manifest.json')))!==PREVIOUS_MANIFEST_SHA)throw Error('PREVIOUS_MANIFEST_DRIFT');
+const previousManifest=JSON.parse(fs.readFileSync(path.join(previous,'manifest.json'),'utf8')),previousApp=path.join(previous,'app');
+if(previousManifest.productVersion!=='0.2.2'||previousManifest.candidateReleaseId!==PREVIOUS_BUILD||previousManifest.releaseMode!=='production'||previousManifest.channel!=='stable'||previousManifest.databaseVersion!==4||previousManifest.applicationFileCount!==98)throw Error('PREVIOUS_IDENTITY_DRIFT');
+const previousInventory=list(previousApp);
+if(JSON.stringify(previousInventory)!==JSON.stringify(Object.keys(previousManifest.files).sort()))throw Error('PREVIOUS_INVENTORY_DRIFT');
+for(const rel of previousInventory)if(sha(fs.readFileSync(path.join(previousApp,rel)))!==previousManifest.files[rel])throw Error(`PREVIOUS_FILE_HASH_DRIFT:${rel}`);
+
+const source=path.join(root,'app'),metadata=require(path.join(source,'assets/timetable/release-metadata.js'));
+if(require(path.join(root,'package.json')).version!=='0.2.2'||metadata.productVersion!=='0.2.2'||metadata.releaseId!=='v0.2.2'||metadata.releaseMode!=='source-release')throw Error('SOURCE_IDENTITY_DRIFT');
+const commit=cp.execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
+if(cp.execFileSync('git',['-C',root,'status','--porcelain'],{encoding:'utf8'}).trim())throw Error('CLEAN_SOURCE_REQUIRED');
+const contract=renderer.validateContract(JSON.parse(fs.readFileSync(path.join(root,'release/shortcut-install-contract.json'),'utf8')));
+if(contract.installLandingUrl!==INSTALL_URL||contract.icloudUrl!==OFFICIAL_ICLOUD)throw Error('SHORTCUT_DISTRIBUTION_CONTRACT_DRIFT');
+const installHtml=fs.readFileSync(path.join(source,'shortcuts/install/index.html'),'utf8');
+if(installHtml!==renderer.render(contract))throw Error('INSTALL_PAGE_RENDER_DRIFT');
+const updateManifest=JSON.parse(fs.readFileSync(path.join(source,'shortcuts/manifest.json'),'utf8'));
+if(updateManifest.shortcutId!==contract.shortcutId||updateManifest.latestVersion!==contract.shortcutVersion||updateManifest.latestBuild!==contract.shortcutBuild||updateManifest.minSupportedBuild!==1)throw Error('UPDATE_MANIFEST_IDENTITY_DRIFT');
+if(updateManifest.enabled!==false||updateManifest.testOnly!==false||updateManifest.reviewed!==false||updateManifest.updateUrl!==null||updateManifest.publishedAt!==null)throw Error('UPDATE_MANIFEST_MUST_REMAIN_DISABLED');
+const sourceImport=fs.readFileSync(path.join(source,'import/index.html'),'utf8'),sourceExport=fs.readFileSync(path.join(source,'export/index.html'),'utf8');
+if(!sourceImport.includes(INSTALL_URL)||sourceImport.includes(LEGACY_ICLOUD)||!sourceImport.includes('AnyClass·课程导入')||!sourceImport.includes('1.0.0 / Build 1'))throw Error('MOBILE_SHORTCUT_ENTRY_DRIFT');
+if(!sourceExport.includes(LEGACY_ICLOUD)||!sourceExport.includes('旧版兼容快捷指令（已有用户）'))throw Error('LEGACY_EXPORT_COMPATIBILITY_DRIFT');
+
+fs.mkdirSync(destination,{recursive:true});const app=path.join(destination,'app');fs.cpSync(source,app,{recursive:true,errorOnExist:true});
+const pages=['index.html','about/index.html','compatibility/index.html','export/index.html','import/index.html','local-status/index.html','settings/index.html','timetable/index.html','today/index.html','shortcuts/install/index.html','shortcuts/preflight/index.html'];
+for(const rel of pages){const file=path.join(app,rel),input=fs.readFileSync(file,'utf8'),needle='<meta name="anyclass-release" content="v0.2.2">';if(input.split(needle).length!==2)throw Error(`HTML_IDENTITY_DRIFT:${rel}`);fs.writeFileSync(file,input.replace(needle,`<meta name="anyclass-release" content="${build}">`));}
+const meta=path.join(app,'assets/timetable/release-metadata.js'),metaInput=fs.readFileSync(meta,'utf8'),metaNeedle='releaseId:"v0.2.2",releaseMode:"source-release"';
+if(metaInput.split(metaNeedle).length!==2)throw Error('RUNTIME_IDENTITY_DRIFT');
+fs.writeFileSync(meta,metaInput.replace(metaNeedle,`releaseId:"${build}",releaseMode:"production"`));
+const channel=path.join(app,'assets/timetable/import-client-channels.js'),channelInput=fs.readFileSync(channel,'utf8');
+const betaStart=channelInput.indexOf('    beta:Object.freeze({'),stableStart=channelInput.indexOf('    stable:Object.freeze({');if(betaStart<0||stableStart<=betaStart)throw Error('CHANNEL_SOURCE_DRIFT');
+const guard='    for(const candidate of Object.values(CHANNELS))if(candidate.id!==channel.id&&result.includes(`TARGET_ORIGIN="${candidate.bookmarkTargetOrigin}"`))throw Error("BOOKMARK_CROSS_CHANNEL_TARGET");';
+if(channelInput.split(guard).length!==2)throw Error('CHANNEL_GUARD_SOURCE_DRIFT');
+fs.writeFileSync(channel,(channelInput.slice(0,betaStart)+channelInput.slice(stableStart)).replace(guard,''));
+delete require.cache[require.resolve(channel)];const channelApi=require(channel),stableChannel=channelApi.CHANNELS.stable;
+if(Object.keys(channelApi.CHANNELS).join(',')!=='stable'||stableChannel.shortcutInstallUrl!==INSTALL_URL||stableChannel.shortcutICloudUrl!==LEGACY_ICLOUD)throw Error('STABLE_SHORTCUT_CHANNEL_DRIFT');
+
+const inventory=list(app),files=Object.fromEntries(inventory.map(rel=>[rel,sha(fs.readFileSync(path.join(app,rel)))]));
+if(inventory.length!==98||JSON.stringify(inventory)!==JSON.stringify(previousInventory)||inventory.length!==list(source).length)throw Error('INVENTORY_CHANGED');
+if(!fs.readFileSync(path.join(app,'assets/timetable/storage-v2.js'),'utf8').includes('DB_VERSION = 4'))throw Error('SCHEMA_DRIFT');
+const expectedChanged=[...pages,'assets/timetable/release-metadata.js','assets/timetable/import-client-channels.js'].sort(),changed=[],unchanged=[];
+for(const rel of inventory)(files[rel]===previousManifest.files[rel]?unchanged:changed).push(rel);
+if(JSON.stringify(changed.sort())!==JSON.stringify(expectedChanged))throw Error(`UNEXPECTED_HOTFIX_DELTA:${JSON.stringify(changed)}`);
+if(unchanged.length!==85)throw Error('UNAFFECTED_FILE_EQUIVALENCE_DRIFT');
+const runtime=require(meta);if(runtime.productVersion!=='0.2.2'||runtime.releaseId!==build||runtime.releaseMode!=='production')throw Error('FINAL_RUNTIME_IDENTITY_DRIFT');
+
+const manifest={schemaVersion:1,productVersion:'0.2.2',candidateReleaseId:build,releaseMode:'production',channel:'stable',sourceCommit:commit,sourceBaseCommit:'ad35f306ab0c803fa4d12f1052d8898e1dac8b43',databaseVersion:4,applicationFileCount:inventory.length,published:false,deployed:false,hotfix:{classification:'SHORTCUT_ENTRY_INTEGRATION',previousReleaseId:PREVIOUS_BUILD,previousPackageSHA256:PREVIOUS_PACKAGE_SHA,previousManifestSHA256:PREVIOUS_MANIFEST_SHA,changedApplicationFiles:changed,unaffectedApplicationFilesExact:unchanged.length},shortcutDistribution:{shortcutId:contract.shortcutId,shortcutName:contract.shortcutName,shortcutVersion:contract.shortcutVersion,shortcutBuild:contract.shortcutBuild,installLandingUrl:contract.installLandingUrl,icloudUrl:contract.icloudUrl,icloudRecordId:contract.icloudRecordId,approvedSignedArtifactSha256:contract.approvedSignedArtifactSha256,sharedPayloadSha256:contract.sharedPayloadSha256,sharedSigningStatus:contract.sharedSigningStatus,sharedActionCount:contract.sharedActionCount,semanticGraphDifferences:contract.semanticGraphDifferences,manifestEnabled:false,manifestUpdateUrl:null,landingPagePublished:true},files};
+fs.writeFileSync(path.join(destination,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+fs.writeFileSync(path.join(destination,'hotfix-delta.json'),JSON.stringify({result:'SHORTCUT_ENTRY_HOTFIX_DELTA_PASS',from:PREVIOUS_BUILD,to:build,changedFiles:changed,changedCount:changed.length,unaffectedFilesExact:unchanged.length,unexpectedChanges:[]},null,2)+'\n');
+function archive(){const blocks=[];for(const rel of inventory){const body=fs.readFileSync(path.join(app,rel)),header=Buffer.alloc(512);if(Buffer.byteLength(rel)>100)throw Error('TAR_NAME_TOO_LONG');header.write(rel,0,100,'utf8');const oct=(n,width)=>n.toString(8).padStart(width-1,'0')+'\0';header.write(oct(420,8),100);header.write(oct(0,8),108);header.write(oct(0,8),116);header.write(oct(body.length,12),124);header.write(oct(0,12),136);header.fill(32,148,156);header.write('0',156);header.write('ustar\0',257);header.write('00',263);header.write([...header].reduce((sum,byte)=>sum+byte,0).toString(8).padStart(6,'0')+'\0 ',148);blocks.push(header,body,Buffer.alloc((512-body.length%512)%512));}blocks.push(Buffer.alloc(1024));return zlib.gzipSync(Buffer.concat(blocks),{level:9});}
+const first=archive(),second=archive();if(!first.equals(second))throw Error('NONDETERMINISTIC_PACKAGE');fs.writeFileSync(path.join(destination,'release.tar.gz'),first);
+const manifestHash=sha(fs.readFileSync(path.join(destination,'manifest.json'))),packageHash=sha(first);
+fs.writeFileSync(path.join(destination,'sha256.txt'),`${packageHash}  release.tar.gz\n${manifestHash}  manifest.json\n`);
+fs.writeFileSync(path.join(destination,'release-notes.txt'),`AnyClass v0.2.2 local Production Shortcut-entry integration hotfix candidate\nBuild: ${build}\nRelease mode: production\nSource base: ${PREVIOUS_BUILD}\nPrimary mobile/iPad installation entry: ${INSTALL_URL}\nOfficial Shortcut: ${contract.shortcutName} ${contract.shortcutVersion} / Build ${contract.shortcutBuild}\nOfficial iCloud record: ${contract.icloudUrl}\nLegacy compatibility: retained only as an explicitly labelled export fallback\nUpdate Manifest: disabled; no Build 2 exists\nDeployment: not authorized\n`);
+fs.writeFileSync(path.join(destination,'rollback.txt'),`No live state was changed. For a separately authorized deployment, retain ${PREVIOUS_BUILD} as the rollback release, stage this immutable package in a new release directory, verify every file before atomic activation, and restore the previous pointer on any integrity, navigation, header, privacy or runtime failure.\n`);
+fs.writeFileSync(path.join(destination,'deployment-plan.txt'),`SEPARATE AUTHORIZATION REQUIRED. Stage without overwriting ${PREVIOUS_BUILD}; verify package/manifest and all 98 files; atomically switch the Production pointer; verify the mobile/iPad entry opens ${INSTALL_URL}, that the landing page requires an explicit click to ${OFFICIAL_ICLOUD}, that the legacy export fallback is clearly labelled, and that Beta remains unchanged. Roll back immediately on any failed gate.\n`);
+console.log(JSON.stringify({result:'LOCAL_V022_SHORTCUT_ENTRY_HOTFIX_BUILT_NOT_DEPLOYED',build,sourceCommit:commit,files:inventory.length,changedApplicationFiles:changed,unaffectedApplicationFilesExact:unchanged.length,packageSHA256:packageHash,manifestSHA256:manifestHash,deterministic:true,releaseMode:'production',databaseVersion:4,manifestEnabled:false,published:false,deployed:false}));

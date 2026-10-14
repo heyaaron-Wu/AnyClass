@@ -15,7 +15,7 @@ const serveApp=async route=>{
   return route.fulfill({status:200,contentType:type,body:fs.readFileSync(file)});
 };
 const targetOf=text=>text.match(/const\s+TARGET_ORIGIN\s*=\s*"([^"]+)"/)?.[1]||null,channelOf=text=>text.match(/channel\s*:\s*"([^"]+)"/)?.[1]||null;
-const shortcutUrl={beta:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9",stable:"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37"};
+const shortcutUrl={beta:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9",stable:"https://anyclass.heyaaron.asia/shortcuts/install"},legacyStable="https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37";
 (async()=>{
   const browser=await chromium.launch({headless:true,executablePath,args:["--disable-background-networking"]}),context=await browser.newContext({serviceWorkers:"block"});
   let betaRequests=0,stableRequests=0;
@@ -30,7 +30,7 @@ const shortcutUrl={beta:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef38
       assert.equal(await page.locator("#addImportShortcut").getAttribute("href"),shortcutUrl[item.channel]);
       assert.equal((await page.locator("#importShortcutTarget").innerText()).trim(),item.origin+"/import/?method=file");
       await page.goto(item.origin+`/export/?channelAudit=${Date.now()}`);
-      assert.equal(await page.locator("#exportImportShortcut").getAttribute("href"),shortcutUrl[item.channel]);
+      assert.equal(await page.locator("#exportImportShortcut").getAttribute("href"),item.channel==="stable"?legacyStable:shortcutUrl.beta);if(item.channel==="stable")assert.match(await page.locator("#exportImportShortcut").innerText(),/旧版兼容/);
       results[item.channel]={target:targetOf(text),channel:channelOf(text),status:"渠道与快捷指令目标正确",shortcutUrl:shortcutUrl[item.channel]};await page.close();
     }
     results.visualMatrix=[];

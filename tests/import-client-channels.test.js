@@ -5,6 +5,7 @@ const run=cp.spawnSync(process.execPath,[path.join(root,"tools/build-import-clie
 const read=channel=>JSON.parse(fs.readFileSync(path.join(out,channel,"manifest.json"),"utf8")),beta=read("beta"),stable=read("stable");
 assert.equal(beta.bookmark.targetOrigin,"https://beta.anyclass.heyaaron.asia");assert.equal(stable.bookmark.targetOrigin,"https://anyclass.heyaaron.asia");
 assert.equal(beta.shortcut.targetImportUrl,"https://beta.anyclass.heyaaron.asia/import/?method=file");assert.equal(stable.shortcut.targetImportUrl,"https://anyclass.heyaaron.asia/import/?method=file");
+assert.equal(beta.shortcut.installUrl,"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9");assert.equal(stable.shortcut.installUrl,"https://anyclass.heyaaron.asia/shortcuts/install");
 assert.equal(beta.shortcut.iCloudUrl,"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9");assert.equal(stable.shortcut.iCloudUrl,"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37");
 assert.equal(beta.channel,"beta");assert.equal(stable.channel,"stable");assert.equal(beta.importProtocol,"timetable-import-v1");assert.equal(beta.storageSchema,4);assert.equal(beta.normalizedImportSchema,1);
 const bb=fs.readFileSync(path.join(out,"beta/bookmarklet.txt"),"utf8"),sb=fs.readFileSync(path.join(out,"stable/bookmarklet.txt"),"utf8");

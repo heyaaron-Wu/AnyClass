@@ -167,7 +167,7 @@
   <p class="muted">课程数据只在当前设备处理和保存。</p>
   <div class="shell-choice-grid">
     <button id="chooseComputer" class="shell-choice import-method-button" type="button" data-import-method="desktop" aria-expanded="false" aria-controls="computer-import"><strong>电脑导入</strong><span>从电脑上的个人课表导入。</span></button>
-    <button id="chooseMobile" class="shell-choice import-method-button" type="button" data-import-method="mobile" aria-expanded="false" aria-controls="mobile-import"><strong>手机 / iPad 导入</strong><span>通过 Safari 分享菜单导入。</span></button>
+    <button id="chooseMobile" class="shell-choice import-method-button" type="button" data-import-method="mobile" aria-expanded="false" aria-controls="mobile-import"><strong>手机 / iPad 导入</strong><span>安装或使用通用快捷指令。</span></button>
     <button id="chooseFile" class="shell-choice import-method-button" type="button" data-import-method="file" aria-expanded="false" aria-controls="file-import"><strong>已有课程文件</strong><span>选择之前生成的课表文件。</span></button>
     <button id="chooseClipboard" class="shell-choice import-method-button" type="button" data-import-method="clipboard" aria-expanded="false" aria-controls="clipboard-import"><strong>JSON / AI 辅助导入</strong><span>粘贴 JSON，或用 AI 从截图生成 JSON 后预览保存。</span></button>
   </div>
@@ -190,15 +190,16 @@
 </section>
 <section id="mobile-import" class="card import-panel" data-import-panel="mobile" hidden>
   <h2>手机 / iPad 导入</h2>
-  <p class="muted">添加一次快捷指令，以后即可从 Safari 分享菜单导入课表。</p>
+  <p id="mobileShortcutIntro" class="muted">使用 AnyClass·课程导入（通用快捷指令）1.0.0 / Build 1，从 Safari 分享菜单导入课表。</p>
   <ol class="mobile-steps">
-    <li>添加现有兼容的课表导入快捷指令。</li>
+    <li id="mobileShortcutInstallStep">通过 AnyClass 官方安装页添加当前通用快捷指令。</li>
     <li>在 Safari 登录学校教务系统。</li>
     <li>打开个人课表并点击分享。</li>
     <li>在分享菜单中运行课表导入快捷指令。</li>
     <li>在打开的 AnyClass 页面选择生成的课表文件。</li>
   </ol>
-  <div class="actions"><a id="addImportShortcut" class="button primary" href="https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37" target="_blank" rel="noopener">添加课表导入快捷指令</a><button class="secondary" type="button" data-import-method="file">已有文件，直接导入</button></div>
+  <div class="actions"><a id="addImportShortcut" class="button primary" href="https://anyclass.heyaaron.asia/shortcuts/install" target="_blank" rel="noopener">安装 AnyClass·课程导入</a><button class="secondary" type="button" data-import-method="file">已有文件，直接导入</button></div>
+  <p id="mobileShortcutRelease" class="note"><strong>当前通用版本：</strong>1.0.0 / Build 1。旧版快捷指令仍可按原流程使用，但不是本入口提供的当前版本。</p>
   <p class="note"><strong>快捷指令目标：</strong><span id="importShortcutTarget" class="code">https://anyclass.heyaaron.asia/import/?method=file</span></p>
   <p class="privacy"><strong>隐私保护：</strong>课程数据只在当前设备处理，不会上传服务器。</p>
   <p class="muted">Safari 出于安全限制仍会要求手动选择一次生成的文件，这是预期行为。</p>
@@ -336,7 +337,7 @@ addEventListener("anyclass:bookmark-saved",()=>notifyParent("IMPORT_SAVED"));
 addEventListener("anyclass:bookmark-navigation",event=>notifyParent("NAVIGATION_RESULT",{status:event.detail?.status,mode:event.detail?.mode}));
 addEventListener("keydown",event=>{if(event.key==="Escape"&&authenticatedParentOrigin){event.preventDefault();notifyParent("CLOSE_REQUEST")}});
 addEventListener("message",event=>{const p=event.data;if(event.source===window.parent&&p?.protocol===PROTOCOL&&p.type==="HTML_IMPORT"&&p.nonce===nonce&&p.source?.origin===event.origin&&profileRegistry.matchOrigin(event.origin,p.source?.system).length===1&&p.client?.id===BOOKMARKLET_ID&&p.client?.version===BOOKMARKLET_VERSION)authenticatedParentOrigin=event.origin});
-const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})();$("addImportShortcut").href=importChannel.shortcutICloudUrl;$("addImportShortcut").setAttribute("aria-label",`添加${importChannel.shortcutDisplayName}`);$("importShortcutTarget").textContent=importChannel.shortcutTargetImportUrl;
+const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})(),stableShortcut=importChannel.id==="stable";$("addImportShortcut").href=importChannel.shortcutInstallUrl;$("addImportShortcut").textContent=stableShortcut?"安装 AnyClass·课程导入":`添加${importChannel.shortcutDisplayName}`;$("addImportShortcut").setAttribute("aria-label",stableShortcut?"前往 AnyClass 官方安装页安装 AnyClass·课程导入":`添加${importChannel.shortcutDisplayName}`);$("mobileShortcutIntro").textContent=stableShortcut?"使用 AnyClass·课程导入（通用快捷指令）1.0.0 / Build 1，从 Safari 分享菜单导入课表。":"添加一次 Beta 快捷指令，以后即可从 Safari 分享菜单导入课表。";$("mobileShortcutInstallStep").textContent=stableShortcut?"通过 AnyClass 官方安装页添加当前通用快捷指令。":"添加 Beta 测试快捷指令。";$("mobileShortcutRelease").innerHTML=stableShortcut?"<strong>当前通用版本：</strong>1.0.0 / Build 1。旧版快捷指令仍可按原流程使用，但不是本入口提供的当前版本。":"<strong>测试通道：</strong>Beta 快捷指令与正式版入口及数据保持隔离。";$("importShortcutTarget").textContent=importChannel.shortcutTargetImportUrl;
 const methodNames=new Set(["desktop","mobile","file","clipboard"]);
 const methodButtons=()=>[...document.querySelectorAll("[data-import-method]")];
 const activateMethod=(method,{updateUrl=true,reveal=false}={})=>{const selected=methodNames.has(method)?method:null;for(const panel of document.querySelectorAll("[data-import-panel]")){const shared=panel.dataset.importPanel==="shared-preview"&&((selected==="file"||selected==="clipboard")||(selected==="desktop"&&bookmarkActive)),wasHidden=panel.hidden;panel.hidden=panel.dataset.importPanel!==selected&&!shared;if(reveal&&wasHidden&&!panel.hidden)AnyClassMotion?.reveal?.(panel)}for(const button of methodButtons()){const active=button.dataset.importMethod===selected;button.classList.toggle("method-active",active);if(button.hasAttribute("aria-controls"))button.setAttribute("aria-expanded",String(active))}if(updateUrl){const url=new URL(location.href);if(selected)url.searchParams.set("method",selected);else url.searchParams.delete("method");history.replaceState({method:selected},"",url)}};

@@ -47,8 +47,8 @@
       <details class="shell-disclosure">
       <summary>无法直接导入？</summary>
       <div class="shell-disclosure-content">
-        <p>如果浏览器没有正常打开日历导入界面，可以使用快捷指令或从“文件”App 手动导入。</p>
-        <div class="shell-secondary-actions"><a id="exportImportShortcut" href="https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37" target="_blank" rel="noopener">使用快捷指令导入</a></div>
+        <p>如果浏览器没有正常打开日历导入界面，可从“文件”App 手动导入。已使用旧版兼容快捷指令的用户仍可按原流程继续。</p>
+        <div class="shell-secondary-actions"><a id="exportImportShortcut" href="https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37" target="_blank" rel="noopener">旧版兼容快捷指令（已有用户）</a></div>
         <h3>其他方式</h3>
         <p>从“文件”App 打开已下载的 .ics 文件。</p>
       </div>
@@ -73,7 +73,7 @@
 <script>
 (() => {"use strict";
 const $=id=>document.getElementById(id);let prepared=null;
-const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})();$("exportImportShortcut").href=importChannel.shortcutICloudUrl;$("exportImportShortcut").setAttribute("aria-label",`添加${importChannel.shortcutDisplayName}`);
+const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})();$("exportImportShortcut").href=importChannel.shortcutICloudUrl;$("exportImportShortcut").setAttribute("aria-label",importChannel.id==="stable"?"打开旧版兼容快捷指令（已有用户）":`添加${importChannel.shortcutDisplayName}`);
 const fail=(message,missingTimes=false)=>{const loading=$("loading");loading.hidden=false;loading.replaceChildren();const title=document.createElement("h1");title.textContent=message;const hint=document.createElement("p");hint.className="muted";hint.textContent=missingTimes?"补全所需节次时间后即可导出。":"可导入课程，或新建空课表。";const link=document.createElement("a");link.className="button primary";link.href=missingTimes?"/settings/timetable/":"/import/";link.textContent=missingTimes?"前往课表设置":"导入课表";loading.append(title,hint,link);if(!missingTimes){const create=document.createElement("a");create.className="button";create.href="/settings/timetables/";create.textContent="新建课表";loading.append(document.createTextNode(" "),create)}$("app").hidden=true};
 const generate=async value=>{
   if(!value?.__effectiveOccurrences?.length)throw Error("ACTIVE_TIMETABLE_EMPTY");

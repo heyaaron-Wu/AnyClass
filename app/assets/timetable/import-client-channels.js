@@ -11,6 +11,7 @@
       bookmarkDisplayName:"AnyClass 导入课表 Beta",
       bookmarkTargetOrigin:"https://beta.anyclass.heyaaron.asia",
       shortcutDisplayName:"AnyClass 导入课程 Beta",
+      shortcutInstallUrl:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9",
       shortcutICloudUrl:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9",
       shortcutTargetImportUrl:"https://beta.anyclass.heyaaron.asia/import/?method=file"
     }),
@@ -19,7 +20,8 @@
       pageOrigin:"https://anyclass.heyaaron.asia",
       bookmarkDisplayName:"AnyClass 导入课表",
       bookmarkTargetOrigin:"https://anyclass.heyaaron.asia",
-      shortcutDisplayName:"AnyClass 导入课程",
+      shortcutDisplayName:"AnyClass·课程导入",
+      shortcutInstallUrl:"https://anyclass.heyaaron.asia/shortcuts/install",
       shortcutICloudUrl:"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37",
       shortcutTargetImportUrl:"https://anyclass.heyaaron.asia/import/?method=file"
     })
