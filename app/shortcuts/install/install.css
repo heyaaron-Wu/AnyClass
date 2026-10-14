@@ -1,32 +1,39 @@
 :root {
   color-scheme: light dark;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: #f7f4ee;
-  color: #18202a;
+  background: #f3f0e8;
+  color: #172338;
 }
 * { box-sizing: border-box; }
-body { margin: 0; min-height: 100svh; }
+body { margin: 0; min-height: 100svh; background:radial-gradient(circle at 10% 0%,rgba(37,99,235,.12),transparent 28rem),linear-gradient(180deg,#f8f5ef 0,#f3f0e8 44%,#eee9df 100%); }
 .install-shell {
   min-height: 100svh;
-  display: grid;
-  place-items: center;
-  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  width:min(100%,880px);
+  margin:0 auto;
+  padding:max(28px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(36px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
 }
-.install-card {
-  width: min(100%, 560px);
-  padding: clamp(28px, 6vw, 48px);
+.install-hero,.history-card,.install-footer {
+  width:100%;
   border: 1px solid #d9d4ca;
   border-radius: 24px;
   background: #fffdf8;
   box-shadow: 0 18px 48px rgba(40, 43, 48, .10);
 }
-.eyebrow { margin: 0 0 10px; color: #4e5f73; font-size: .875rem; font-weight: 700; letter-spacing: .08em; }
-h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.5rem); line-height: 1.15; letter-spacing: -.025em; }
-.summary, .privacy-note, .release-pending, .manual-note, .install-steps { line-height: 1.65; }
-.release-identity { margin: 10px 0 0; color: #4e5f73; font-size: .9375rem; font-weight: 650; }
-.summary { margin: 18px 0 24px; color: #38495d; }
-.install-steps { margin: 0 0 24px; padding-left: 1.4em; color: #38495d; }
-.install-steps li + li { margin-top: 8px; }
+.install-hero{position:relative;overflow:hidden;padding:clamp(28px,6vw,52px)}
+.install-hero::after{content:"";position:absolute;inset:auto -90px -120px auto;width:290px;height:290px;border-radius:50%;background:linear-gradient(145deg,rgba(37,99,235,.15),rgba(96,165,250,.03));pointer-events:none}
+.brand-row{position:relative;z-index:1;display:flex;align-items:center;gap:14px;margin-bottom:26px}.brand-row img{display:block;border-radius:16px;box-shadow:0 12px 28px rgba(37,99,235,.16)}
+.eyebrow,.release-label{margin:0;color:#4e5f73;font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.hero-copy,.install-actions,.install-steps{position:relative;z-index:1}
+h1{margin:6px 0 0;font-size:clamp(2rem,7vw,3.25rem);line-height:1.08;letter-spacing:-.035em}
+h2{margin:4px 0 0;font-size:clamp(1.5rem,4vw,2rem)}
+h3{margin:0;font-size:1.08rem}
+.summary,.manual-note,.install-steps,.release-entry,.install-footer{line-height:1.65}
+.release-identity{margin:10px 0 0;color:#2563eb;font-size:.95rem;font-weight:800}
+.summary{max-width:650px;margin:18px 0 24px;color:#38495d}
+.install-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.install-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:26px 0 0;padding:0;list-style:none;counter-reset:step;color:#38495d}
+.install-steps li{min-width:0;padding:14px;border:1px solid #e5ded2;border-radius:14px;background:#faf7f0}
+.install-steps strong{display:block;margin-bottom:4px;color:#172338}
 .primary-action {
   display: inline-flex;
   min-height: 48px;
@@ -34,20 +41,25 @@ h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.5rem); line-height: 1.15; letter
   justify-content: center;
   padding: 12px 20px;
   border-radius: 14px;
-  background: #0757c7;
+  background: #2563eb;
   color: #fff;
   font-weight: 700;
   text-decoration: none;
 }
 .primary-action:focus-visible { outline: 3px solid #ffb000; outline-offset: 3px; }
-.release-pending { margin: 0; padding: 14px 16px; border-radius: 14px; background: #edf3fb; color: #173b68; font-weight: 650; }
-.manual-note { margin: 14px 0 0; color: #4e5f73; font-size: .875rem; }
-.privacy-note { margin: 24px 0 0; color: #596879; font-size: .875rem; }
+.manual-note{margin:0;color:#4e5f73;font-size:.875rem}
+.history-card{margin-top:16px;padding:clamp(24px,5vw,38px)}
+.section-heading{margin-bottom:18px}.release-entry{padding:18px;border:1px solid #e5ded2;border-radius:16px;background:#faf7f0}.release-entry-heading{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}.release-entry time{color:#5e6a7c;font-size:.875rem}.release-entry ul{margin:14px 0 0;padding-left:1.25em;color:#38495d}.release-entry li+li{margin-top:7px}
+.install-footer{margin-top:16px;padding:20px 24px;color:#596879;font-size:.875rem}.install-footer p{margin:0}.install-footer p+p{margin-top:10px}.install-footer a{color:#1d4ed8;font-weight:750;text-underline-offset:3px}.install-footer a:focus-visible{outline:3px solid #2563eb;outline-offset:3px}
 @media (prefers-color-scheme: dark) {
-  :root { background: #10151c; color: #f5f7fa; }
-  .install-card { background: #18212b; border-color: #394654; box-shadow: 0 18px 48px rgba(0,0,0,.38); }
-  .eyebrow, .release-identity, .summary, .install-steps, .manual-note, .privacy-note { color: #bdc9d6; }
-  .release-pending { background: #203854; color: #e7f1ff; }
+  :root { background:#0d1728;color:#f5f7fa; }
+  body{background:radial-gradient(circle at 10% 0%,rgba(59,130,246,.2),transparent 28rem),linear-gradient(180deg,#101c30 0,#0d1728 55%,#0a1220 100%)}
+  .install-hero,.history-card,.install-footer{background:#111c2e;border-color:#2b3950;box-shadow:0 18px 48px rgba(0,0,0,.38)}
+  .eyebrow,.release-label,.summary,.install-steps,.manual-note,.release-entry,.release-entry ul,.install-footer{color:#bdc9d6}
+  .install-steps li,.release-entry{background:#16243a;border-color:#31415a}.install-steps strong{color:#f5f7fa}
+  .release-entry time{color:#aebdce}.install-footer a{color:#8ab4ff}
   .primary-action { background: #75aaff; color: #08182c; }
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+@media(max-width:700px){.install-steps{grid-template-columns:1fr}.install-actions{align-items:stretch}.primary-action{width:100%}.manual-note{text-align:center}.brand-row{margin-bottom:22px}.install-hero{border-radius:22px}}
+@media(max-width:390px){.install-shell{padding-inline:max(12px,env(safe-area-inset-left))}.install-hero,.history-card{padding:22px}.brand-row img{width:56px;height:56px}}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition:none!important; animation:none!important; } }

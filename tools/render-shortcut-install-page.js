@@ -36,20 +36,39 @@ function render(contract){
 </head>
 <body>
   <main class="install-shell">
-    <section class="install-card" aria-labelledby="install-title">
-      <p class="eyebrow">AnyClass · 有课吗</p>
-      <h1 id="install-title">${escapeHtml(value.shortcutName)}</h1>
-      <p class="release-identity">版本 ${escapeHtml(value.shortcutVersion)} · Build ${value.shortcutBuild}</p>
-      <p class="summary">这是 AnyClass 通用 iOS 快捷指令的官方安装入口。链接及共享载荷已经独立审核，安装或更新仍需由你主动确认。</p>
-      <ol class="install-steps" aria-label="安装步骤">
-        <li>轻点下方按钮打开 Apple 的 iCloud 快捷指令页面。</li>
-        <li>核对名称为“${escapeHtml(value.shortcutName)}”，再选择获取快捷指令。</li>
-        <li>如系统提示替换或更新，请先检查内容并自行确认。</li>
+    <header class="install-hero" aria-labelledby="install-title">
+      <div class="brand-row"><img src="/assets/brand/AnyClass_Icon.svg" width="64" height="64" alt=""><p class="eyebrow">AnyClass · 有课吗</p></div>
+      <div class="hero-copy">
+        <p class="release-label">通用 iOS 快捷指令</p>
+        <h1 id="install-title">${escapeHtml(value.shortcutName)}</h1>
+        <p class="release-identity">${escapeHtml(value.shortcutVersion)} / Build ${value.shortcutBuild}</p>
+        <p class="summary">从 Safari 分享菜单读取当前课表，在 AnyClass 统一预览中核对后保存。一个快捷指令即可由你选择正式版或测试版，两个网站的数据相互隔离。</p>
+      </div>
+      <div class="install-actions">
+        <a class="primary-action" href="${escapeHtml(value.icloudUrl)}" rel="external noopener noreferrer">在 iCloud 中查看并安装</a>
+        <p class="manual-note">页面不会自动跳转，也不会自动安装或替换快捷指令。</p>
+      </div>
+      <ol class="install-steps" aria-label="安装与使用步骤">
+        <li><strong>安装：</strong>轻点按钮打开 Apple iCloud，核对名称后由你确认添加。</li>
+        <li><strong>导入：</strong>在 Safari 打开学校课表，通过分享菜单运行“${escapeHtml(value.shortcutName)}”。</li>
+        <li><strong>选择：</strong>按需要进入正式版或测试版，再选择生成的 JSON 文件并核对保存。</li>
       </ol>
-      <a class="primary-action" href="${escapeHtml(value.icloudUrl)}" rel="external noopener noreferrer">在 iCloud 中查看并安装</a>
-      <p class="manual-note">页面不会自动跳转，也不会自动安装或替换快捷指令。</p>
-      <p class="privacy-note">本页面不会读取或上传学校页面、课表、账号、Cookie 或令牌。</p>
+    </header>
+    <section class="history-card" aria-labelledby="history-title">
+      <div class="section-heading"><p class="eyebrow">Release history</p><h2 id="history-title">版本更新日志</h2></div>
+      <article class="release-entry">
+        <div class="release-entry-heading"><h3>1.0.0 / Build 1</h3><time datetime="2026-10-14">2026-10-14 · 初始版本</time></div>
+        <ul>
+          <li>同一快捷指令支持由用户选择 AnyClass 正式版或测试版导入目标。</li>
+          <li>从 Safari 分享菜单读取当前教务课表，生成本地 JSON 后进入 AnyClass 统一预览。</li>
+          <li>支持可选的上课时间信息；保存前仍需在 AnyClass 核对并确认。</li>
+        </ul>
+      </article>
     </section>
+    <footer class="install-footer">
+      <p><strong>隐私：</strong>本页面不读取或上传学校页面内容、课表、账号、Cookie、Session 或 Token。服务器可能按既有安全运维策略记录最小化的常规访问日志；只有你主动点击按钮时，浏览器才会前往 Apple iCloud。</p>
+      <p><a href="https://github.com/heyaaron-Wu/AnyClass" rel="external noopener noreferrer">AnyClass 开源项目</a> · Apache-2.0。AnyClass 是独立项目，与 Apple、学校或教务系统厂商无隶属或官方合作关系。</p>
+    </footer>
   </main>
 </body>
 </html>

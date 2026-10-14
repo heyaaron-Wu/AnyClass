@@ -18,12 +18,15 @@ check(contract.shortcutName==='AnyClass·课程导入'&&contract.shortcutVersion
 check(contract.sharedSigningStatus==='APPROVED'&&contract.sharedActionCount===43&&contract.semanticGraphDifferences===0,'Apple shared-payload audit evidence is exact');
 check(html===renderer.render(contract),'checked-in landing page equals deterministic renderer');
 check(!/<script\b/i.test(html)&&!/<meta[^>]+http-equiv=["']?refresh/i.test(html),'landing page is JavaScript-free and has no redirect');
-check((html.match(/<a\b/g)||[]).length===1,'landing page has exactly one explicit install link');
+check((html.match(/class="primary-action"/g)||[]).length===1,'landing page has exactly one explicit install action');
 check(html.includes(`href="${renderer.OFFICIAL_ICLOUD_URL}"`),'landing page emits only the exact audited iCloud URL');
 check(html.includes('rel="external noopener noreferrer"'),'outbound install link has defensive rel');
-check(/AnyClass·课程导入/.test(html)&&/版本 1\.0\.0 · Build 1/.test(html),'name version and Build are visible');
+check(/AnyClass·课程导入/.test(html)&&/1\.0\.0 \/ Build 1/.test(html),'name version and Build are visible');
 check(/页面不会自动跳转，也不会自动安装或替换快捷指令/.test(html),'manual installation boundary is visible');
-check(/学校页面、课表、账号、Cookie 或令牌/.test(html),'privacy statement is visible');
+check(/学校页面内容、课表、账号、Cookie、Session 或 Token/.test(html),'precise privacy statement is visible');
+check(/版本更新日志/.test(html)&&/1\.0\.0 \/ Build 1/.test(html)&&/2026-10-14/.test(html),'verified initial release history is visible');
+check(/正式版或测试版/.test(html)&&/两个网站的数据相互隔离/.test(html),'universal channel choice and isolation are explained');
+check(/\/assets\/brand\/AnyClass_Icon\.svg/.test(html),'approved first-party AnyClass icon is used');
 check(/prefers-color-scheme:\s*dark/.test(css)&&/prefers-reduced-motion:\s*reduce/.test(css),'light dark and reduced-motion styles exist');
 
 for(const invalid of [
@@ -50,7 +53,7 @@ check(!/document\.cookie|localStorage|sessionStorage|indexedDB|location\.ancesto
 check(preflightHtml.includes('/assets/timetable/shortcut-update-preflight.js')&&!preflightHtml.includes('inline'),'preflight uses one same-origin external script');
 
 for(const exact of ['location = /shortcuts/install','location = /shortcuts/preflight','location = /shortcuts/manifest.json'])check(nginx.includes(exact),`exact route configured: ${exact}`);
-check(nginx.includes("default-src 'none'; style-src 'self'")&&nginx.includes("frame-ancestors 'none'"),'install CSP is deny-by-default');
+check(nginx.includes("default-src 'none'; style-src 'self'; img-src 'self'")&&nginx.includes("frame-ancestors 'none'"),'install CSP is deny-by-default with same-origin brand images only');
 check(nginx.includes("script-src 'self'; connect-src 'self'")&&nginx.includes('frame-ancestors *'),'preflight CSP permits only required script/connect and embedding');
 check((nginx.match(/Referrer-Policy "no-referrer"/g)||[]).length===3,'all exact routes have no-referrer');
 check((nginx.match(/X-Content-Type-Options "nosniff"/g)||[]).length===3,'all exact routes have nosniff');

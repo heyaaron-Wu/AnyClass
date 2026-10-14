@@ -8,9 +8,10 @@ const css=fs.readFileSync(path.join(root,'app/shortcuts/install/install.css'));
 const preflightHtml=fs.readFileSync(path.join(root,'app/shortcuts/preflight/index.html'));
 const preflightJs=fs.readFileSync(path.join(root,'app/assets/timetable/shortcut-update-preflight.js'));
 const disabled=fs.readFileSync(path.join(root,'app/shortcuts/manifest.json'));
+const icon=fs.readFileSync(path.join(root,'app/assets/brand/AnyClass_Icon.svg'));
 const requests=[];
 const headers={
-  'Content-Security-Policy':"default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  'Content-Security-Policy':"default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=(), payment=(), usb=()','Cache-Control':'public, max-age=300, must-revalidate'
 };
 const server=http.createServer((req,res)=>{
@@ -18,6 +19,7 @@ const server=http.createServer((req,res)=>{
   const send=(status,type,body,extra={})=>{res.writeHead(status,{'Content-Type':type,...extra});res.end(body)};
   if(req.url==='/shortcuts/install')return send(200,'text/html; charset=utf-8',install,headers);
   if(req.url==='/shortcuts/install/install.css')return send(200,'text/css; charset=utf-8',css,{'Cache-Control':'public, max-age=300'});
+  if(req.url==='/assets/brand/AnyClass_Icon.svg')return send(200,'image/svg+xml',icon,{'Cache-Control':'public, max-age=300'});
   if(req.url==='/host')return send(200,'text/html; charset=utf-8','<!doctype html><title>Synthetic source</title><p id="marker">SECOND_READ_OK</p>',{'Referrer-Policy':'no-referrer'});
   if(req.url.startsWith('/shortcuts/preflight?'))return send(200,'text/html; charset=utf-8',preflightHtml,{'Content-Security-Policy':"default-src 'none'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors *",'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Cache-Control':'no-store'});
   if(req.url==='/assets/timetable/shortcut-update-preflight.js')return send(200,'text/javascript; charset=utf-8',preflightJs,{'Cache-Control':'no-store'});
@@ -37,14 +39,17 @@ let assertions=0;const check=(value,message)=>{assert(value,message);assertions+
       check(response.status()===200&&response.url()===`${origin}/shortcuts/install`,'exact URL returns 200 without redirect');
       if(width===390&&colorScheme==='light'){
         const received=response.headers();
-        check(received['content-security-policy']?.includes("default-src 'none'; style-src 'self'"),'landing response carries strict CSP');
+        check(received['content-security-policy']?.includes("default-src 'none'; style-src 'self'; img-src 'self'"),'landing response carries strict CSP and same-origin image policy');
         check(received['referrer-policy']==='no-referrer'&&received['x-content-type-options']==='nosniff','landing response carries privacy and MIME guards');
         check(received['x-frame-options']==='DENY'&&received['permissions-policy']?.includes('camera=()'),'landing response denies framing and device permissions');
       }
       check((await page.locator('a.primary-action').count())===1,'one explicit install link is rendered');
       check(await page.getByRole('heading',{name:'AnyClass·课程导入'}).isVisible(),'official public name is visible');
-      check(await page.getByText('版本 1.0.0 · Build 1').isVisible(),'official version and Build are visible');
+      check(await page.locator('.release-identity').getByText('1.0.0 / Build 1').isVisible(),'official version and Build are visible');
       check(await page.getByText('页面不会自动跳转，也不会自动安装或替换快捷指令。').isVisible(),'manual install boundary is visible');
+      check(await page.getByRole('heading',{name:'版本更新日志'}).isVisible(),'version history is visible');
+      check(await page.getByText('2026-10-14 · 初始版本').isVisible(),'verified initial release date is visible');
+      check(await page.locator('.brand-row img').evaluate(node=>node.complete&&node.naturalWidth>0),'approved first-party icon loads');
       check((await page.locator('body').evaluate(el=>({sw:el.scrollWidth,cw:el.clientWidth}))).sw<=(await page.locator('body').evaluate(el=>el.clientWidth)),'no horizontal overflow');
       await page.screenshot({path:path.join(out,`install-${width}-${colorScheme}-reduced.png`),fullPage:true});
       await context.close();

@@ -4,15 +4,18 @@
   else root.AnyClassImportClientChannels=api;
 })(typeof globalThis!=="undefined"?globalThis:this,function(){
   "use strict";
+  const UNIVERSAL_SHORTCUT_URL="https://www.icloud.com/shortcuts/89145db4f66e409fbaa5fd3e5257b124";
+  const UNIVERSAL_SHORTCUT_INFO_URL="https://anyclass.heyaaron.asia/shortcuts/install";
   const CHANNELS=Object.freeze({
     beta:Object.freeze({
       id:"beta",
       pageOrigin:"https://beta.anyclass.heyaaron.asia",
       bookmarkDisplayName:"AnyClass 导入课表 Beta",
       bookmarkTargetOrigin:"https://beta.anyclass.heyaaron.asia",
-      shortcutDisplayName:"AnyClass 导入课程 Beta",
-      shortcutInstallUrl:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9",
-      shortcutICloudUrl:"https://www.icloud.com/shortcuts/e5464e9969ef4749bfef3882d12134e9",
+      shortcutDisplayName:"AnyClass·课程导入",
+      shortcutInstallUrl:UNIVERSAL_SHORTCUT_URL,
+      shortcutInfoUrl:UNIVERSAL_SHORTCUT_INFO_URL,
+      shortcutICloudUrl:UNIVERSAL_SHORTCUT_URL,
       shortcutTargetImportUrl:"https://beta.anyclass.heyaaron.asia/import/?method=file"
     }),
     stable:Object.freeze({
@@ -21,8 +24,9 @@
       bookmarkDisplayName:"AnyClass 导入课表",
       bookmarkTargetOrigin:"https://anyclass.heyaaron.asia",
       shortcutDisplayName:"AnyClass·课程导入",
-      shortcutInstallUrl:"https://anyclass.heyaaron.asia/shortcuts/install",
-      shortcutICloudUrl:"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37",
+      shortcutInstallUrl:UNIVERSAL_SHORTCUT_URL,
+      shortcutInfoUrl:UNIVERSAL_SHORTCUT_INFO_URL,
+      shortcutICloudUrl:UNIVERSAL_SHORTCUT_URL,
       shortcutTargetImportUrl:"https://anyclass.heyaaron.asia/import/?method=file"
     })
   });
