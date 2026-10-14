@@ -8,7 +8,7 @@
   "testOnly": false,
   "reviewed": false,
   "updateUrl": null,
-  "releaseNotes": "Universal Shortcut release metadata is prepared but not published.",
+  "releaseNotes": "Build 1 is the current universal Shortcut. No newer Build is advertised.",
   "protocolVersion": "timetable-import-v1",
   "supportedImportSchemas": [1],
   "compatibility": {

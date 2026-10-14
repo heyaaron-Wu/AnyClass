@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),os=require('node:os'),path=require('node:path');
-const {chromium}=require('playwright'),{render}=require('../tools/render-shortcut-install-page.js');
+const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),out=process.env.ANYCLASS_OPTION_A_EVIDENCE_DIR||fs.mkdtempSync(path.join(os.tmpdir(),'anyclass-option-a-'));
 fs.mkdirSync(out,{recursive:true});
 const install=fs.readFileSync(path.join(root,'app/shortcuts/install/index.html'));
@@ -8,7 +8,6 @@ const css=fs.readFileSync(path.join(root,'app/shortcuts/install/install.css'));
 const preflightHtml=fs.readFileSync(path.join(root,'app/shortcuts/preflight/index.html'));
 const preflightJs=fs.readFileSync(path.join(root,'app/assets/timetable/shortcut-update-preflight.js'));
 const disabled=fs.readFileSync(path.join(root,'app/shortcuts/manifest.json'));
-const synthetic=Buffer.from(render({schemaVersion:1,shortcutId:'anyclass-timetable-import',shortcutVersion:'1.0.0',shortcutBuild:1,installLandingUrl:'https://anyclass.heyaaron.asia/shortcuts/install',enabled:true,reviewed:true,icloudUrl:'https://www.icloud.com/shortcuts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',noRedirect:true,javascriptFree:true,published:false}));
 const requests=[];
 const headers={
   'Content-Security-Policy':"default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
@@ -19,7 +18,6 @@ const server=http.createServer((req,res)=>{
   const send=(status,type,body,extra={})=>{res.writeHead(status,{'Content-Type':type,...extra});res.end(body)};
   if(req.url==='/shortcuts/install')return send(200,'text/html; charset=utf-8',install,headers);
   if(req.url==='/shortcuts/install/install.css')return send(200,'text/css; charset=utf-8',css,{'Cache-Control':'public, max-age=300'});
-  if(req.url==='/synthetic-install')return send(200,'text/html; charset=utf-8',synthetic,headers);
   if(req.url==='/host')return send(200,'text/html; charset=utf-8','<!doctype html><title>Synthetic source</title><p id="marker">SECOND_READ_OK</p>',{'Referrer-Policy':'no-referrer'});
   if(req.url.startsWith('/shortcuts/preflight?'))return send(200,'text/html; charset=utf-8',preflightHtml,{'Content-Security-Policy':"default-src 'none'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors *",'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Cache-Control':'no-store'});
   if(req.url==='/assets/timetable/shortcut-update-preflight.js')return send(200,'text/javascript; charset=utf-8',preflightJs,{'Cache-Control':'no-store'});
@@ -43,16 +41,19 @@ let assertions=0;const check=(value,message)=>{assert(value,message);assertions+
         check(received['referrer-policy']==='no-referrer'&&received['x-content-type-options']==='nosniff','landing response carries privacy and MIME guards');
         check(received['x-frame-options']==='DENY'&&received['permissions-policy']?.includes('camera=()'),'landing response denies framing and device permissions');
       }
-      check((await page.locator('a').count())===0,'disabled page has no install link');
-      check(await page.getByText('新的通用快捷指令尚未公开。请稍后再试。').isVisible(),'disabled state visible');
+      check((await page.locator('a.primary-action').count())===1,'one explicit install link is rendered');
+      check(await page.getByRole('heading',{name:'AnyClass·课程导入'}).isVisible(),'official public name is visible');
+      check(await page.getByText('版本 1.0.0 · Build 1').isVisible(),'official version and Build are visible');
+      check(await page.getByText('页面不会自动跳转，也不会自动安装或替换快捷指令。').isVisible(),'manual install boundary is visible');
       check((await page.locator('body').evaluate(el=>({sw:el.scrollWidth,cw:el.clientWidth}))).sw<=(await page.locator('body').evaluate(el=>el.clientWidth)),'no horizontal overflow');
       await page.screenshot({path:path.join(out,`install-${width}-${colorScheme}-reduced.png`),fullPage:true});
       await context.close();
     }
     const context=await browser.newContext(),page=await context.newPage();
-    let outbound=0;await page.route('https://www.icloud.com/**',route=>{outbound++;route.abort();});
-    await page.goto(`${origin}/synthetic-install`);check(outbound===0,'install URL is not opened automatically');
+    let outbound=0,outboundUrl=null;await page.route('https://www.icloud.com/**',route=>{outbound++;outboundUrl=route.request().url();route.abort();});
+    await page.goto(`${origin}/shortcuts/install`);check(outbound===0,'install URL is not opened automatically');
     await page.locator('a.primary-action').click({noWaitAfter:true}).catch(()=>{});await page.waitForTimeout(100);check(outbound===1,'install URL opens only after explicit click');
+    check(outboundUrl==='https://www.icloud.com/shortcuts/89145db4f66e409fbaa5fd3e5257b124','explicit click opens the exact audited iCloud record');
     const host=await context.newPage();
     await host.goto(`http://localhost:${server.address().port}/host`);
     let preflightResponse=null;host.on('response',response=>{if(response.url().startsWith(`${origin}/shortcuts/preflight?`))preflightResponse=response;});

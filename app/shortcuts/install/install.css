@@ -22,8 +22,11 @@ body { margin: 0; min-height: 100svh; }
 }
 .eyebrow { margin: 0 0 10px; color: #4e5f73; font-size: .875rem; font-weight: 700; letter-spacing: .08em; }
 h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.5rem); line-height: 1.15; letter-spacing: -.025em; }
-.summary, .privacy-note, .release-pending { line-height: 1.65; }
+.summary, .privacy-note, .release-pending, .manual-note, .install-steps { line-height: 1.65; }
+.release-identity { margin: 10px 0 0; color: #4e5f73; font-size: .9375rem; font-weight: 650; }
 .summary { margin: 18px 0 24px; color: #38495d; }
+.install-steps { margin: 0 0 24px; padding-left: 1.4em; color: #38495d; }
+.install-steps li + li { margin-top: 8px; }
 .primary-action {
   display: inline-flex;
   min-height: 48px;
@@ -38,11 +41,12 @@ h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.5rem); line-height: 1.15; letter
 }
 .primary-action:focus-visible { outline: 3px solid #ffb000; outline-offset: 3px; }
 .release-pending { margin: 0; padding: 14px 16px; border-radius: 14px; background: #edf3fb; color: #173b68; font-weight: 650; }
+.manual-note { margin: 14px 0 0; color: #4e5f73; font-size: .875rem; }
 .privacy-note { margin: 24px 0 0; color: #596879; font-size: .875rem; }
 @media (prefers-color-scheme: dark) {
   :root { background: #10151c; color: #f5f7fa; }
   .install-card { background: #18212b; border-color: #394654; box-shadow: 0 18px 48px rgba(0,0,0,.38); }
-  .eyebrow, .summary, .privacy-note { color: #bdc9d6; }
+  .eyebrow, .release-identity, .summary, .install-steps, .manual-note, .privacy-note { color: #bdc9d6; }
   .release-pending { background: #203854; color: #e7f1ff; }
   .primary-action { background: #75aaff; color: #08182c; }
 }

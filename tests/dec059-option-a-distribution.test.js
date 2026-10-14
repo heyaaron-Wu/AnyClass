@@ -12,28 +12,37 @@ const manifest=JSON.parse(fs.readFileSync(path.join(root,'app/shortcuts/manifest
 const nginx=fs.readFileSync(path.join(root,'deployment/shortcuts-option-a-nginx.conf'),'utf8');
 
 check(renderer.validateContract(contract).installLandingUrl===renderer.OFFICIAL_INSTALL_LANDING_URL,'exact install URL is pinned');
+check(contract.icloudUrl===renderer.OFFICIAL_ICLOUD_URL&&contract.icloudRecordId===renderer.ICLOUD_RECORD_ID,'exact reviewed iCloud record is pinned');
+check(contract.approvedSignedArtifactSha256===renderer.APPROVED_SIGNED_ARTIFACT_SHA256&&contract.sharedPayloadSha256===renderer.SHARED_PAYLOAD_SHA256,'approved artifact and shared payload hashes are pinned');
+check(contract.shortcutName==='AnyClass·课程导入'&&contract.shortcutVersion==='1.0.0'&&contract.shortcutBuild===1,'public Shortcut identity is exact');
+check(contract.sharedSigningStatus==='APPROVED'&&contract.sharedActionCount===43&&contract.semanticGraphDifferences===0,'Apple shared-payload audit evidence is exact');
 check(html===renderer.render(contract),'checked-in landing page equals deterministic renderer');
 check(!/<script\b/i.test(html)&&!/<meta[^>]+http-equiv=["']?refresh/i.test(html),'landing page is JavaScript-free and has no redirect');
-check(!/<a\b/i.test(html),'disabled page exposes no install link');
-check(/新的通用快捷指令尚未公开/.test(html),'disabled state is explicit');
+check((html.match(/<a\b/g)||[]).length===1,'landing page has exactly one explicit install link');
+check(html.includes(`href="${renderer.OFFICIAL_ICLOUD_URL}"`),'landing page emits only the exact audited iCloud URL');
+check(html.includes('rel="external noopener noreferrer"'),'outbound install link has defensive rel');
+check(/AnyClass·课程导入/.test(html)&&/版本 1\.0\.0 · Build 1/.test(html),'name version and Build are visible');
+check(/页面不会自动跳转，也不会自动安装或替换快捷指令/.test(html),'manual installation boundary is visible');
 check(/学校页面、课表、账号、Cookie 或令牌/.test(html),'privacy statement is visible');
 check(/prefers-color-scheme:\s*dark/.test(css)&&/prefers-reduced-motion:\s*reduce/.test(css),'light dark and reduced-motion styles exist');
 
-const synthetic={...contract,enabled:true,reviewed:true,icloudUrl:'https://www.icloud.com/shortcuts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'};
-const future=renderer.render(synthetic);
-check((future.match(/<a\b/g)||[]).length===1,'approved future state has one explicit link');
-check(future.includes('href="https://www.icloud.com/shortcuts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"'),'audited iCloud URL is emitted exactly');
-check(future.includes('rel="external noopener noreferrer"'),'outbound link has defensive rel');
 for(const invalid of [
-  {...synthetic,icloudUrl:'https://www.icloud.com/shortcuts/bad'},
-  {...synthetic,icloudUrl:'https://evil.invalid/shortcuts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'},
-  {...contract,enabled:true,reviewed:false,icloudUrl:null},
-  {...contract,enabled:false,reviewed:false,icloudUrl:'https://www.icloud.com/shortcuts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'},
+  {...contract,icloudUrl:'https://www.icloud.com/shortcuts/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'},
+  {...contract,icloudUrl:'https://evil.invalid/shortcuts/89145db4f66e409fbaa5fd3e5257b124'},
+  {...contract,icloudRecordId:'AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA'},
+  {...contract,sharedPayloadSha256:'0'.repeat(64)},
+  {...contract,approvedSignedArtifactSha256:'0'.repeat(64)},
+  {...contract,sharedSigningStatus:'PENDING'},
+  {...contract,sharedActionCount:42},
+  {...contract,semanticGraphDifferences:1},
+  {...contract,enabled:false},
+  {...contract,reviewed:false},
   {...contract,installLandingUrl:'https://anyclass.heyaaron.asia/shortcuts/install/'},
 ])checkThrows(()=>renderer.validateContract(invalid),'invalid release contract is rejected');
 
 check(manifest.shortcutId==='anyclass-timetable-import'&&manifest.latestBuild===1,'manifest identity matches unpublished Build 1');
 check(manifest.enabled===false&&manifest.reviewed===false&&manifest.updateUrl===null&&manifest.publishedAt===null,'manifest remains disabled and unpublishable');
+check(/No newer Build is advertised/.test(manifest.releaseNotes),'disabled manifest explicitly avoids advertising Build 1 as its own update');
 check(preflight.includes("credentials:'omit'")&&preflight.includes("referrerPolicy:'no-referrer'")&&preflight.includes("cache:'no-store'"),'preflight request is credentialless and no-referrer');
 check(preflight.includes("shortcutId===SHORTCUT_ID")&&preflight.includes("/^[0-9a-f]{32}$/")&&preflight.includes("Number.isSafeInteger(build)"),'preflight validates ID nonce and integer build');
 check(preflight.includes("keys.length===expected.length")&&preflight.includes("text.length>4096"),'preflight rejects extra inputs and oversized metadata');
