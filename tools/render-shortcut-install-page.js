@@ -31,6 +31,11 @@ function render(contract){
   <meta name="referrer" content="no-referrer">
   <meta name="anyclass-release" content="v0.2.2">
   <link rel="canonical" href="${OFFICIAL_INSTALL_LANDING_URL}">
+  <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_AppIcon_Light.svg" media="(prefers-color-scheme: light)">
+  <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_AppIcon_Dark.svg" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png" sizes="256x256">
   <link rel="stylesheet" href="/shortcuts/install/install.css">
   <title>安装 ${escapeHtml(value.shortcutName)}</title>
 </head>

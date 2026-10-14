@@ -9,6 +9,10 @@ const preflightHtml=fs.readFileSync(path.join(root,'app/shortcuts/preflight/inde
 const preflightJs=fs.readFileSync(path.join(root,'app/assets/timetable/shortcut-update-preflight.js'));
 const disabled=fs.readFileSync(path.join(root,'app/shortcuts/manifest.json'));
 const icon=fs.readFileSync(path.join(root,'app/assets/brand/AnyClass_Icon.svg'));
+const favicon=fs.readFileSync(path.join(root,'app/assets/brand/AnyClass_Favicon.ico'));
+const lightIcon=fs.readFileSync(path.join(root,'app/assets/brand/AnyClass_AppIcon_Light.svg'));
+const darkIcon=fs.readFileSync(path.join(root,'app/assets/brand/AnyClass_AppIcon_Dark.svg'));
+const touchIcon=fs.readFileSync(path.join(root,'app/assets/brand/AnyClass_Icon_256.png'));
 const requests=[];
 const headers={
   'Content-Security-Policy':"default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
@@ -20,6 +24,10 @@ const server=http.createServer((req,res)=>{
   if(req.url==='/shortcuts/install')return send(200,'text/html; charset=utf-8',install,headers);
   if(req.url==='/shortcuts/install/install.css')return send(200,'text/css; charset=utf-8',css,{'Cache-Control':'public, max-age=300'});
   if(req.url==='/assets/brand/AnyClass_Icon.svg')return send(200,'image/svg+xml',icon,{'Cache-Control':'public, max-age=300'});
+  if(req.url==='/assets/brand/AnyClass_Favicon.ico')return send(200,'image/x-icon',favicon,{'ETag':'"approved-favicon"'});
+  if(req.url==='/assets/brand/AnyClass_AppIcon_Light.svg')return send(200,'image/svg+xml',lightIcon,{'ETag':'"approved-light-icon"'});
+  if(req.url==='/assets/brand/AnyClass_AppIcon_Dark.svg')return send(200,'image/svg+xml',darkIcon,{'ETag':'"approved-dark-icon"'});
+  if(req.url==='/assets/brand/AnyClass_Icon_256.png')return send(200,'image/png',touchIcon,{'ETag':'"approved-touch-icon"'});
   if(req.url==='/host')return send(200,'text/html; charset=utf-8','<!doctype html><title>Synthetic source</title><p id="marker">SECOND_READ_OK</p>',{'Referrer-Policy':'no-referrer'});
   if(req.url.startsWith('/shortcuts/preflight?'))return send(200,'text/html; charset=utf-8',preflightHtml,{'Content-Security-Policy':"default-src 'none'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors *",'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','Cache-Control':'no-store'});
   if(req.url==='/assets/timetable/shortcut-update-preflight.js')return send(200,'text/javascript; charset=utf-8',preflightJs,{'Cache-Control':'no-store'});
@@ -50,11 +58,25 @@ let assertions=0;const check=(value,message)=>{assert(value,message);assertions+
       check(await page.getByRole('heading',{name:'版本更新日志'}).isVisible(),'version history is visible');
       check(await page.getByText('2026-10-14 · 初始版本').isVisible(),'verified initial release date is visible');
       check(await page.locator('.brand-row img').evaluate(node=>node.complete&&node.naturalWidth>0),'approved first-party icon loads');
+      const favicons=await page.locator('link[rel="icon"]').evaluateAll(nodes=>nodes.map(node=>({href:new URL(node.getAttribute('href'),document.baseURI).pathname,type:node.type||null,media:node.media||null,sizes:node.sizes?.value||null})));
+      check(favicons.some(item=>item.href==='/assets/brand/AnyClass_Favicon.ico'&&item.sizes==='16x16 24x24 32x32 48x48 64x64'),'multi-size ICO fallback is discoverable');
+      check(favicons.some(item=>item.href==='/assets/brand/AnyClass_Icon.svg'&&item.type==='image/svg+xml'&&!item.media),'theme-neutral SVG favicon is discoverable');
+      check(favicons.some(item=>item.href==='/assets/brand/AnyClass_AppIcon_Light.svg'&&item.media==='(prefers-color-scheme: light)'),'light favicon is discoverable');
+      check(favicons.some(item=>item.href==='/assets/brand/AnyClass_AppIcon_Dark.svg'&&item.media==='(prefers-color-scheme: dark)'),'dark favicon is discoverable');
+      check(await page.locator('link[rel="apple-touch-icon"]').getAttribute('href')==='/assets/brand/AnyClass_Icon_256.png','Apple touch icon uses the approved absolute path');
+      const expectedThemedIcon=colorScheme==='dark'?'/assets/brand/AnyClass_AppIcon_Dark.svg':'/assets/brand/AnyClass_AppIcon_Light.svg';
+      check(await page.evaluate(expected=>[...document.querySelectorAll('link[rel="icon"][media]')].some(node=>matchMedia(node.media).matches&&new URL(node.href).pathname===expected),expectedThemedIcon),`the ${colorScheme} favicon media query matches`);
       check((await page.locator('body').evaluate(el=>({sw:el.scrollWidth,cw:el.clientWidth}))).sw<=(await page.locator('body').evaluate(el=>el.clientWidth)),'no horizontal overflow');
       await page.screenshot({path:path.join(out,`install-${width}-${colorScheme}-reduced.png`),fullPage:true});
       await context.close();
     }
     const context=await browser.newContext(),page=await context.newPage();
+    for(const [asset,type] of [['/assets/brand/AnyClass_Favicon.ico','image/x-icon'],['/assets/brand/AnyClass_Icon.svg','image/svg+xml'],['/assets/brand/AnyClass_AppIcon_Light.svg','image/svg+xml'],['/assets/brand/AnyClass_AppIcon_Dark.svg','image/svg+xml'],['/assets/brand/AnyClass_Icon_256.png','image/png']]){
+      const response=await context.request.get(`${origin}${asset}`);
+      check(response.status()===200,`${asset} is statically routable`);
+      check(response.headers()['content-type']?.startsWith(type),`${asset} has ${type} MIME`);
+      check(!asset.includes('?')&&!asset.includes('#'),`${asset} uses a stable cacheable URL`);
+    }
     let outbound=0,outboundUrl=null;await page.route('https://www.icloud.com/**',route=>{outbound++;outboundUrl=route.request().url();route.abort();});
     await page.goto(`${origin}/shortcuts/install`);check(outbound===0,'install URL is not opened automatically');
     await page.locator('a.primary-action').click({noWaitAfter:true}).catch(()=>{});await page.waitForTimeout(100);check(outbound===1,'install URL opens only after explicit click');

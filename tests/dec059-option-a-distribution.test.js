@@ -27,6 +27,12 @@ check(/学校页面内容、课表、账号、Cookie、Session 或 Token/.test(h
 check(/版本更新日志/.test(html)&&/1\.0\.0 \/ Build 1/.test(html)&&/2026-10-14/.test(html),'verified initial release history is visible');
 check(/正式版或测试版/.test(html)&&/两个网站的数据相互隔离/.test(html),'universal channel choice and isolation are explained');
 check(/\/assets\/brand\/AnyClass_Icon\.svg/.test(html),'approved first-party AnyClass icon is used');
+check(html.includes('<link rel="icon" href="/assets/brand/AnyClass_Favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64">'),'approved multi-size ICO fallback is declared with an absolute path');
+check(html.includes('<link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">'),'approved theme-neutral SVG favicon is declared');
+check(html.includes('href="/assets/brand/AnyClass_AppIcon_Light.svg" media="(prefers-color-scheme: light)"'),'approved light favicon is declared');
+check(html.includes('href="/assets/brand/AnyClass_AppIcon_Dark.svg" media="(prefers-color-scheme: dark)"'),'approved dark favicon is declared');
+check(html.includes('<link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png" sizes="256x256">'),'approved Apple touch icon is declared');
+check(!/rel="(?:icon|apple-touch-icon)"[^>]+(?:\?|#)/.test(html),'favicon paths are stable and do not add cache-busting variants');
 check(/prefers-color-scheme:\s*dark/.test(css)&&/prefers-reduced-motion:\s*reduce/.test(css),'light dark and reduced-motion styles exist');
 
 for(const invalid of [

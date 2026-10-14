@@ -54,6 +54,10 @@ async function appRoute(route) {
         ? "application/json"
         : file.endsWith(".svg")
           ? "image/svg+xml"
+          : file.endsWith(".png")
+            ? "image/png"
+            : file.endsWith(".ico")
+              ? "image/x-icon"
           : "text/html";
   return route.fulfill({ status: 200, contentType, body: fs.readFileSync(file) });
 }
@@ -175,6 +179,19 @@ async function keyboardFocus(page, selector, label) {
         await commonLayoutChecks(installPage, `install/${label}`);
         equal(await installPage.locator("script").count(), 0, `install/${label}: JavaScript-free`);
         equal(await installPage.locator('meta[http-equiv="refresh" i]').count(), 0, `install/${label}: no redirect`);
+        equal(await installPage.locator('link[rel="icon"]').count(), 4, `install/${label}: complete favicon fallback and theme set`);
+        equal(await installPage.locator('link[rel="apple-touch-icon"]').getAttribute('href'), '/assets/brand/AnyClass_Icon_256.png', `install/${label}: approved Apple touch icon`);
+        equal(await installPage.locator(`link[rel="icon"][media="(prefers-color-scheme: ${theme})"]`).evaluate((node) => matchMedia(node.media).matches), true, `install/${label}: matching theme favicon is active`);
+        const faviconResponses = await installPage.evaluate(async () => Promise.all(
+          [...document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]')].map(async (node) => {
+            const response = await fetch(node.href, { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
+            return { path: new URL(node.href).pathname, ok: response.ok, type: response.headers.get('content-type') };
+          }),
+        ));
+        check(faviconResponses.every(({ ok }) => ok), `install/${label}: all declared favicon assets are routable`);
+        check(faviconResponses.some(({ path: asset, type }) => asset.endsWith('.ico') && type === 'image/x-icon'), `install/${label}: ICO MIME is correct`);
+        check(faviconResponses.some(({ path: asset, type }) => asset.endsWith('.png') && type === 'image/png'), `install/${label}: Apple icon MIME is correct`);
+        check(faviconResponses.filter(({ path: asset }) => asset.endsWith('.svg')).every(({ type }) => type === 'image/svg+xml'), `install/${label}: SVG MIME is correct`);
         equal(await installPage.locator(".primary-action").getAttribute("href"), officialICloud, `install/${label}: exact iCloud target`);
         await touchTarget(installPage, ".primary-action", `install/${label}`);
         await contrast(installPage, ".summary", `install/${label} summary`);
