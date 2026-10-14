@@ -36,7 +36,8 @@
     "generate:shortcut-install-page": "node tools/render-shortcut-install-page.js",
     "test:dec059:option-a": "node tests/dec059-option-a-distribution.test.js && node tests/dec059-option-a-browser.test.js",
     "build:dec059:option-a": "node tools/build-dec059-option-a-candidate.js",
-    "build:v022:final-distribution": "node tools/build-v022-final-distribution-candidate.js"
+    "build:v022:final-distribution": "node tools/build-v022-final-distribution-candidate.js",
+    "build:v022:production-distribution": "node tools/build-v022-production-distribution.js"
   },
   "engines": {
     "node": ">=20"
