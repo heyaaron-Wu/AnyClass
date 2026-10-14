@@ -1,0 +1,49 @@
+:root {
+  color-scheme: light dark;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f7f4ee;
+  color: #18202a;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100svh; }
+.install-shell {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
+.install-card {
+  width: min(100%, 560px);
+  padding: clamp(28px, 6vw, 48px);
+  border: 1px solid #d9d4ca;
+  border-radius: 24px;
+  background: #fffdf8;
+  box-shadow: 0 18px 48px rgba(40, 43, 48, .10);
+}
+.eyebrow { margin: 0 0 10px; color: #4e5f73; font-size: .875rem; font-weight: 700; letter-spacing: .08em; }
+h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.5rem); line-height: 1.15; letter-spacing: -.025em; }
+.summary, .privacy-note, .release-pending { line-height: 1.65; }
+.summary { margin: 18px 0 24px; color: #38495d; }
+.primary-action {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: 14px;
+  background: #0757c7;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.primary-action:focus-visible { outline: 3px solid #ffb000; outline-offset: 3px; }
+.release-pending { margin: 0; padding: 14px 16px; border-radius: 14px; background: #edf3fb; color: #173b68; font-weight: 650; }
+.privacy-note { margin: 24px 0 0; color: #596879; font-size: .875rem; }
+@media (prefers-color-scheme: dark) {
+  :root { background: #10151c; color: #f5f7fa; }
+  .install-card { background: #18212b; border-color: #394654; box-shadow: 0 18px 48px rgba(0,0,0,.38); }
+  .eyebrow, .summary, .privacy-note { color: #bdc9d6; }
+  .release-pending { background: #203854; color: #e7f1ff; }
+  .primary-action { background: #75aaff; color: #08182c; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "shortcutId": "anyclass-timetable-import",
+  "shortcutVersion": "1.0.0",
+  "shortcutBuild": 1,
+  "installLandingUrl": "https://anyclass.heyaaron.asia/shortcuts/install",
+  "enabled": false,
+  "reviewed": false,
+  "icloudUrl": null,
+  "noRedirect": true,
+  "javascriptFree": true,
+  "published": false
+}

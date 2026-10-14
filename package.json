@@ -32,7 +32,10 @@
     "test:p2:browser": "node tests/p2-import-feedback-contrast-browser.test.js",
     "generate:beta-manifest": "node tools/generate-beta-manifest.js",
     "build:beta-candidate": "node tools/build-beta-candidate.js",
-    "test:beta-candidate-packaging": "node tests/beta-candidate-packaging.test.js"
+    "test:beta-candidate-packaging": "node tests/beta-candidate-packaging.test.js",
+    "generate:shortcut-install-page": "node tools/render-shortcut-install-page.js",
+    "test:dec059:option-a": "node tests/dec059-option-a-distribution.test.js && node tests/dec059-option-a-browser.test.js",
+    "build:dec059:option-a": "node tools/build-dec059-option-a-candidate.js"
   },
   "engines": {
     "node": ">=20"

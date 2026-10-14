@@ -1,0 +1,20 @@
+{
+  "manifestVersion": 1,
+  "shortcutId": "anyclass-timetable-import",
+  "latestVersion": "1.0.0",
+  "latestBuild": 1,
+  "minSupportedBuild": 1,
+  "enabled": false,
+  "testOnly": false,
+  "reviewed": false,
+  "updateUrl": null,
+  "releaseNotes": "Universal Shortcut release metadata is prepared but not published.",
+  "protocolVersion": "timetable-import-v1",
+  "supportedImportSchemas": [1],
+  "compatibility": {
+    "safariShareSheetRequired": true,
+    "parserVersion": "v2-c-phase4",
+    "storageSchemaMigration": false
+  },
+  "publishedAt": null
+}
