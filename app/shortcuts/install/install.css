@@ -63,6 +63,7 @@ h3{margin:0;font-size:1.08rem}
   .eyebrow,.release-label,.summary,.install-steps,.manual-note,.release-entry,.release-entry ul,.install-footer{color:#bdc9d6}
   .install-steps li,.release-entry{background:#16243a;border-color:#31415a}.install-steps strong{color:#f5f7fa}
   .release-entry time{color:#aebdce}.install-footer a{color:#8ab4ff}
+  .release-identity{color:#8ab4ff}
   .primary-action { background: #75aaff; color: #08182c; }
 }
 @media(max-width:700px){.install-steps{grid-template-columns:1fr}.install-actions{align-items:stretch}.primary-action{width:100%}.manual-note{text-align:center}.brand-row{margin-bottom:22px}.install-hero{border-radius:22px}}
