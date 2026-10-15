@@ -19,8 +19,9 @@ function validateContract(value){
   return Object.freeze({...value});
 }
 
-function render(contract){
+function render(contract,releaseId='v0.2.2'){
   const value=validateContract(contract);
+  if(!/^v[\w.-]+$/.test(releaseId))throw Error('RELEASE_ID_INVALID');
   return `<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -29,18 +30,19 @@ function render(contract){
   <meta name="color-scheme" content="light dark">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="referrer" content="no-referrer">
-  <meta name="anyclass-release" content="v0.2.2">
+  <meta name="anyclass-release" content="${escapeHtml(releaseId)}">
   <link rel="canonical" href="${OFFICIAL_INSTALL_LANDING_URL}">
   <link rel="icon" href="/assets/brand/AnyClass_Favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64">
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_AppIcon_Light.svg" media="(prefers-color-scheme: light)">
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_AppIcon_Dark.svg" media="(prefers-color-scheme: dark)">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png" sizes="256x256">
-  <link rel="stylesheet" href="/shortcuts/install/install.css">
+  <link rel="stylesheet" href="/shortcuts/install/install.css?v=${escapeHtml(releaseId)}">
   <title>安装 ${escapeHtml(value.shortcutName)}</title>
 </head>
 <body>
   <main class="install-shell">
+    <nav class="install-navigation" aria-label="返回网站"><a class="install-back" href="/about/#aboutShortcutTitle">← 返回 AnyClass</a><a class="install-back" href="/import/?method=mobile">前往导入</a></nav>
     <header class="install-hero" aria-labelledby="install-title">
       <div class="brand-row"><img src="/assets/brand/AnyClass_Icon.svg" width="64" height="64" alt=""><p class="eyebrow">AnyClass · 有课吗</p></div>
       <div class="hero-copy">
@@ -60,7 +62,7 @@ function render(contract){
       </ol>
     </header>
     <section class="history-card" aria-labelledby="history-title">
-      <div class="section-heading"><p class="eyebrow">Release history</p><h2 id="history-title">版本更新日志</h2></div>
+      <div class="section-heading"><p class="eyebrow">Shortcut release history</p><h2 id="history-title">快捷指令版本更新日志</h2><p class="manual-note">以下仅记录快捷指令版本，网站更新记录见<a href="/about/#websiteReleaseHistory">关于 AnyClass</a>。</p></div>
       <article class="release-entry">
         <div class="release-entry-heading"><h3>1.0.0 / Build 1</h3><time datetime="2026-10-14">2026-10-14 · 初始版本</time></div>
         <ul>
@@ -84,7 +86,7 @@ if(require.main===module){
   const root=path.resolve(__dirname,'..'),contract=JSON.parse(fs.readFileSync(path.join(root,'release/shortcut-install-contract.json'),'utf8'));
   const target=path.join(root,'app/shortcuts/install/index.html');
   fs.mkdirSync(path.dirname(target),{recursive:true});
-  fs.writeFileSync(target,render(contract),'utf8');
+  fs.writeFileSync(target,render(contract,require('../app/assets/timetable/release-metadata.js').releaseId),'utf8');
   process.stdout.write(`${target}\n`);
 }
 module.exports=Object.freeze({OFFICIAL_INSTALL_LANDING_URL,OFFICIAL_ICLOUD_URL,ICLOUD_RECORD_ID,APPROVED_SIGNED_ARTIFACT_SHA256,SHARED_PAYLOAD_SHA256,validateContract,render});

@@ -1,6 +1,10 @@
 (() => {
   "use strict";
-  const metadata=window.AnyClassReleaseMetadata||Object.freeze({schemaVersion:1,productVersion:"Unknown",releaseId:"Unknown",releaseMode:"unavailable"}),RELEASE_ID=metadata.releaseId;
+  // The document and its release-keyed metadata must describe the same release.
+  // Never present an older cached script as the current website identity.
+  const declaredRelease=document.querySelector('meta[name="anyclass-release"]')?.content;
+  const loadedMetadata=window.AnyClassReleaseMetadata;
+  const metadata=loadedMetadata&&loadedMetadata.releaseId===declaredRelease?loadedMetadata:Object.freeze({schemaVersion:1,productVersion:"Unavailable",releaseId:"Unavailable",releaseMode:"unavailable"}),RELEASE_ID=metadata.releaseId;
   window.AnyClassReleaseIdentity = Object.freeze({...metadata,channel:location.hostname.startsWith("beta.")?"beta":location.hostname==="anyclass.heyaaron.asia"?"stable":"local"});
   document.documentElement.dataset.releaseId = RELEASE_ID;
 

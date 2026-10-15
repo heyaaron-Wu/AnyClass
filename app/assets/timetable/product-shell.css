@@ -757,3 +757,10 @@ body[data-shell-page="today"] .holiday-reminder{margin:0 0 12px}
 .import-reselect,.period-setting-row .remove-period{min-height:44px}
 @media(max-width:700px){.period-setting-row .remove-period{display:inline-flex;align-items:center;padding:8px 0}}
 @media(prefers-reduced-motion:reduce){.local-metadata-editor{transition:none}}
+:root .website-release-history summary{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+:root .website-release-history summary::after{content:"展开";font-size:.8rem;font-weight:400;color:var(--shell-muted)}
+:root .website-release-history[open] summary::after{content:"收起"}
+:root .website-release-history article{padding:12px;border-top:1px solid var(--shell-line)}
+:root .website-release-history h3{font-size:1rem;line-height:1.5;overflow-wrap:anywhere}
+:root .website-release-history h3 small{display:block;font-weight:400;color:var(--shell-muted)}
+:root .website-release-history p{line-height:1.65;margin:8px 0}

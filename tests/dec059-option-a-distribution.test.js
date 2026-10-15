@@ -16,7 +16,7 @@ check(contract.icloudUrl===renderer.OFFICIAL_ICLOUD_URL&&contract.icloudRecordId
 check(contract.approvedSignedArtifactSha256===renderer.APPROVED_SIGNED_ARTIFACT_SHA256&&contract.sharedPayloadSha256===renderer.SHARED_PAYLOAD_SHA256,'approved artifact and shared payload hashes are pinned');
 check(contract.shortcutName==='AnyClass·课程导入'&&contract.shortcutVersion==='1.0.0'&&contract.shortcutBuild===1,'public Shortcut identity is exact');
 check(contract.sharedSigningStatus==='APPROVED'&&contract.sharedActionCount===43&&contract.semanticGraphDifferences===0,'Apple shared-payload audit evidence is exact');
-check(html===renderer.render(contract),'checked-in landing page equals deterministic renderer');
+check(html===renderer.render(contract,require('../app/assets/timetable/release-metadata.js').releaseId),'checked-in landing page equals deterministic renderer with authoritative release identity');
 check(!/<script\b/i.test(html)&&!/<meta[^>]+http-equiv=["']?refresh/i.test(html),'landing page is JavaScript-free and has no redirect');
 check((html.match(/class="primary-action"/g)||[]).length===1,'landing page has exactly one explicit install action');
 check(html.includes(`href="${renderer.OFFICIAL_ICLOUD_URL}"`),'landing page emits only the exact audited iCloud URL');

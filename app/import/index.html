@@ -4,7 +4,7 @@
   <!-- Opt in before the larger page styles load; the shared sheet defines the animation. -->
   <style>@view-transition { navigation: auto; }</style>
   <meta charset="utf-8">
-  <meta name="anyclass-release" content="v0.2.2">
+  <meta name="anyclass-release" content="v022-production-20261015-160200">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f3f0e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0d1728" media="(prefers-color-scheme: dark)">
@@ -13,15 +13,15 @@
   <link rel="icon" type="image/svg+xml" href="/assets/brand/AnyClass_Icon.svg">
   <link rel="apple-touch-icon" href="/assets/brand/AnyClass_Icon_256.png">
   <link rel="manifest" href="/site.webmanifest">
-  <script src="/assets/timetable/release-metadata.js"></script>
-  <script src="/assets/timetable/product-shell.js?v=v011-unified-import-20260919"></script>
+  <script src="/assets/timetable/release-metadata.js?v=v022-production-20261015-160200"></script>
+  <script src="/assets/timetable/product-shell.js?v=v022-production-20261015-160200"></script>
   <style>
     :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#172033;background:#f5f7fb}body{margin:0}main{max-width:1180px;margin:auto;padding:24px}.card{background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:20px;box-shadow:0 8px 30px #1e3a5f12;margin-bottom:16px}h1{margin:0 0 12px;font-size:24px}body[data-shell-page="import"] h1,body[data-shell-page="import"] h2,body[data-shell-page="import"] .card strong{color:var(--shell-ink,#14213d)}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:16px 0}.metric{padding:12px;background:#f4f7fb;border-radius:10px}.metric b,.metric strong{display:block;font-size:20px}.actions{display:flex;gap:10px;margin:18px 0;flex-wrap:wrap}button,a.button{border:0;border-radius:9px;padding:10px 16px;font-weight:650;cursor:pointer;text-decoration:none}#addImportShortcut{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:44px}.primary{background:#2563eb;color:#fff}.secondary{background:#e8eef7;color:#172033}.danger{background:#fff1f2;color:#b42318;border:1px solid #fecdd3}button:disabled{opacity:.5;cursor:not-allowed}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #e5eaf1}.muted{color:#667085}.ok{color:#067647}.error{color:#b42318}.bookmark-bar-hint{margin:8px 0 0}.import-panel[hidden]{display:none!important}.mobile-steps{padding-left:22px;line-height:1.7}.mobile-steps li+li{margin-top:8px}.privacy{padding:12px 14px;border-radius:12px;background:#ecfdf3;color:#05603a}.note{padding:12px 14px;border-radius:12px;background:#f6f8fb;color:#526174;line-height:1.6}.file-import-grid{display:grid;grid-template-columns:minmax(0,42fr) minmax(0,58fr);gap:18px;align-items:start}.file-import-column{min-width:0}.file-box{display:block;margin:18px 0;padding:22px;border:2px dashed #b8c8dd;border-radius:16px;background:#f8fbff;text-align:center;font-weight:750}.file-box input{display:block;width:100%;min-width:0;margin-top:12px}.file-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.table-wrap{overflow:auto}.schema{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;overflow:auto;background:#101828;color:#e5e7eb;border-radius:14px;padding:16px}.method-active{box-shadow:inset 0 0 0 2px var(--shell-accent,#2563eb)}@media(max-width:899px){.file-import-grid{grid-template-columns:1fr}}@media(max-width:700px){.bookmark-bar-hint{display:none}}@media(max-width:540px){main{padding:12px}.card{padding:14px}th:nth-child(4),td:nth-child(4){display:none}.file-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
     .file-import-grid{width:100%;max-width:100%;min-width:0}.file-import-column,.import-schema-panel,.file-import-column>.card{width:100%;max-width:100%;min-width:0}.file-box,.file-box input,.schema{max-width:100%;min-width:0}.schema{width:100%;white-space:pre;overflow-x:auto}@media(max-width:899px){.file-import-grid{grid-template-columns:minmax(0,1fr)}}
     .file-calendar-context{margin:16px 0;padding:14px;border:1px solid var(--shell-line,#dbe3ef);border-radius:12px}.file-calendar-context label{display:block;margin:12px 0 4px;font-weight:650}.file-calendar-context input{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px;border:1px solid var(--shell-line,#dbe3ef);border-radius:9px;background:var(--shell-glass-strong,#fff);color:var(--shell-ink,#14213d);font:inherit}.file-calendar-context :focus-visible{outline:3px solid #3486e4;outline-offset:2px}.schedule-time-row{display:grid;grid-template-columns:minmax(0,5em) repeat(2,minmax(0,1fr));gap:8px;align-items:end;margin:8px 0}.schedule-time-row label{min-width:0!important}.schedule-time-row output{align-self:center}.schedule-equal-toggle{display:flex!important;align-items:center;gap:8px;min-height:44px}.schedule-equal-toggle input{width:auto!important;min-height:20px!important}.schedule-duration input{max-width:9em}.file-calendar-choice{display:flex;gap:8px;flex-wrap:wrap}.file-calendar-choice button{min-height:44px}.schedule-time-row [hidden],.schedule-duration[hidden],.file-calendar-context [hidden]{display:none!important}@media(max-width:540px){.schedule-time-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.schedule-time-row strong{grid-column:1/-1}}
   </style>
-  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v020-compact-schedule-preview">
-  <link rel="stylesheet" href="/assets/timetable/reimport-review.css?v=v020-phase4b">
+  <link rel="stylesheet" href="/assets/timetable/product-shell.css?v=v022-production-20261015-160200">
+  <link rel="stylesheet" href="/assets/timetable/reimport-review.css?v=v022-production-20261015-160200">
   <style>
     body[data-shell-page="import"] main.shell{max-width:var(--page-max-width,1240px)}
     #import-entry h1,#import-entry h2,#preview h2{color:var(--shell-ink,#14213d)}
@@ -190,7 +190,6 @@
 </section>
 <section id="mobile-import" class="card import-panel" data-import-panel="mobile" hidden>
   <h2>手机 / iPad 导入</h2>
-  <p id="mobileShortcutIntro" class="muted">使用 AnyClass·课程导入（通用快捷指令）1.0.0 / Build 1，从 Safari 分享菜单导入课表。</p>
   <ol class="mobile-steps">
     <li id="mobileShortcutInstallStep">打开 Apple iCloud，核对名称后添加当前通用快捷指令。</li>
     <li>在 Safari 登录学校教务系统。</li>
@@ -199,7 +198,7 @@
     <li>在打开的 AnyClass 页面选择生成的课表文件。</li>
   </ol>
   <div class="actions"><a id="addImportShortcut" class="button primary" href="https://www.icloud.com/shortcuts/89145db4f66e409fbaa5fd3e5257b124" target="_blank" rel="noopener noreferrer">添加 AnyClass·课程导入</a><button class="secondary" type="button" data-import-method="file">已有文件，直接导入</button></div>
-  <p id="mobileShortcutRelease" class="note"><strong>当前通用版本：</strong>1.0.0 / Build 1。同一快捷指令可在运行时选择正式版或测试版，两个网站的数据相互隔离。</p>
+  <p id="mobileShortcutRelease" class="note">运行时可选择正式版或测试版，两个网站的数据相互隔离。</p>
   <p class="note"><strong>快捷指令目标：</strong><span id="importShortcutTarget" class="code">https://anyclass.heyaaron.asia/import/?method=file</span></p>
   <p class="privacy"><strong>隐私保护：</strong>课程数据只在当前设备处理，不会上传服务器。</p>
   <p class="muted">Safari 出于安全限制仍会要求手动选择一次生成的文件，这是预期行为。</p>
@@ -298,33 +297,33 @@
   <div class="reimport-review-actions"><p id="reimportReviewFeedback" class="reimport-review-feedback" role="alert" hidden></p><button id="reimportReviewCommit" class="primary" type="button" disabled>确认更新课表</button><button id="reimportReviewCancel" class="secondary" type="button">取消本次更新</button></div>
 </section>
 </main>
-<script src="/assets/timetable/normalized-import.js?v=v020-bookmark-preview-repair"></script>
-<script src="/assets/timetable/import-period-times.js"></script>
-<script src="/assets/timetable/import-file-core.js?v=v020-ai-school-contract"></script>
-<script src="/assets/timetable/school-profile.js"></script>
-<script src="/assets/timetable/school-config.js?v=v020-default-period-times"></script>
-<script src="/assets/adapters/timetable-adapter-contract.js"></script>
-<script src="/assets/adapters/adapter-diagnostics.js"></script>
-<script src="/assets/adapters/parsing-primitives.js"></script>
-<script src="/assets/adapters/public-profile-factory.js"></script>
-<script src="/assets/adapters/zhengfang-v9.js"></script>
-<script src="/assets/adapters/adapter-registry.js"></script>
-<script src="/assets/adapters/system-detector.js"></script>
-<script src="/assets/timetable/phaseb-engine.js?v=v020-ai-school-contract"></script>
-<script src="/assets/timetable/course-model.js?v=v020-scheduling-ux"></script>
-<script src="/assets/timetable/course-resolver.js"></script>
-<script src="/assets/timetable/effective-occurrences.js?v=v020-scheduling-ux"></script>
-<script src="/assets/timetable/schema4-plan.js"></script>
-<script src="/assets/timetable/storage-v2.js?v=v020-ai-school-contract"></script>
-<script src="/assets/timetable/timetable-repository.js?v=v020-scheduling-ux"></script>
-<script src="/assets/timetable/session-grouping.js"></script>
-<script src="/assets/timetable/import-file-storage.js?v=v020-default-period-times"></script>
-<script src="/assets/timetable/schedule-times.js?v=v020-compact-schedule-preview"></script>
-<script src="/assets/timetable/reimport-review.js?v=v020-phase4b"></script>
-<script src="/assets/timetable/course-name-review.js"></script>
-<script src="/assets/timetable/import-file-app.js?v=v020-bookmark-preview-repair"></script>
-<script src="/assets/timetable/clipboard-import.js?v=v020-ai-school-contract"></script>
-<script src="/assets/timetable/import-client-channels.js?v=v020-bookmark-channel-wiring"></script>
+<script src="/assets/timetable/normalized-import.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/import-period-times.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/import-file-core.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/school-profile.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/school-config.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/adapters/timetable-adapter-contract.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/adapters/adapter-diagnostics.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/adapters/parsing-primitives.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/adapters/public-profile-factory.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/adapters/zhengfang-v9.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/adapters/adapter-registry.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/adapters/system-detector.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/phaseb-engine.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/course-model.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/course-resolver.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/effective-occurrences.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/schema4-plan.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/storage-v2.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/timetable-repository.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/session-grouping.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/import-file-storage.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/schedule-times.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/reimport-review.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/course-name-review.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/import-file-app.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/clipboard-import.js?v=v022-production-20261015-160200"></script>
+<script src="/assets/timetable/import-client-channels.js?v=v022-production-20261015-160200"></script>
 <script>
 (()=>{"use strict";
 const profileRegistry=AnyClassSchoolProfileRegistry,trustedOrigins=[...new Set(profileRegistry.list().flatMap(item=>item.knownOrigins))],PROTOCOL="timetable-import-v1",BOOKMARKLET_ID="anyclass-import",BOOKMARKLET_VERSION="3.0.0";
@@ -337,7 +336,7 @@ addEventListener("anyclass:bookmark-saved",()=>notifyParent("IMPORT_SAVED"));
 addEventListener("anyclass:bookmark-navigation",event=>notifyParent("NAVIGATION_RESULT",{status:event.detail?.status,mode:event.detail?.mode}));
 addEventListener("keydown",event=>{if(event.key==="Escape"&&authenticatedParentOrigin){event.preventDefault();notifyParent("CLOSE_REQUEST")}});
 addEventListener("message",event=>{const p=event.data;if(event.source===window.parent&&p?.protocol===PROTOCOL&&p.type==="HTML_IMPORT"&&p.nonce===nonce&&p.source?.origin===event.origin&&profileRegistry.matchOrigin(event.origin,p.source?.system).length===1&&p.client?.id===BOOKMARKLET_ID&&p.client?.version===BOOKMARKLET_VERSION)authenticatedParentOrigin=event.origin});
-const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})();$("addImportShortcut").href=importChannel.shortcutInstallUrl;$("addImportShortcut").textContent="添加 AnyClass·课程导入";$("addImportShortcut").setAttribute("aria-label","前往 Apple iCloud 添加 AnyClass·课程导入");$("mobileShortcutIntro").textContent="使用 AnyClass·课程导入（通用快捷指令）1.0.0 / Build 1，从 Safari 分享菜单导入课表。";$("mobileShortcutInstallStep").textContent="打开 Apple iCloud，核对名称后添加当前通用快捷指令。";$("mobileShortcutRelease").innerHTML=`<strong>${importChannel.id==="beta"?"当前页面：AnyClass 测试版。":"当前通用版本：1.0.0 / Build 1。"}</strong>同一快捷指令可在运行时选择正式版或测试版，两个网站的数据相互隔离。`;$("importShortcutTarget").textContent=importChannel.shortcutTargetImportUrl;
+const importChannel=(()=>{try{return AnyClassImportClientChannels.forPageOrigin(location.origin)}catch(_){return AnyClassImportClientChannels.CHANNELS.stable}})();$("addImportShortcut").href=importChannel.shortcutInstallUrl;$("addImportShortcut").textContent="添加 AnyClass·课程导入";$("addImportShortcut").setAttribute("aria-label","前往 Apple iCloud 添加 AnyClass·课程导入");$("mobileShortcutInstallStep").textContent="打开 Apple iCloud，核对名称后添加当前通用快捷指令。";$("mobileShortcutRelease").textContent=`${importChannel.id==="beta"?"当前页面为测试版。":""}运行时可选择正式版或测试版，两个网站的数据相互隔离。`;$("importShortcutTarget").textContent=importChannel.shortcutTargetImportUrl;
 const methodNames=new Set(["desktop","mobile","file","clipboard"]);
 const methodButtons=()=>[...document.querySelectorAll("[data-import-method]")];
 const activateMethod=(method,{updateUrl=true,reveal=false}={})=>{const selected=methodNames.has(method)?method:null;for(const panel of document.querySelectorAll("[data-import-panel]")){const shared=panel.dataset.importPanel==="shared-preview"&&((selected==="file"||selected==="clipboard")||(selected==="desktop"&&bookmarkActive)),wasHidden=panel.hidden;panel.hidden=panel.dataset.importPanel!==selected&&!shared;if(reveal&&wasHidden&&!panel.hidden)AnyClassMotion?.reveal?.(panel)}for(const button of methodButtons()){const active=button.dataset.importMethod===selected;button.classList.toggle("method-active",active);if(button.hasAttribute("aria-controls"))button.setAttribute("aria-expanded",String(active))}if(updateUrl){const url=new URL(location.href);if(selected)url.searchParams.set("method",selected);else url.searchParams.delete("method");history.replaceState({method:selected},"",url)}};

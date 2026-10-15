@@ -5,6 +5,11 @@
   color: #172338;
 }
 * { box-sizing: border-box; }
+.install-navigation{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.install-back{display:inline-flex;align-items:center;min-height:44px;padding:8px 10px;color:#1d4ed8;font-weight:700;text-underline-offset:3px}
+.install-back:focus-visible,.section-heading a:focus-visible{outline:3px solid #2563eb;outline-offset:3px}
+.section-heading a{color:#1d4ed8;text-underline-offset:3px}
+@media (prefers-color-scheme:dark){.install-back,.section-heading a{color:#8ab4ff}}
 body { margin: 0; min-height: 100svh; background:radial-gradient(circle at 10% 0%,rgba(37,99,235,.12),transparent 28rem),linear-gradient(180deg,#f8f5ef 0,#f3f0e8 44%,#eee9df 100%); }
 .install-shell {
   min-height: 100svh;
