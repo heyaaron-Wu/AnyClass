@@ -24,7 +24,7 @@ check(html.includes('rel="external noopener noreferrer"'),'outbound install link
 check(/AnyClass·课程导入/.test(html)&&/1\.0\.0 \/ Build 1/.test(html),'name version and Build are visible');
 check(/页面不会自动跳转，也不会自动安装或替换快捷指令/.test(html),'manual installation boundary is visible');
 check(/学校页面内容、课表、账号、Cookie、Session 或 Token/.test(html),'precise privacy statement is visible');
-check(/版本更新日志/.test(html)&&/1\.0\.0 \/ Build 1/.test(html)&&/2026-10-14/.test(html),'verified initial release history is visible');
+check(/快捷指令更新日志/.test(html)&&/1\.0\.0 \/ Build 1/.test(html)&&/2026-10-14/.test(html),'verified initial release history is visible');
 check(/正式版或测试版/.test(html)&&/两个网站的数据相互隔离/.test(html),'universal channel choice and isolation are explained');
 check(/\/assets\/brand\/AnyClass_Icon\.svg/.test(html),'approved first-party AnyClass icon is used');
 check(html.includes('<link rel="icon" href="/assets/brand/AnyClass_Favicon.ico" sizes="16x16 24x24 32x32 48x48 64x64">'),'approved multi-size ICO fallback is declared with an absolute path');

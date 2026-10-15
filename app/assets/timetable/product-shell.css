@@ -651,6 +651,7 @@ body[data-shell-page="settings-timetable"] .period-preferences-panel{padding-bot
 }
 @media(min-width:701px) and (max-width:1099px){.privacy-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-color-scheme:dark){
+  .about-shortcut-kicker{color:#8ab4ff}
   .shell-more-link:hover,.shell-more-link:focus-visible,.settings-link-row:hover,.settings-link-row:focus-visible{background:rgba(53,91,148,.28)}
   .settings-link-list{background:rgba(17,28,46,.94)}
   .privacy-facts article{background:rgba(25,39,62,.74)}
