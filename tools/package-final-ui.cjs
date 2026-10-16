@@ -5,6 +5,13 @@ const [mode,rootArg,destArg]=process.argv.slice(2),root=path.resolve(rootArg||'.
 if(!['prepare','package'].includes(mode)||!rootArg)throw Error('EXPLICIT_MODE_ROOT_REQUIRED');
 const identity=JSON.parse(fs.readFileSync(path.join(root,'release/safari-ui-fix-identity.json'),'utf8'));
 if(identity.databaseVersion!==4||!/^v022-(beta11|production)-\d{8}-\d{6}$/.test(identity.releaseId)||!['beta-candidate','production'].includes(identity.releaseMode))throw Error('IDENTITY_INVALID');
+const navigationContractFile=path.join(root,'release/navigation-hotfix-contract.json');
+if(fs.existsSync(navigationContractFile)){
+  const c=JSON.parse(fs.readFileSync(navigationContractFile,'utf8'));
+  if(identity.productVersion!=='0.2.2'||identity.releaseMode!=='production'||identity.channel!=='stable'||!/^v022-production-\d{8}-\d{6}$/.test(identity.releaseId))throw Error('V022_NAVIGATION_IDENTITY_REQUIRED');
+  for(const k of ['productVersion','releaseMode','channel','databaseVersion'])if(identity[k]!==c[k])throw Error('NAVIGATION_CONTRACT_DRIFT');
+  if(identity.releaseId!==c.candidateReleaseId||identity.baseCommit!==c.sourceBaseCommit||identity.rollbackReleaseId!==c.rollbackReleaseId)throw Error('NAVIGATION_LINEAGE_DRIFT');
+}
 const app=path.join(root,'app'),sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const list=(dir,prefix='')=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>{if(e.isSymbolicLink())throw Error('SYMLINK');return e.isDirectory()?list(path.join(dir,e.name),path.posix.join(prefix,e.name)):[path.posix.join(prefix,e.name)]}).sort();
 const write=(p,s)=>fs.writeFileSync(p,s.replace(/\r\n/g,'\n'));

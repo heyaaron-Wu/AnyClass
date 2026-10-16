@@ -19,7 +19,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Hosted-v0.2.1-1679F3?style=flat-square" alt="Hosted v0.2.1" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.2-1679F3?style=flat-square" alt="Hosted v0.2.2" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/ZhengFang%20V9-Verified-2ea44f?style=flat-square" alt="ZhengFang V9 Verified" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
@@ -37,7 +37,7 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> Hosted Production is currently **v0.2.1**. The [**v0.2.1**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) source release is now published on GitHub. The repository's `main` branch contains the reconciled **public v0.2.1 source baseline**. Source-release identity remains separate from the Hosted Production deployment build identity.
+> Hosted Production is **v0.2.2 / v022-production-20261015-223822**. This LOCAL navigation hotfix remains **v0.2.2**, with new Build `v022-production-20261016-154638`; it is NOT deployed. See the [candidate and closeout gates](docs/v022-navigation-hotfix-candidate.md). The historical [v0.2.1 source release](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) is separate evidence, not proof of a v0.2.2 GitHub release.
 
 ## Features
 
@@ -118,7 +118,7 @@ Roadmap items are plans, not currently available features.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** the current `main` branch contains the reconciled AnyClass v0.2.1 public source baseline. The latest GitHub source release is **v0.2.1**. Its source identity is `v0.2.1`, while Hosted Production uses a separate deployment build identity.
+> **Repository source status:** this is an independent LOCAL v0.2.2 navigation-hotfix branch. No remote main reconciliation, push or Release was performed. GitHub source/docs reconciliation and the ISSUE-001 full-history privacy gate remain separate requirements; website deployment or current-source scan PASS does not satisfy them.
 
 ## Contributing
 

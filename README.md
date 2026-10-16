@@ -19,7 +19,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Hosted-v0.2.1-1679F3?style=flat-square" alt="Hosted v0.2.1" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.2-1679F3?style=flat-square" alt="Hosted v0.2.2" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/正方教务%20V9-已验证-2ea44f?style=flat-square" alt="正方教务 V9 已验证" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
@@ -37,7 +37,7 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 线上 Hosted Production 当前为 **v0.2.1**。GitHub 已正式发布 [**v0.2.1**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) 源码 Release。当前仓库 `main` 包含已对齐的 **v0.2.1 公开源码基线**；源码 Release 身份与 Hosted Production 的部署 Build 身份相互独立。
+> 线上 Hosted Production 为 **v0.2.2 / v022-production-20261015-223822**。本地导航热修复候选仍为 **v0.2.2**，新 Build 为 `v022-production-20261016-154638`，尚未部署。详见[候选与收尾门禁](docs/v022-navigation-hotfix-candidate.md)。历史 [v0.2.1 源码 Release](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) 与本次网站部署身份分开记录，不能视为 v0.2.2 的 GitHub 发布证据。
 
 ## 功能
 
@@ -118,7 +118,7 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
 
-> **仓库源码状态：** 当前 `main` 包含已对齐的 AnyClass v0.2.1 公开源码基线。GitHub 最新源码 Release 为 **v0.2.1**。源码身份为 `v0.2.1`，Hosted Production 使用独立的部署 Build 身份。
+> **仓库源码状态：** 此为独立本地 v0.2.2 导航热修复分支，未执行远程 main 同步、推送或 Release。GitHub 源码/文档对齐和 ISSUE-001 完整历史隐私门禁仍需独立完成，不能由网站已部署或当前源码扫描 PASS 替代。
 
 ## 贡献
 
