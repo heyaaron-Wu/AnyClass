@@ -37,13 +37,11 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 线上 Hosted Production 为 **v0.2.2 / v022-production-20261016-154638**，数据库格式为 Schema 4。网站技术验收、正式归档及用户报告的 iPhone/iPad 真机验收已完成。公开源码已通过 [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13) 与该部署的审定来源对齐；GitHub Tag / Release 与 Hosted Build 保持独立身份。详见[发布身份与收尾门禁](docs/v022-navigation-hotfix-candidate.md)。
+> 线上 Hosted Production 为 **v0.2.2 / v022-production-20261016-154638**，数据库格式为 Schema 4。网站技术验收、正式归档及用户报告的 iPhone/iPad 真机验收已完成。公开源码已通过 [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13) 与该部署的审定来源对齐；GitHub Tag / Release 与 Hosted Build 保持独立身份。详见[当前正式源码发布状态](docs/CURRENT_STABLE_RELEASE.md)。
 
 官方通用快捷指令：[AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install)，**1.0.0 / Build 1**。运行时选择正式版或测试版，两者数据隔离；安装须手动确认。当前没有更新版本，更新 Manifest 保持禁用。
 
 ## 功能
-
-历史 Beta 候选记录：[客户端时间采集与悬浮预览](docs/v022-beta4-candidate.md)、[悬浮预览视觉一致性](docs/v022-beta5-candidate.md)。这些文档保留当时状态，不代表当前部署状态。
 
 - 今日课程与当前 / 下一节课程
 - 周课表
