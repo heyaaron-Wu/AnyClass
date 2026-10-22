@@ -37,7 +37,7 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> Hosted Production is **v0.2.2 / v022-production-20261016-154638**, using database Schema 4. Website technical acceptance, formal archival and owner-reported iPhone/iPad acceptance are complete. This local source candidate follows the reviewed source of that deployment; the GitHub v0.2.2 source release requires separate approval. See [release identity and closeout gates](docs/v022-navigation-hotfix-candidate.md).
+> Hosted Production is **v0.2.2 / v022-production-20261016-154638**, using database Schema 4. Website technical acceptance, formal archival and owner-reported iPhone/iPad acceptance are complete. The public source was aligned with the accepted Hosted Build through [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13); GitHub Tag / Release and Hosted Build retain separate identities. See [release identity and closeout gates](docs/v022-navigation-hotfix-candidate.md).
 
 Official universal Shortcut: [AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install), **1.0.0 / Build 1**. Choose Stable or Beta when running it; their data remains isolated. Installation requires explicit user confirmation. No newer release exists, and the update Manifest remains disabled.
 
@@ -114,7 +114,7 @@ Roadmap items are plans, not currently available features.
 
 ## Open-source status
 
-**The hosted website runs v0.2.2; the latest published GitHub source release remains [v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1).** These are separate identities; no v0.2.2 tag or GitHub Release is claimed.
+**The hosted website runs v0.2.2; see [GitHub Releases](https://github.com/heyaaron-Wu/AnyClass/releases) for the current source release.** Hosted Build and GitHub source Tag are separate version identities.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
