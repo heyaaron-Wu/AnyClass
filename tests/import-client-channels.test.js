@@ -5,7 +5,9 @@ const run=cp.spawnSync(process.execPath,[path.join(root,"tools/build-import-clie
 const read=channel=>JSON.parse(fs.readFileSync(path.join(out,channel,"manifest.json"),"utf8")),beta=read("beta"),stable=read("stable");
 assert.equal(beta.bookmark.targetOrigin,"https://beta.anyclass.heyaaron.asia");assert.equal(stable.bookmark.targetOrigin,"https://anyclass.heyaaron.asia");
 assert.equal(beta.shortcut.targetImportUrl,"https://beta.anyclass.heyaaron.asia/import/?method=file");assert.equal(stable.shortcut.targetImportUrl,"https://anyclass.heyaaron.asia/import/?method=file");
-assert.equal(beta.shortcut.iCloudUrl,"https://www.icloud.com/shortcuts/2d1a3282109345918058db7cf1efd818");assert.equal(stable.shortcut.iCloudUrl,"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37");
+const universal="https://www.icloud.com/shortcuts/89145db4f66e409fbaa5fd3e5257b124",info="https://anyclass.heyaaron.asia/shortcuts/install";
+assert.equal(beta.shortcut.installUrl,universal);assert.equal(stable.shortcut.installUrl,universal);assert.equal(beta.shortcut.infoUrl,info);assert.equal(stable.shortcut.infoUrl,info);
+assert.equal(beta.shortcut.iCloudUrl,universal);assert.equal(stable.shortcut.iCloudUrl,universal);
 assert.equal(beta.channel,"beta");assert.equal(stable.channel,"stable");assert.equal(beta.importProtocol,"timetable-import-v1");assert.equal(beta.storageSchema,4);assert.equal(beta.normalizedImportSchema,1);
 const bb=fs.readFileSync(path.join(out,"beta/bookmarklet.txt"),"utf8"),sb=fs.readFileSync(path.join(out,"stable/bookmarklet.txt"),"utf8");
 const betaShortcut=fs.readFileSync(path.join(out,"beta/ios-shortcut-parser.js"),"utf8"),stableShortcut=fs.readFileSync(path.join(out,"stable/ios-shortcut-parser.js"),"utf8");
@@ -15,6 +17,6 @@ for(const value of ["jw.example.edu","school-demo","Example University"])assert(
 assert(betaShortcut.includes('id: null')&&betaShortcut.includes('name: null'),"unknown school identity must remain null");
 assert.equal(betaShortcut,stableShortcut,"Shortcut parser semantics must be shared byte-for-byte");
 assert.equal(beta.shortcut.parserSha256,stable.shortcut.parserSha256,"Shortcut parser semantics must be shared");
-assert.equal(stable.shortcut.stableICloudUrl,"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37");assert.equal(beta.shortcut.stableICloudUrl,null);
-assert.equal(beta.shortcut.published,true);assert.equal(stable.shortcut.published,true);
+assert.equal(stable.shortcut.stableICloudUrl,universal);assert.equal(beta.shortcut.stableICloudUrl,null);
+assert.equal(beta.shortcut.published,false);assert.equal(stable.shortcut.published,false);
 console.log(JSON.stringify({result:"IMPORT_CLIENT_CHANNELS_PASS",bookmarkVersion:beta.bookmark.version,shortcutVersion:beta.shortcut.version,protocol:beta.importProtocol,schema:beta.storageSchema,parserParity:"IDENTICAL"},null,2));

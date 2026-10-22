@@ -19,7 +19,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Hosted-v0.2.1-1679F3?style=flat-square" alt="Hosted v0.2.1" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.2-1679F3?style=flat-square" alt="Hosted v0.2.2" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/ZhengFang%20V9-Verified-2ea44f?style=flat-square" alt="ZhengFang V9 Verified" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
@@ -37,9 +37,13 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> Hosted Production is currently **v0.2.1**. The [**v0.2.1**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) source release is now published on GitHub. The repository's `main` branch contains the reconciled **public v0.2.1 source baseline**. Source-release identity remains separate from the Hosted Production deployment build identity.
+> Hosted Production is **v0.2.2 / v022-production-20261016-154638**, using database Schema 4. Website technical acceptance, formal archival and owner-reported iPhone/iPad acceptance are complete. This local source candidate follows the reviewed source of that deployment; the GitHub v0.2.2 source release requires separate approval. See [release identity and closeout gates](docs/v022-navigation-hotfix-candidate.md).
+
+Official universal Shortcut: [AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install), **1.0.0 / Build 1**. Choose Stable or Beta when running it; their data remains isolated. Installation requires explicit user confirmation. No newer release exists, and the update Manifest remains disabled.
 
 ## Features
+
+Historical Beta candidate records: [client clock capture and floating preview](docs/v022-beta4-candidate.md) and [floating-preview visual consistency](docs/v022-beta5-candidate.md). Their contemporaneous status is preserved; it is not the current deployment status.
 
 - Today's classes and current / next class
 - Weekly timetable
@@ -110,11 +114,11 @@ Roadmap items are plans, not currently available features.
 
 ## Open-source status
 
-**AnyClass v0.2.1 is deployed to the hosted Production app, and the corresponding GitHub source release is published:** [AnyClass v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1)
+**The hosted website runs v0.2.2; the latest published GitHub source release remains [v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1).** These are separate identities; no v0.2.2 tag or GitHub Release is claimed.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** the current `main` branch contains the reconciled AnyClass v0.2.1 public source baseline. The latest GitHub source release is **v0.2.1**. Its source identity is `v0.2.1`, while Hosted Production uses a separate deployment build identity.
+> **Repository source status:** the v0.2.2 public source is aligned with the accepted Hosted Build through [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13), including the full product functionality rather than version-string changes alone. For current GitHub Tag / Release publication status, refer to [Releases](https://github.com/heyaaron-Wu/AnyClass/releases). The ISSUE-001 strict full-history privacy gate remains separate and cannot be satisfied by current-source review alone.
 
 ## Contributing
 

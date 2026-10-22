@@ -4,14 +4,18 @@
   else root.AnyClassImportClientChannels=api;
 })(typeof globalThis!=="undefined"?globalThis:this,function(){
   "use strict";
+  const UNIVERSAL_SHORTCUT_URL="https://www.icloud.com/shortcuts/89145db4f66e409fbaa5fd3e5257b124";
+  const UNIVERSAL_SHORTCUT_INFO_URL="https://anyclass.heyaaron.asia/shortcuts/install";
   const CHANNELS=Object.freeze({
     beta:Object.freeze({
       id:"beta",
       pageOrigin:"https://beta.anyclass.heyaaron.asia",
       bookmarkDisplayName:"AnyClass 导入课表 Beta",
       bookmarkTargetOrigin:"https://beta.anyclass.heyaaron.asia",
-      shortcutDisplayName:"AnyClass 导入课程 Beta",
-      shortcutICloudUrl:"https://www.icloud.com/shortcuts/2d1a3282109345918058db7cf1efd818",
+      shortcutDisplayName:"AnyClass·课程导入",
+      shortcutInstallUrl:UNIVERSAL_SHORTCUT_URL,
+      shortcutInfoUrl:UNIVERSAL_SHORTCUT_INFO_URL,
+      shortcutICloudUrl:UNIVERSAL_SHORTCUT_URL,
       shortcutTargetImportUrl:"https://beta.anyclass.heyaaron.asia/import/?method=file"
     }),
     stable:Object.freeze({
@@ -19,8 +23,10 @@
       pageOrigin:"https://anyclass.heyaaron.asia",
       bookmarkDisplayName:"AnyClass 导入课表",
       bookmarkTargetOrigin:"https://anyclass.heyaaron.asia",
-      shortcutDisplayName:"AnyClass 导入课程",
-      shortcutICloudUrl:"https://www.icloud.com/shortcuts/8b151aa3c24441c3b87c6f2b85fa5f37",
+      shortcutDisplayName:"AnyClass·课程导入",
+      shortcutInstallUrl:UNIVERSAL_SHORTCUT_URL,
+      shortcutInfoUrl:UNIVERSAL_SHORTCUT_INFO_URL,
+      shortcutICloudUrl:UNIVERSAL_SHORTCUT_URL,
       shortcutTargetImportUrl:"https://anyclass.heyaaron.asia/import/?method=file"
     })
   });
@@ -39,7 +45,7 @@
     if(source.split(targetNeedle).length!==2)throw Error("BOOKMARK_TARGET_SOURCE_DRIFT");
     const clientNeedle=`CLIENT=Object.freeze({id:"${clientId}",version:"${clientVersion}"})`;
     if(source.split(clientNeedle).length!==2)throw Error("BOOKMARK_CLIENT_SOURCE_DRIFT");
-    const result=source
+    const result=source.replace(/\r?\n/g,"")
       .replace(targetNeedle,`const TARGET_ORIGIN="${channel.bookmarkTargetOrigin}"`)
       .replace(clientNeedle,`CLIENT=Object.freeze({id:"${clientId}",version:"${clientVersion}",channel:"${channel.id}"})`);
     if(!result.includes(`TARGET_ORIGIN="${channel.bookmarkTargetOrigin}"`)||!result.includes(`channel:"${channel.id}"`))throw Error("BOOKMARK_CHANNEL_BUILD_FAILED");

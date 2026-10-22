@@ -12,7 +12,16 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, {"content-type": file.endsWith(".js") ? "application/javascript" : file.endsWith(".css") ? "text/css" : "text/html", "cache-control":"no-store"});
   res.end(fs.readFileSync(file));
 });
-const listen = () => new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+// Windows can allocate 5060 for an ephemeral listener; Chrome rejects that
+// SIP port before the application loads. Rebind instead of bypassing Chrome.
+const listen = async () => {
+  for (let attempt=0;attempt<5;attempt++) {
+    await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
+    if(server.address().port!==5060)return;
+    await new Promise(resolve=>server.close(resolve));
+  }
+  throw new Error("No browser-safe local listener available");
+};
 (async () => {
   await listen();
   fs.mkdirSync(evidence,{recursive:true});
@@ -21,6 +30,19 @@ const listen = () => new Promise(resolve => server.listen(0, "127.0.0.1", resolv
   const base = process.env.ANYCLASS_BROWSER_BASE?.replace(/\/$/, "") || `http://127.0.0.1:${server.address().port}`;
   const context = await browser.newContext({viewport:{width:390,height:844}});
   const page = await context.newPage();
+  // Native close is queued after the dialog stops being visible. The manager's
+  // close handler restores opener focus; wait for it before starting a new Tab
+  // sequence, or that late restoration can move Enter onto "编辑信息".
+  const cancelDeleteAndWait = async () => {
+    await page.evaluate(() => {
+      const dialog=document.querySelector("#deleteDialog");
+      window.__testDeleteClosed=new Promise(resolve=>dialog.addEventListener("close",()=>queueMicrotask(resolve),{once:true}));
+    });
+    await page.locator("#deleteDialog [data-close-dialog]").click();
+    await page.evaluate(()=>window.__testDeleteClosed);
+    await page.locator("#deleteDialog").waitFor({state:"hidden"});
+    check(await page.evaluate(()=>!document.querySelector("#deleteDialog").open&&!document.querySelector("#deleteDialog").dataset.closing),"native close and focus-restoration lifecycle settled");
+  };
   page.on("pageerror", error => console.error("PAGE_ERROR", error.message));
   let assertions = 0;
   const check = (value, label) => { assert(value, label); assertions++; };
@@ -194,12 +216,12 @@ const listen = () => new Promise(resolve => server.listen(0, "127.0.0.1", resolv
       check(Math.abs(dialogGeometry.left-dialogGeometry.right)<=1&&dialogGeometry.left>=15&&dialogGeometry.overflow<=0,`delete dialog horizontally centered ${width} ${dark}: ${JSON.stringify(dialogGeometry)}`);
       const pointerFocus=await page.evaluate(()=>({active:document.activeElement?.id||document.activeElement?.textContent?.trim(),cancelVisible:document.querySelector("#deleteDialog [data-close-dialog]").matches(":focus-visible"),dialogOutline:getComputedStyle(document.querySelector("#deleteDialog")).outlineStyle}));
       check(pointerFocus.active==="deleteDialog"&&!pointerFocus.cancelVisible&&pointerFocus.dialogOutline==="none",`touch/pointer delete open has no Cancel focus ring ${width} ${dark}`);
-      await page.locator("#deleteDialog [data-close-dialog]").click();
-      await page.locator("#deleteDialog").waitFor({state:"hidden"});
+      await cancelDeleteAndWait();
       const deleteTrigger=page.locator("#timetableList article").first().getByRole("button", {name:"删除"});
       await deleteTrigger.focus();
       await page.keyboard.press("Tab");
       await page.keyboard.press("Shift+Tab");
+      check(await deleteTrigger.evaluate(node=>node===document.activeElement),"keyboard Enter targets the intended Delete button after settled close");
       await page.keyboard.press("Enter");
       const keyboardFocus=await page.evaluate(()=>({label:document.activeElement?.textContent?.trim(),visible:document.activeElement?.matches(":focus-visible"),outline:getComputedStyle(document.activeElement).outlineStyle}));
       check(keyboardFocus.label==="取消"&&keyboardFocus.visible&&keyboardFocus.outline!=="none",`keyboard delete open keeps visible focus ${width} ${dark}`);
@@ -207,7 +229,7 @@ const listen = () => new Promise(resolve => server.listen(0, "127.0.0.1", resolv
       check(await page.evaluate(()=>document.querySelector("#deleteDialog").contains(document.activeElement)||document.activeElement?.id==="deleteDialog"),`delete dialog reverse Tab stays trapped ${width} ${dark}`);
       await page.keyboard.press("Tab");
       check(await page.evaluate(()=>document.querySelector("#deleteDialog").contains(document.activeElement)||document.activeElement?.id==="deleteDialog"),`delete dialog forward Tab stays trapped ${width} ${dark}`);
-      await page.locator("#deleteDialog [data-close-dialog]").click();
+      await cancelDeleteAndWait();
       if (width === 390 && dark) await page.screenshot({path:path.join(evidence,"anyclass-phase1c-management-mobile-dark.png"),fullPage:true});
       if (width === 1280 && !dark) await page.screenshot({path:path.join(evidence,"anyclass-phase1c-management-desktop-light.png"),fullPage:true});
       await page.goto(base + "/timetable/");

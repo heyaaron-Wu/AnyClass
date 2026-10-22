@@ -116,6 +116,17 @@
     }
     const dataset = root.AnyClassNormalizedImport.create({school, semester, meetings, source: "file", diagnostics: {exactDuplicateCount}});
     dataset.timetableName = optionalText(input.timetableName, "课表名称");
+    if (input.periodTimes !== undefined) {
+      if (!root.AnyClassImportPeriodTimes) fail("PERIOD_TIMES_UNAVAILABLE", "上课时间校验组件不可用");
+      try {
+        if (input.periodTimeProvenance !== undefined && input.periodTimeProvenance !== "zhengfang-v9:explicit-single-period-clock-text") fail("INVALID_PERIOD_TIMES", "上课时间来源标记无效");
+        dataset.providedPeriodTimes = root.AnyClassImportPeriodTimes.validateProvided(input.periodTimes);
+        dataset.providedPeriodTimeSource = input.periodTimeProvenance ? "SOURCE_PAGE" : "JSON";
+        dataset.periodTimeProvenance = input.periodTimeProvenance || null;
+        if (root.AnyClassDefaultPeriodTimes) root.AnyClassImportPeriodTimes.resolve(dataset.providedPeriodTimes,Math.max(...dataset.meetings.map(meeting=>meeting.endPeriod)),root.AnyClassDefaultPeriodTimes.clone(),dataset.providedPeriodTimeSource);
+      }
+      catch (error) { fail("INVALID_PERIOD_TIMES", error.message); }
+    }
     return dataset;
   };
 
@@ -127,6 +138,24 @@
     } catch (_error) {
       fail("INVALID_JSON", "文件不是有效的 JSON");
     }
+    // Inspect valid JSON tokens before JSON.parse can conceal duplicate timing keys.
+    let cursor=0;
+    const space=()=>{while(/\s/.test(text[cursor]||""))cursor++};
+    const stringToken=()=>{const start=cursor++;while(cursor<text.length){if(text[cursor]==="\\"){cursor+=2;continue}if(text[cursor++]==='"')break}return JSON.parse(text.slice(start,cursor))};
+    const walk=(depth=0,timing=false)=>{
+      space();const character=text[cursor];
+      if(character==='{'){
+        cursor++;space();const seen=new Set();
+        while(text[cursor]!=='}'){
+          const key=stringToken();space();cursor++;
+          if(seen.has(key)&&(timing||depth===0&&key==="periodTimes"))fail("INVALID_PERIOD_TIMES","periodTimes 含有重复节次键或重复时间字段");
+          seen.add(key);walk(depth+1,timing||depth===0&&key==="periodTimes");space();if(text[cursor]===','){cursor++;space()}else break;
+        }cursor++;
+      }else if(character==='['){cursor++;space();while(text[cursor]!==']'){walk(depth+1,timing);space();if(text[cursor]===','){cursor++;space()}else break}cursor++}
+      else if(character==='"')stringToken();
+      else while(cursor<text.length&&!/[\s,\]}]/.test(text[cursor]))cursor++;
+    };
+    try{walk()}catch(error){if(error instanceof TimetableFileError)throw error;fail("INVALID_JSON","文件嵌套过深或格式无效")}
     return validateAndNormalize(value);
   };
 

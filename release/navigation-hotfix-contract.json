@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "productVersion": "0.2.2",
+  "candidateReleaseId": "v022-production-20261016-154638",
+  "releaseMode": "production",
+  "channel": "stable",
+  "databaseVersion": 4,
+  "sourceBaseCommit": "4a1839e56ae32f4c7c94f60a19989d08503a5e5f",
+  "rollbackReleaseId": "v022-production-20261015-223822",
+  "baselinePackageSHA256": "104e7ea0301f148de64af7951cdc71f8e2218d606835753233255b250ed10bc4",
+  "baselineManifestSHA256": "3c3eff747708c63a85265855b0add87ecace88627c534358f6810cd71bd289d9",
+  "approvedPatchSHA256": "6e9036eff585811b6bccfee07972318704ae9266e293e5614973b7a96f10b162",
+  "shortcutVersion": "1.0.0",
+  "shortcutBuild": 1,
+  "published": false,
+  "scope": "Existing v0.2.2 cycle; same-tab native navigation only; no data, schema, CSS, cache, CSP, update Manifest or Shortcut changes"
+}

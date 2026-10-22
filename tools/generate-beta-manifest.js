@@ -1,0 +1,11 @@
+"use strict";
+const crypto=require("node:crypto"),fs=require("node:fs"),path=require("node:path");
+const root=path.resolve(__dirname,".."),contractPath=path.resolve(process.argv[2]||path.join(root,"release/v022-beta-contract.json")),outputPath=path.resolve(process.argv[3]||path.join(root,"release/v022-beta-app-manifest.json"));
+const contract=JSON.parse(fs.readFileSync(contractPath,"utf8")),app=path.resolve(root,contract.appRoot),hash=file=>crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+if(contract.schemaVersion!==1||contract.releaseMode!=="beta-candidate"||contract.channel!=="beta"||contract.publicPrivateBoundary!=="public-core-only")throw Error("BETA_CONTRACT_INVALID");
+const list=(dir,prefix="")=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(entry=>{const relative=path.posix.join(prefix,entry.name),absolute=path.join(dir,entry.name);return entry.isDirectory()?list(absolute,relative):[relative]}).sort();
+const files=Object.fromEntries(list(app).map(relative=>[relative,hash(path.join(app,...relative.split("/")))]));
+const sourceTreeDigest=crypto.createHash("sha256").update(Object.entries(files).map(([file,digest])=>`${file}\0${digest}\n`).join(""),"utf8").digest("hex");
+const manifest={...contract,generatedPackageIdentity:`${contract.candidateReleaseId}:${sourceTreeDigest}`,sourceTreeDigest,applicationFileCount:Object.keys(files).length,files};
+fs.mkdirSync(path.dirname(outputPath),{recursive:true});fs.writeFileSync(outputPath,JSON.stringify(manifest,null,2)+"\n");
+console.log(JSON.stringify({result:"BETA_MANIFEST_GENERATED",releaseId:contract.candidateReleaseId,fileCount:manifest.applicationFileCount,sourceTreeDigest}));

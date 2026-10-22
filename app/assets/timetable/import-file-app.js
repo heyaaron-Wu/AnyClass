@@ -11,7 +11,7 @@
   let pending = null;
   let timeEditor = null;
   let detectedTimezone = null;
-  let usingDefaultTimes = false;
+  let initialPeriodTimes = {}, initialPeriodSources = {}, timeChoice = null, reviewedTimeSignature = null;
   let importSource = "file";
   let storageFactory = indexedDB;
   let importTarget = null;
@@ -153,7 +153,8 @@
       if (!$("fileConflictReview").hidden && !$("fileConflictConfirm").checked) reasons.push("请核对并确认保留的时间冲突。");
     }
     if (document.body.classList.contains("reimport-review-active")) reasons.push("请完成下方的课表更新核对。");
-    if (timeEditor && !$("fileTimeEditor").hidden) try { timeEditor.read(); } catch (_) { reasons.push("请检查上课时间设置。"); }
+    if (!$('fileTimeReview').hidden && !timeChoice) reasons.push("请选择保留已有上课时间，或使用本次预览时间。");
+    if (pending && timeEditor) try { const selected=currentTimeSelection(); AnyClassImportPeriodTimes.validateSequence(selected.periodTimes,Math.max(AnyClassScheduleTimes.maxPeriod(pending.meetings),...Object.keys(selected.periodTimes).map(Number))); } catch (error) { reasons.push(`请检查上课时间设置：${error.message}`); }
     return {canSubmit:reasons.length===0,reasons};
   };
   const clearRedirect = () => {
@@ -164,6 +165,7 @@
   const setState = next => {
     state = next;
     preview.dataset.importState = next;
+    document.body.classList.toggle("import-save-success", next === STATES.SUCCESS);
     const editable = [STATES.VALIDATION_REQUIRED,STATES.PREVIEW_READY,STATES.SAVE_FAILED].includes(next);
     const eligibility = submitEligibility();
     save.hidden = !(editable || next === STATES.SAVING);
@@ -177,9 +179,31 @@
     $("fileSaved").hidden = next !== STATES.SUCCESS;
     $("fileGoToday").hidden = next !== STATES.SUCCESS;
     input.disabled = next === STATES.SAVING || next === STATES.SUCCESS;
+    if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-preview-state", {detail:{dirty:next !== STATES.SUCCESS && next !== STATES.IDLE,busy:next === STATES.SAVING || next === STATES.COMMITTED_UNVERIFIED}}));
   };
-  const goToday = () => {
+  const showBookmarkNavigationFallback = () => {
+    const countdown=submitMessage.querySelector("[data-import-countdown]");
+    if(countdown){
+      countdown.textContent="";
+      if(countdown.nextSibling)countdown.nextSibling.textContent=" 浏览器未允许自动打开；请点击下方“立即前往”。";
+    }
+  };
+  const goToday = (mode = "manual") => {
     if (navigating || state !== STATES.SUCCESS) return;
+    if(importSource === "bookmark" && window.parent !== window){
+      clearRedirect();
+      let opened=null;
+      try{opened=window.open("/today/","_blank")}catch(_){}
+      if(opened){
+        navigating=true;
+        try{opened.opener=null}catch(_){}
+        dispatchEvent(new CustomEvent("anyclass:bookmark-navigation",{detail:{status:"OPENED",mode}}));
+      }else{
+        showBookmarkNavigationFallback();
+        dispatchEvent(new CustomEvent("anyclass:bookmark-navigation",{detail:{status:"BLOCKED",mode}}));
+      }
+      return;
+    }
     navigating = true;
     clearRedirect();
     location.assign("/today/");
@@ -192,12 +216,48 @@
     $("fileDateDisplay").dataset.empty = String(!hasDate);
   };
   const updateTimingStatus = () => {
-    let count = 0, invalid = false;
-    if (timeEditor) try { count = Object.keys(timeEditor.read()).length; } catch (_) { invalid = true; }
+    let times = initialPeriodTimes, sources = initialPeriodSources, invalid = false;
+    if (timeEditor && !$('fileTimeEditor').hidden) try {
+      times = timeEditor.read();
+      sources = Object.fromEntries(Object.entries(times).map(([key,row])=>[key,initialPeriodTimes[key]?.start===row.start&&initialPeriodTimes[key]?.end===row.end ? initialPeriodSources[key] : "USER_EDITED"]));
+    } catch (_) { invalid = true; }
+    const existing=targetBundle?.term;
+    const sameTerm=existing&&pending&&existing.academicYear===pending.semester.academicYear&&String(existing.termCode)===String(pending.semester.term);
+    const retainsExisting=Boolean(!invalid&&sameTerm&&(timeChoice==="PRESERVE"||(!timeChoice&&Object.values(sources).every(source=>source==="DEFAULT")))&&!AnyClassImportPeriodTimes.sameTimes(existing.periodTimes,times));
+    const displayTimes=retainsExisting?existing.periodTimes:times;
+    const displaySources=retainsExisting?Object.fromEntries(Object.keys(existing.periodTimes||{}).map(key=>[key,existing.periodTimeSources?.[key]||"EXISTING"])):sources;
     const highest = pending ? AnyClassScheduleTimes.maxPeriod(pending.meetings) : 0;
-    const defaultStart = AnyClassDefaultPeriodTimes.clone()[1].start;
-    $("filePeriodHint").textContent = invalid ? "上课时间：正在填写。请检查时间顺序。" : usingDefaultTimes ? highest > AnyClassDefaultPeriodTimes.highest ? `上课时间：默认作息 · 第1节 ${defaultStart} 开始\n目前覆盖前 ${AnyClassDefaultPeriodTimes.highest} 节；其余可在课表设置中补充。` : `上课时间：默认作息 · 第1节 ${defaultStart} 开始\n可在课表设置中修改。` : count === 0 ? "上课时间：未设置。可稍后在「课表设置」中补充。" : count >= highest ? "上课时间：已设置。" : "上课时间：已填写部分节次；其余可稍后补充。";
-    $("fileTimeNow").textContent = count > 0 ? "修改" : "现在设置";
+    const used = Array.from({length:highest},(_,index)=>String(index+1));
+    const labels={JSON:"JSON 提供",SOURCE_PAGE:"教务课表页面提供",DEFAULT:"AnyClass 默认作息补全",USER_EDITED:"用户修改",EXISTING:"保留已有课表"};
+    const kinds=new Set(used.map(key=>displaySources[key]).filter(Boolean));
+    const sourceLabel=kinds.size>1?"混合（"+[...kinds].map(kind=>labels[kind]).join(" + ")+"）":labels[[...kinds][0]]||"未设置";
+    const legacyDefault=kinds.size===1&&kinds.has("DEFAULT") ? `上课时间：默认作息 · 第1节 ${displayTimes[1]?.start||"08:00"} 开始\n${highest>AnyClassDefaultPeriodTimes.highest?`目前覆盖前 ${AnyClassDefaultPeriodTimes.highest} 节；其余可在课表设置中补充。`:"可在课表设置中修改。"}\n来源：${sourceLabel}。` : null;
+    $("filePeriodHint").textContent = invalid ? "上课时间：正在填写。请检查时间顺序。" : legacyDefault || `上课时间来源：${sourceLabel}。${kinds.has("USER_EDITED")?"已设置，请核对后保存。":""}`;
+    $("fileTimeDetails").textContent = invalid ? "请检查时间顺序后再保存。" : used.map(key=>displayTimes[key] ? `第${key}节 ${displayTimes[key].start}–${displayTimes[key].end}${kinds.size>1 ? `（${labels[displaySources[key]]||"未标记"}）` : ""}` : `第${key}节 未设置，请手动补充`).join("；");
+    $("fileTimeNow").textContent = Object.keys(times).length > 0 ? "修改" : "现在设置";
+    if(invalid){$("fileTimeReview").hidden=true;timeChoice=null;reviewedTimeSignature=null;}
+    else updateTimeReview(times);
+  };
+  const currentTimeSelection = () => {
+    const periodTimes = timeEditor && !$('fileTimeEditor').hidden ? timeEditor.read() : initialPeriodTimes;
+    const periodTimeSources = Object.fromEntries(Object.entries(periodTimes).map(([key,row])=>[key,initialPeriodTimes[key]?.start===row.start&&initialPeriodTimes[key]?.end===row.end ? initialPeriodSources[key] : "USER_EDITED"]));
+    return {periodTimes,periodTimeSources};
+  };
+  const periodTimeSignature = times => JSON.stringify(Object.entries(times||{}).sort(([a],[b])=>Number(a)-Number(b)));
+  const defaultOnly = sources => Object.values(sources||{}).every(source=>source==="DEFAULT");
+  const updateTimeReview = times => {
+    const term=targetBundle?.term;
+    const sameTerm=term&&pending&&term.academicYear===pending.semester.academicYear&&String(term.termCode)===String(pending.semester.term);
+    const customized=Boolean(sameTerm&&(Object.values(term.periodTimeSources||{}).some(source=>source==="USER_EDITED")||!AnyClassDefaultPeriodTimes.isDefault(term.periodTimes)));
+    const different=Boolean(sameTerm&&(customized||!defaultOnly(currentTimeSelection().periodTimeSources))&&!AnyClassImportPeriodTimes.sameTimes(term.periodTimes,times));
+    const signature=different?`${importTarget?.id}|${periodTimeSignature(term.periodTimes)}|${periodTimeSignature(times)}`:null;
+    if(signature!==reviewedTimeSignature){timeChoice=null;for(const radio of document.querySelectorAll('input[name="fileTimeChoice"]'))radio.checked=false;reviewedTimeSignature=signature;}
+    $("fileTimeReview").hidden=!different;
+    if(different){
+      const keys=[...new Set([...Object.keys(term.periodTimes||{}),...Object.keys(times||{})])].sort((a,b)=>Number(a)-Number(b));
+      const changed=keys.filter(key=>term.periodTimes?.[key]?.start!==times?.[key]?.start||term.periodTimes?.[key]?.end!==times?.[key]?.end);
+      $("fileTimeDifference").textContent=`不同节次：${changed.map(key=>`第${key}节 ${term.periodTimes?.[key] ? `${term.periodTimes[key].start}–${term.periodTimes[key].end}` : "未设置"} → ${times?.[key] ? `${times[key].start}–${times[key].end}` : "未设置"}`).join("；")}。请明确选择；不会自动覆盖已有时间。`;
+    }
   };
   const updateImportTarget = () => {
     const name = $("fileTimetableName").value.trim() || "待填写";
@@ -221,6 +281,10 @@
       else AnyClassShell.setImportError(false);
     }
   };
+  const showFileValidationError = error => {
+    setState(STATES.IDLE);
+    setMessage(`文件校验失败：${error.message || "未知错误"}`, "error");
+  };
 
   const resetPreview = () => {
     nameRevision++;namePlan=null;nameSignature=null;nameChoices.clear();nameReviewStates.clear();renamedFeedback="";timeReviewSignature=null;conflictChoices.clear();exactDuplicateChoices.clear();conflictPairs=[];exactDuplicatePairs=[];exactDuplicateSignature="[]";conflictReady=false;targetBundle=null;conflictFeedback="";editOrigin=null;editReturnRevision++;$("fileEditReturnStatus").hidden=true;$("fileNameReview").hidden=true;$("fileExactDuplicateReview").hidden=true;$("filePendingEditor").hidden=true;
@@ -238,7 +302,7 @@
     $("fileCalendarContext").hidden = true;
     $("fileTimeEditor").hidden = true;
     timeEditor = null;
-    usingDefaultTimes = false;
+    initialPeriodTimes={};initialPeriodSources={};timeChoice=null;reviewedTimeSignature=null;$("fileTimeReview").hidden=true;$("fileTimeDetails").textContent="";
     $("fileTimeNow").setAttribute("aria-expanded", "false");
     $("fileSemesterStart").value = "";
     $("fileSchoolName").value = "";
@@ -309,8 +373,9 @@
       $("fileTimezoneInfo").textContent = detectedTimezone ? `时区：跟随设备（${detectedTimezone}）` : "无法检测设备时区，请在下方填写。";
       $("fileTimezone").value = "";
       $("fileTimeEditor").hidden = true;
-      usingDefaultTimes = true;
-      timeEditor = AnyClassScheduleTimes.editor($("fileTimeEditor"),Math.max(AnyClassDefaultPeriodTimes.highest,AnyClassScheduleTimes.maxPeriod(dataset.meetings)),AnyClassDefaultPeriodTimes.clone());
+      const resolved=AnyClassImportPeriodTimes.resolve(dataset.providedPeriodTimes,AnyClassScheduleTimes.maxPeriod(dataset.meetings),AnyClassDefaultPeriodTimes.clone(),dataset.providedPeriodTimeSource||"JSON");
+      initialPeriodTimes=resolved.periodTimes;initialPeriodSources=resolved.periodTimeSources;
+      timeEditor = AnyClassScheduleTimes.editor($("fileTimeEditor"),Math.max(AnyClassDefaultPeriodTimes.highest,AnyClassScheduleTimes.maxPeriod(dataset.meetings)),initialPeriodTimes);
       updateTimingStatus();
     }
     const fragment = document.createDocumentFragment();
@@ -343,7 +408,8 @@
     resetPreview();
     setState(STATES.PARSING);
     try {
-      storageFactory = options.factory || indexedDB;
+      // Keep the Receiver's authorized storage context across subsequent previews.
+      storageFactory = options.factory || storageFactory;
       if (!dataset || !Array.isArray(dataset.meetings)) throw Error("INVALID_IMPORT_DATASET");
       dataset.fingerprint = dataset.fingerprint || await AnyClassTimetableFile.fingerprint(dataset);
       importSource = source;
@@ -353,13 +419,19 @@
       else if (source === "bookmark") setMessage("书签课表已读取，请补充并核对信息后保存。", "ok");
       return dataset;
     } catch (error) {
-      setState(STATES.IDLE);
-      if (source === "file") setMessage(`文件校验失败：${error.message || "未知错误"}`, "error");
+      if (source === "file") showFileValidationError(error);
+      else setState(STATES.IDLE);
       throw error;
     }
   };
   const previewText = async (text, source = "file", options = {}) => {
-    const dataset = AnyClassTimetableFile.parseText(text);
+    let dataset;
+    try {
+      dataset = AnyClassTimetableFile.parseText(text);
+    } catch (error) {
+      if (source === "file") showFileValidationError(error);
+      throw error;
+    }
     return previewDataset(dataset,source,options);
   };
   window.AnyClassSharedJsonImport = Object.freeze({previewText,previewDataset});
@@ -384,10 +456,12 @@
       setMessage("文件超过 5 MB 限制", "error");
       return;
     }
+    setMessage("正在读取并校验文件…");
     try {
       await previewText(await file.text());
     } catch (error) {
-      // previewText already presents file validation feedback.
+      // Parsing/preview failures already report themselves; a file read can fail first.
+      if (!message.classList.contains("error")) showFileValidationError(Error("读取文件失败，请重试或重新选择文件"));
     }
   });
 
@@ -405,15 +479,16 @@
     if (!matchingTarget || !defaultTarget) return;
     importTarget = importTarget?.id === matchingTarget.id ? defaultTarget : matchingTarget;
     if (!timetableNameEdited) $("fileTimetableName").value = importTarget.label || pending?.timetableName || "课程表";
-    updateImportTarget();nameChoices.clear();nameReviewStates.clear();renamedFeedback="";conflictReady=false;void refreshNameReview();refreshValidation();
+    updateImportTarget();targetBundle=null;updateTimingStatus();nameChoices.clear();nameReviewStates.clear();renamedFeedback="";conflictReady=false;void refreshNameReview();refreshValidation();
   });
-  $("fileTimeEditor").addEventListener("input",()=>{usingDefaultTimes=false;updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
-  $("fileTimeEditor").addEventListener("change",()=>{usingDefaultTimes=false;updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
+  $("fileTimeReview").addEventListener("change",event=>{if(event.target.name!=="fileTimeChoice")return;timeChoice=event.target.value;updateTimingStatus();refreshValidation();});
+  $("fileTimeEditor").addEventListener("input",()=>{updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
+  $("fileTimeEditor").addEventListener("change",()=>{updateTimingStatus();clearFieldError("fileTimeNow","fileTimeError");refreshValidation();});
   $("fileTimeNow").addEventListener("click",()=>{ $("fileTimeEditor").hidden = false; $("fileTimeNow").setAttribute("aria-expanded", "true"); $("fileTimeEditor").querySelector("input")?.focus(); });
   const readCalendarContext = dataset => {
     try {
-      const periodTimes = $("fileTimeEditor").hidden ? AnyClassDefaultPeriodTimes.clone() : timeEditor.read();
-      const context = {semesterStartDate:$("fileSemesterStart").value,timezone:detectedTimezone || $("fileTimezone").value.trim(),periodTimes};
+      const {periodTimes,periodTimeSources}=currentTimeSelection();
+      const context = {semesterStartDate:$("fileSemesterStart").value,timezone:detectedTimezone || $("fileTimezone").value.trim(),periodTimes,periodTimeSources};
       return AnyClassTimetableFileStorage.validateCalendarContext(dataset,context);
     }
     catch (error) {
@@ -431,6 +506,7 @@
       const bundle=target?await AnyClassTimetableRepository.readTimetableBundle(target,storageFactory):null;
       if(revision!==nameRevision||dataset!==pending||target!==(importTarget?.id||null))return;
       targetBundle=bundle;
+      updateTimingStatus();
       const sourceKey=sourceKeyFor(bundle,dataset);
        const exact=AnyClassTimetableFile.classifyExistingMeetings(dataset.meetings,bundle?.model?.courses||[],bundle?.model?.courseOverrides||[],sourceKey).exactDuplicates;
        const plan=AnyClassCourseNameReview.plan(dataset.meetings,bundle?.model?.courses||[],bundle?.model?.courseOverrides||[],sourceKey,exact);
@@ -497,6 +573,7 @@
     const remaining=pending.meetings.filter((_,rowIndex)=>rowIndex!==index);
     const parsed=AnyClassTimetableFile.validateAndNormalize({schemaVersion:1,school:pending.school,semester:pending.semester,timetableName:pending.timetableName,meetings:remaining});
     parsed.timetableName=pending.timetableName;parsed.fingerprint=await AnyClassTimetableFile.fingerprint(parsed);
+    parsed.providedPeriodTimes=pending.providedPeriodTimes;parsed.providedPeriodTimeSource=pending.providedPeriodTimeSource;parsed.periodTimeProvenance=pending.periodTimeProvenance;
     pending=parsed;nameChoices.clear();nameReviewStates.clear();nameSignature=null;
     conflictFeedback="✓ 已跳过一条待导入安排并重新检查。";
     updateMeetingUi(parsed);setState(STATES.VALIDATION_REQUIRED);stabilize();await refreshNameReview();
@@ -595,6 +672,7 @@
       const meetings=pending.meetings.map((row,rowIndex)=>({...row,...(group.indices.includes(rowIndex)?{courseName:name}:{}),...(rowIndex===index?{teacher:$("filePendingTeacher").value.trim()||null,locationRaw:$("filePendingLocation").value.trim()||null,weekday:Number($("filePendingWeekday").value),startPeriod:Number($("filePendingStart").value),endPeriod:Number($("filePendingEnd").value),weeks}:{} )}));
       const parsed=AnyClassTimetableFile.validateAndNormalize({schemaVersion:1,school:pending.school,semester:pending.semester,timetableName:pending.timetableName,meetings});
       parsed.timetableName=pending.timetableName;parsed.fingerprint=await AnyClassTimetableFile.fingerprint(parsed);
+      parsed.providedPeriodTimes=pending.providedPeriodTimes;parsed.providedPeriodTimeSource=pending.providedPeriodTimeSource;parsed.periodTimeProvenance=pending.periodTimeProvenance;
       const origin=editOrigin;editOrigin=null;
       pending=parsed;nameChoices.delete(group.key);if(origin?.kind==="name")nameReviewStates.set(group.key,NAME_STATES.RENAMED);else if(nameReviewStates.get(group.key)===NAME_STATES.RENAME_PENDING)nameReviewStates.delete(group.key);nameSignature=null;
       renamedFeedback=" ✓ 已修改并重新校验；如仍出现同名安排，请继续处理。";
@@ -646,17 +724,19 @@
     let remaining = 3;
     const update = () => renderStableSuccess([headline,...(detail?[detail]:[])],remaining);
     update();
+    if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-saved"));
     void navigateImportTarget(submitMessage);
     countdownTimer = setInterval(() => { remaining -= 1; if (remaining > 0) update(); },1000);
-    redirectTimer = setTimeout(goToday,3000);
+    redirectTimer = setTimeout(()=>goToday("automatic"),3000);
   };
   const showExactDuplicateNoChange=async dataset=>{
     clearRedirect();
     const targetId=importTarget?.id||null;
-    if(targetId)await AnyClassTimetableRepository.setActiveTimetable(targetId);
+    if(targetId)await AnyClassTimetableRepository.setActiveTimetable(targetId,storageFactory);
     pending=null;input.value="";setMessage("");document.body.classList.remove("file-preview-active");setState(STATES.SUCCESS);
     let remaining=3;const update=()=>renderStableSuccess(["没有新的课程安排；完全重复项未再次写入，当前课表保持不变。"],remaining);update();void navigateImportTarget(submitMessage);
-    countdownTimer=setInterval(()=>{remaining-=1;if(remaining>0)update()},1000);redirectTimer=setTimeout(goToday,3000);
+    if (importSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-saved"));
+    countdownTimer=setInterval(()=>{remaining-=1;if(remaining>0)update()},1000);redirectTimer=setTimeout(()=>goToday("automatic"),3000);
   };
   const clearFieldErrors = () => {
     for (const [field,error] of [["fileSchoolName","fileSchoolNameError"],["fileTimetableName","fileTimetableNameError"],["fileSemesterStart","fileSemesterStartError"],["fileTimezone","fileTimezoneError"],["fileTimeNow","fileTimeError"]]) clearFieldError(field,error);
@@ -694,6 +774,13 @@
       const chosenTargetId = importTarget?.id || null;
       const reviewedNameRevision=nameRevision;
       const freshBundle=chosenTargetId?await AnyClassTimetableRepository.readTimetableBundle(chosenTargetId,storageFactory):null;
+      const freshTerm=freshBundle?.term;
+      const freshCustomized=Boolean(freshTerm&&(Object.values(freshTerm.periodTimeSources||{}).some(source=>source==="USER_EDITED")||!AnyClassDefaultPeriodTimes.isDefault(freshTerm.periodTimes)));
+      if(freshTerm&&freshTerm.academicYear===pending.semester.academicYear&&String(freshTerm.termCode)===String(pending.semester.term)&&(freshCustomized||!defaultOnly(calendarContext?.periodTimeSources))&&!AnyClassImportPeriodTimes.sameTimes(freshTerm.periodTimes,calendarContext?.periodTimes)&&!timeChoice){targetBundle=freshBundle;updateTimingStatus();setState(STATES.VALIDATION_REQUIRED);setSubmitMessage("已有课表的上课时间与本次预览不同，请先选择保留或替换。","error");return;}
+      if(reviewedTimeSignature){
+        const expected=`${chosenTargetId}|${periodTimeSignature(freshBundle?.term?.periodTimes)}|${periodTimeSignature(calendarContext?.periodTimes)}`;
+        if(expected!==reviewedTimeSignature){targetBundle=freshBundle;updateTimingStatus();setState(STATES.VALIDATION_REQUIRED);setSubmitMessage("已有课表的上课时间发生变化，请重新核对并选择。","error");return;}
+      }
       const freshSourceKey=sourceKeyFor(freshBundle,pending);
       const freshInteractions=AnyClassTimetableFile.classifyExistingMeetings(pending.meetings,freshBundle?.model?.courses||[],freshBundle?.model?.courseOverrides||[],freshSourceKey);
       const freshExactSignature=JSON.stringify(freshInteractions.exactDuplicates.map(item=>exactDuplicateKey(pending.meetings[item.incomingIndex],item.existing)).sort());
@@ -711,18 +798,21 @@
       dataset.fingerprint=await AnyClassTimetableFile.fingerprint(dataset);
       await AnyClassReimportReview.start({
         sourceLabel:importSource === "clipboard" ? "剪贴板导入" : importSource === "bookmark" ? "书签导入" : "导入文件",
-        commit: hooks => AnyClassTimetableFileStorage.putDataset(dataset,storageFactory,{...hooks,...(chosenTargetId ? {targetTimetableId:chosenTargetId} : {})}),
+        commit: hooks => AnyClassTimetableFileStorage.putDataset(dataset,storageFactory,{...hooks,...(chosenTargetId ? {targetTimetableId:chosenTargetId} : {}),periodTimesChoice:timeChoice,expectedPeriodTimesSignature:freshBundle?.term?periodTimeSignature(freshBundle.term.periodTimes):null}),
         onSuccess: async result => {
           try {
             const storedKey = result?.graph?.term?.importMetadata?.legacyKey || dataset.key;
-            const stored = await AnyClassTimetableFileStorage.getDataset(storedKey);
-            const keyCount = await AnyClassTimetableFileStorage.countKey(storedKey);
+            const stored = await AnyClassTimetableFileStorage.getDataset(storedKey,storageFactory);
+            const keyCount = await AnyClassTimetableFileStorage.countKey(storedKey,storageFactory);
             if (!stored || stored.fingerprint !== dataset.fingerprint || stored.school?.name !== dataset.school.name || keyCount !== 1) throw Error("COMMITTED_READBACK_FAILED");
+            const ownerId = result?.graph?.timetable?.timetableId;
+            const bundle = ownerId ? await AnyClassTimetableRepository.readTimetableBundle(ownerId,storageFactory) : null;
+            if (!bundle || bundle.table.timetableId !== ownerId || bundle.term?.timetableId !== ownerId || bundle.term?.termId !== result.graph.term.termId || bundle.dataset?.fingerprint !== dataset.fingerprint || !bundle.model) throw Error("CANONICAL_READBACK_FAILED");
           } catch (_) { committedButUnverified("保存已提交，但读取校验未通过，请不要重复导入，先检查本机课表。"); return; }
           const timetableId = result?.graph?.timetable?.timetableId;
           if (!timetableId) { committedButUnverified("保存已提交，但无法确认课表归属，请不要重复导入，先检查本机课表。"); return; }
           try {
-            await AnyClassTimetableRepository.setActiveTimetable(timetableId);
+            await AnyClassTimetableRepository.setActiveTimetable(timetableId,storageFactory);
             const active = await AnyClassTimetableRepository.getActiveTimetable(storageFactory);
             if (active?.timetableId !== timetableId || active.schoolName !== dataset.school.name || active.label !== dataset.timetableName) throw Error("ACTIVE_TIMETABLE_READBACK_FAILED");
           } catch (_) { committedButUnverified("保存已提交，但未能确认当前课表，请不要重复导入，先检查本机课表。"); return; }
@@ -730,7 +820,7 @@
           showSuccess(dataset,result);
         },
         onCancel:()=>{setState(STATES.PREVIEW_READY);setSubmitMessage("已取消本次更新，原有课表未改变。");},
-        onFailure:()=>{setState(STATES.SAVE_FAILED);setSubmitMessage("保存失败，原有课表未被修改。","error");}
+        onFailure:error=>{setState(STATES.SAVE_FAILED);setSubmitMessage(error?.message === "IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED" ? "当前课表已有另一导入来源，本次未保存，原有课表和修改均未改变。请使用原来源更新，或明确选择一个空课表后再导入。" : "保存失败，原有课表未被修改。","error");}
       });
     } catch (error) {
       setState(error.field ? STATES.VALIDATION_REQUIRED : STATES.SAVE_FAILED);
@@ -755,7 +845,7 @@
     else if (cancelledSource === "clipboard") $("clipboardMessage").textContent = "已取消，本次内容未保存。";
     else if (cancelledSource === "bookmark") dispatchEvent(new CustomEvent("anyclass:bookmark-preview-reset"));
   });
-  $("fileGoToday").addEventListener("click",goToday);
+  $("fileGoToday").addEventListener("click",()=>goToday("manual"));
   addEventListener("pagehide",clearRedirect);
   document.addEventListener("visibilitychange",()=>{if (document.visibilityState === "hidden") clearRedirect();});
   document.addEventListener("click",event=>{if (state === STATES.SUCCESS && event.target.closest("a[href]")) clearRedirect();},true);

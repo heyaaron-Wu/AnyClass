@@ -119,6 +119,27 @@
     meetings: dataset.meetings, fingerprint: dataset.fingerprint || null
   });
 
+  // Read pending records in this transaction, before completion can make them durable.
+  const verifyCanonicalOwnership = async (transaction, timetableId) => {
+    const table = await requestValue(transaction.objectStore(STORES.timetables).get(timetableId));
+    const term = table?.activeTermId ? await requestValue(transaction.objectStore(STORES.terms).get(table.activeTermId)) : null;
+    if (!table || !term || term.timetableId !== timetableId) throw Error("TIMETABLE_TERM_OWNER_CONFLICT");
+    const meetings = new Map((await requestValue(transaction.objectStore(STORES.baseMeetings).index("termId").getAll(term.termId))).map(row=>[row.baseMeetingId,row]));
+    const snapshots = new Map((await requestValue(transaction.objectStore(STORES.importSnapshots).index("timetableId").getAll(timetableId))).map(row=>[row.snapshotId,row]));
+    const courses = (await requestValue(transaction.objectStore(STORES.courses).index("timetableId").getAll(timetableId))).filter(row=>row.suppressed!==true);
+    const activeSnapshots = new Set();
+    for (const course of courses) {
+      if (course.sourceType === "manual") {
+        if (course.termId !== term.termId || course.sourceMeetingId || course.sourceSnapshotId) throw Error("TIMETABLE_COURSE_OWNER_CONFLICT");
+        continue;
+      }
+      const meeting = meetings.get(course.sourceMeetingId), snapshot = snapshots.get(course.sourceSnapshotId);
+      if (!meeting || meeting.termId !== term.termId || !snapshot || snapshot.timetableId !== timetableId || snapshot.sourceKey !== course.sourceKey || snapshot.semester?.academicYear !== term.academicYear || String(snapshot.semester?.term) !== String(term.termCode)) throw Error("TIMETABLE_COURSE_OWNER_CONFLICT");
+      activeSnapshots.add(snapshot.snapshotId);
+    }
+    if (activeSnapshots.size > 1) throw Error("TIMETABLE_ACTIVE_SOURCE_AMBIGUOUS");
+  };
+
   const schema3Model = (dataset, graph) => {
     if (!root.AnyClassCourseModel) throw new Error("COURSE_MODEL_REQUIRED");
     return root.AnyClassCourseModel.build(dataset, graph);
@@ -349,20 +370,35 @@
       timetableId = targetId || existing?.timetableId || `timetable:academic:${root.AnyClassPhaseB.idComponent([route])}`;
       if (!existing && await requestValue(tables.get(timetableId))) throw new Error("TIMETABLE_ID_COLLISION");
       if (existing && existing.activeTermId && existing.activeTermId !== graph.term.termId) throw new Error("ROUTE_TERM_CONFLICT");
+      const currentCourses = await requestValue(transaction.objectStore(STORES.courses).index("timetableId").getAll(timetableId));
+      // Schema 4 currently has one active imported source per term. Do not delete
+      // another source's meetings while keeping courses/overrides that reference them.
+      if (currentCourses.some(row=>row.suppressed!==true && row.sourceType!=="manual" && row.sourceKey!==dataset.key)) throw Error("IMPORT_SOURCE_OWNERSHIP_REVIEW_REQUIRED");
+      if (existing?.activeTermId) await verifyCanonicalOwnership(transaction,timetableId);
       const importedName = String(dataset.timetableName == null ? "" : dataset.timetableName).trim();
       const confirmedSchoolName = hooks.preserveTargetMetadata && existing?.schoolName ? existing.schoolName : dataset.school.name;
       const timetable = existing ? {...existing,...(importedName ? {label:importedName} : {}),...(missingSchoolId ? {routingKey:route} : {}),schoolId:dataset.school.id,schoolName:confirmedSchoolName,activeTermId:graph.term.termId,updatedAt:new Date().toISOString()} : {...graph.timetable,timetableId,routingKey:route,label:importedName || graph.timetable.label,schoolName:dataset.school.name};
       const term = {...graph.term,timetableId};
-      // A later import carrying only application defaults must not replace this timetable's saved times.
-      if (existingTerm && config.preserveExistingPeriodTimesWhenDefault) {
+      const periodTimeSignature = value => JSON.stringify(Object.entries(value||{}).sort(([a],[b])=>Number(a)-Number(b)));
+      if(existingTerm&&hooks.expectedPeriodTimesSignature!==undefined&&hooks.expectedPeriodTimesSignature!==null&&periodTimeSignature(existingTerm.periodTimes)!==hooks.expectedPeriodTimesSignature)throw Error('IMPORT_PERIOD_TIMES_CHANGED');
+      const timeDifference=Boolean(existingTerm&&periodTimeSignature(existingTerm.periodTimes)!==periodTimeSignature(term.periodTimes));
+      const existingCustomized=Boolean(existingTerm&&(Object.values(existingTerm.periodTimeSources||{}).some(source=>source==='USER_EDITED')||root.AnyClassDefaultPeriodTimes?.isDefault(existingTerm.periodTimes)!==true));
+      if(timeDifference&&(existingCustomized||!config.preserveExistingPeriodTimesWhenDefault)&&!['PRESERVE','REPLACE'].includes(hooks.periodTimesChoice))throw Error('IMPORT_PERIOD_TIMES_REVIEW_REQUIRED');
+      if(existingTerm&&!timeDifference&&existingTerm.periodTimeSources){
+        term.periodTimeSources=existingTerm.periodTimeSources;
+        term.schoolProfileSnapshot={...term.schoolProfileSnapshot,periodTimeSources:existingTerm.periodTimeSources};
+      }
+      // Defaults never replace existing local times; other differences require a reviewed choice.
+      if (existingTerm && ((config.preserveExistingPeriodTimesWhenDefault&&hooks.periodTimesChoice!=='REPLACE') || (timeDifference&&hooks.periodTimesChoice==='PRESERVE'))) {
         term.periodTimes = existingTerm.periodTimes;
+        term.periodTimeSources = existingTerm.periodTimeSources || {};
         term.timingStatus = existingTerm.timingStatus;
         term.maxPeriod = existingTerm.maxPeriod;
-        term.schoolProfileSnapshot = {...term.schoolProfileSnapshot,periodTimes:existingTerm.periodTimes,timingStatus:existingTerm.timingStatus,maxPeriod:existingTerm.maxPeriod};
+        term.schoolProfileSnapshot = {...term.schoolProfileSnapshot,periodTimes:existingTerm.periodTimes,periodTimeSources:term.periodTimeSources,timingStatus:existingTerm.timingStatus,maxPeriod:existingTerm.maxPeriod};
       }
       ownedGraph = {...graph,timetable,term};
       const previousLegacy=existing&&writeLegacy?await requestValue(transaction.objectStore(STORES.legacy).get(dataset.key)):null;
-      if(previousLegacy&&existingTerm&&canonicalLegacy(previousLegacy)===canonicalLegacy(dataset)){
+      if(previousLegacy&&existingTerm&&canonicalLegacy(previousLegacy)===canonicalLegacy(dataset)&&periodTimeSignature(existingTerm.periodTimes)===periodTimeSignature(term.periodTimes)){
         if (timetable.label !== existing.label || timetable.schoolName !== existing.schoolName) {
           tables.put(timetable);
           if (writeLegacy) transaction.objectStore(STORES.legacy).put(dataset);
@@ -389,6 +425,7 @@
       if (hooks.beforeCommit) {
         hooks.beforeCommit({transaction, graph:ownedGraph});
       }
+      await verifyCanonicalOwnership(transaction,timetableId);
       await completed;
       } catch (error) {
         try { transaction.abort(); } catch (_) {}

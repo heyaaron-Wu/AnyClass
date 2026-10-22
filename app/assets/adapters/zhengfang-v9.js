@@ -59,6 +59,19 @@
     const icon = block.querySelector(selector), container = icon && (icon.closest("p") || icon.parentElement);
     return compact(container ? container.textContent : "") || null;
   };
+  // Only an explicit clock range on a single-period course identifies that
+  // period's two boundaries. A multi-period range cannot define each period.
+  const explicitSinglePeriodClock = (text, startPeriod, endPeriod) => {
+    const ranges = [...String(text || "").matchAll(/\b([01]\d|2[0-3]):[0-5]\d\s*[-—–~至]\s*([01]\d|2[0-3]):[0-5]\d\b/g)];
+    const clockTokens = String(text || "").match(/\d+:\d+/g) || [];
+    if (clockTokens.length && (ranges.length !== 1 || clockTokens.length !== 2)) fail("SOURCE_PERIOD_CLOCK_INVALID");
+    if (ranges.length > 1) fail("SOURCE_PERIOD_CLOCK_INVALID");
+    if (ranges.length !== 1) return null;
+    const value = ranges[0][0].match(/([01]\d|2[0-3]):[0-5]\d/g);
+    if (!value || value[0] >= value[1]) fail("SOURCE_PERIOD_CLOCK_INVALID");
+    if (startPeriod !== endPeriod) return null;
+    return {start:value[0],end:value[1]};
+  };
   const extractSemester = (capture, profile) => {
     const year = compact(capture?.semesterSource?.xnm), sourceTerm = compact(capture?.semesterSource?.xqm);
     const academicYear = /^\d{4}$/.test(year) ? `${year}-${Number(year) + 1}` : year;
@@ -79,7 +92,7 @@
     const validation = validateSource(capture);
     if (!validation.ok) fail(validation.code);
     const document = parseDocument(capture.tableHtml), table = document.querySelector(TABLE);
-    const allBlocks = [...table.querySelectorAll(BLOCK)], meetings = [];
+    const allBlocks = [...table.querySelectorAll(BLOCK)], meetings = [], clockCandidates = new Map(), clockConflicts = new Set();
     let inheritedTitles = 0, adjustedBlocks = 0, blockIndex = 0;
     for (const cell of table.querySelectorAll("td[id]")) {
       let previousTitle = null;
@@ -94,7 +107,9 @@
         const timeText = iconText(block, ".glyphicon-time") || "", periodMatch = timeText.match(/[（(]\s*(\d+)\s*[-—–~至]\s*(\d+)\s*节\s*[）)]/);
         if (!periodMatch) fail("PARSER_FAILED");
         const startPeriod = Number(periodMatch[1]), endPeriod = Number(periodMatch[2]);
-        const weekExpressionRaw = timeText.replace(/[（(]\s*\d+\s*[-—–~至]\s*\d+\s*节\s*[）)]/, "").replace(/^[^0-9]+/, "").trim();
+        const clock = explicitSinglePeriodClock(timeText,startPeriod,endPeriod);
+        if(clock){const key=String(startPeriod),prior=clockCandidates.get(key);if(prior&&(prior.start!==clock.start||prior.end!==clock.end))clockConflicts.add(key);else clockCandidates.set(key,clock)}
+        const weekExpressionRaw = timeText.replace(/[（(]\s*\d+\s*[-—–~至]\s*\d+\s*节\s*[）)]/, "").replace(/\b(?:[01]\d|2[0-3]):[0-5]\d\s*[-—–~至]\s*(?:[01]\d|2[0-3]):[0-5]\d\b/g,"").replace(/^[^0-9]+/, "").trim();
         const isAdjusted = /【调】/.test(rawTitle) || Boolean(titleNode?.matches(".showJxbtkjl"));
         if (isAdjusted) adjustedBlocks += 1;
         meetings.push({courseName, weekday, startPeriod, endPeriod, weeks: parseWeeks(weekExpressionRaw), weekExpressionRaw, teacher: iconText(block, ".glyphicon-user"), locationRaw: iconText(block, ".glyphicon-map-marker"), classInfo: iconText(block, ".glyphicon-home"), metadata: iconText(block, ".glyphicon-tower"), isAdjusted, teachingClassId: titleNode?.getAttribute("data-jxb_id") || null, source: {cellId: cell.id, blockIndex}, warnings: []});
@@ -102,7 +117,9 @@
       }
     }
     if (meetings.length !== allBlocks.length||meetings.length>MAX_MEETINGS) fail("PARSER_FAILED");
-    return Object.freeze({meetings, diagnostics: Object.freeze({adapterId: ID, adapterVersion: VERSION, profileId: profile.id, profileVersion: profile.profileVersion, parseCount: meetings.length, inheritedTitles, adjustedBlocks})});
+    if(clockConflicts.size)fail("SOURCE_PERIOD_CLOCK_CONFLICT");
+    const periodTimes=Object.fromEntries([...clockCandidates].sort(([a],[b])=>Number(a)-Number(b)));
+    return Object.freeze({meetings,periodTimes,periodTimeProvenance:Object.keys(periodTimes).length?"zhengfang-v9:explicit-single-period-clock-text":null, diagnostics: Object.freeze({adapterId: ID, adapterVersion: VERSION, profileId: profile.id, profileVersion: profile.profileVersion, parseCount: meetings.length, inheritedTitles, adjustedBlocks,clockConflicts:clockConflicts.size})});
   };
   const normalizeCompatibilityDataset = (dataset, profile) => {
     if (!dataset || dataset.schemaVersion !== 1 || !dataset.semester || !Array.isArray(dataset.meetings)) fail("PARSER_FAILED");

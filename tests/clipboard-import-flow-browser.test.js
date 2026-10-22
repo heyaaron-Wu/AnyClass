@@ -59,7 +59,10 @@ const fixture={schemaVersion:1,school:{id:"school-demo",name:"Example University
       await page.locator("#fileConflictConfirm").check();
     }
     await page.locator("#fileSave").click();
-    await page.waitForFunction(()=>/已保存/.test(document.querySelector("#fileSubmitMessage")?.textContent||""));
+    await page.waitForFunction(()=>/另一导入来源/.test(document.querySelector("#fileSubmitMessage")?.textContent||""));
+    const preserved=await page.evaluate(async()=>{const bundle=await AnyClassTimetableRepository.readActiveBundle();return{schoolId:bundle.table.schoolId,courses:bundle.model.courses.map(row=>row.title),key:bundle.dataset.key}});
+    assert.equal(preserved.schoolId,"school-demo","unsupported cross-source import cannot change existing school identity");
+    assert.deepEqual(preserved.courses,["Course A"],"unsupported source must preserve canonical courses and meetings");
     const selectedAfter=await page.evaluate(async()=>(await AnyClassTimetableRepository.getActiveTimetable()).timetableId);
     assert.equal(selectedAfter,selectedBefore,"unknown school ID must not redirect the selected workspace");
     const unknown=await browser.newPage({viewport:{width:390,height:844}});
@@ -92,6 +95,6 @@ const fixture={schemaVersion:1,school:{id:"school-demo",name:"Example University
     await unknown.locator("#fileSave").click();
     await unknown.waitForFunction(()=>/课表没有变化/.test(document.querySelector("#fileSubmitMessage")?.textContent||""));
     assert.equal(await unknown.evaluate(async()=>(await AnyClassTimetableRepository.getActiveTimetable()).timetableId),stored.tableId,"unknown-ID reimport retains local timetable identity");
-    console.log(JSON.stringify({clipboardDeniedFallback:"PASS",clipboardRead:"PASS",manualPaste:"PASS",schema4Save:"PASS",reload:"PASS",identicalReimport:"NO_CHANGE",promptCopy:"PASS",unknownSchoolId:"PASS"}));
+    console.log(JSON.stringify({clipboardDeniedFallback:"PASS",clipboardRead:"PASS",manualPaste:"PASS",schema4Save:"PASS",reload:"PASS",identicalReimport:"NO_CHANGE",promptCopy:"PASS",unknownSchoolId:"PASS",crossSource:"REJECTED_ATOMICALLY_PRESERVES_SELECTED_TARGET"}));
   }finally{await browser.close();server.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});

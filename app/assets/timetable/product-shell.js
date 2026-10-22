@@ -1,6 +1,10 @@
 (() => {
   "use strict";
-  const metadata=window.AnyClassReleaseMetadata||Object.freeze({schemaVersion:1,productVersion:"Unknown",releaseId:"Unknown",releaseMode:"unavailable"}),RELEASE_ID=metadata.releaseId;
+  // The document and its release-keyed metadata must describe the same release.
+  // Never present an older cached script as the current website identity.
+  const declaredRelease=document.querySelector('meta[name="anyclass-release"]')?.content;
+  const loadedMetadata=window.AnyClassReleaseMetadata;
+  const metadata=loadedMetadata&&loadedMetadata.releaseId===declaredRelease?loadedMetadata:Object.freeze({schemaVersion:1,productVersion:"Unavailable",releaseId:"Unavailable",releaseMode:"unavailable"}),RELEASE_ID=metadata.releaseId;
   window.AnyClassReleaseIdentity = Object.freeze({...metadata,channel:location.hostname.startsWith("beta.")?"beta":location.hostname==="anyclass.heyaaron.asia"?"stable":"local"});
   document.documentElement.dataset.releaseId = RELEASE_ID;
 
@@ -12,10 +16,12 @@
   const sheetDismissStates = new WeakMap();
   let sheetScrollLock = null;
   let semanticNavigationRevision = 0;
-  const lockSheetBackground = dialog => {
+  const lockSheetBackground = (dialog, scrollPosition = null) => {
     if (sheetScrollLock?.dialog === dialog) return;
     if (sheetScrollLock) return;
-    const body = document.body, root = document.documentElement, x = scrollX, y = scrollY;
+    const body = document.body, root = document.documentElement;
+    const x = Number.isFinite(scrollPosition?.x) ? scrollPosition.x : scrollX;
+    const y = Number.isFinite(scrollPosition?.y) ? scrollPosition.y : scrollY;
     sheetScrollLock = {
       dialog, x, y,
       body: {position:body.style.position, top:body.style.top, left:body.style.left, right:body.style.right, width:body.style.width, overflow:body.style.overflow},
@@ -33,7 +39,7 @@
     delete root.dataset.sheetScrollLocked;
     root.style.overflow = state.rootOverflow;
     Object.assign(body.style,state.body);
-    scrollTo({top:state.y,left:state.x,behavior:"auto"});
+    scrollTo({top:state.y,left:state.x,behavior:"instant"});
   };
   const cancelDialogClose = dialog => {
     const state = dialogStates.get(dialog);
@@ -72,11 +78,13 @@
     openDialog(dialog, options = {}) {
       if (!(dialog instanceof HTMLDialogElement)) throw new TypeError("dialog required");
       cancelDialogClose(dialog);
+      const sheetState = sheetDismissStates.get(dialog);
+      const openingScroll = !dialog.open && sheetState ? {x:scrollX,y:scrollY} : null;
       if (!dialog.open) {
         dialog.__anyclassRestoreFocus = options.restoreFocus || document.activeElement;
         dialog.showModal();
       }
-      sheetDismissStates.get(dialog)?.opened?.();
+      sheetState?.opened?.(openingScroll);
       options.focus?.focus?.({preventScroll:true});
       return dialog;
     },
@@ -95,8 +103,8 @@
         body.removeEventListener("animationcancel", state.onCancel);
         dialogStates.delete(dialog);
         delete dialog.dataset.closing;
-        sheetDismissStates.get(dialog)?.closed?.();
         if (dialog.open) dialog.close(options.returnValue || "");
+        sheetDismissStates.get(dialog)?.closed?.();
         const restore = options.restoreFocus === false ? null : options.restoreFocus || dialog.__anyclassRestoreFocus;
         delete dialog.__anyclassRestoreFocus;
         if (restore?.isConnected) restore.focus({preventScroll:true});
@@ -143,7 +151,7 @@
       const touchCancel=()=>{if(gesture?.kind==="touch")cancelGesture()};
       const viewportReset=()=>{if(gesture)snap()};
       const settleEntry=event=>{if(event&&(event.target!==body||event.animationName!=="shell-sheet-enter"))return;clearTimeout(entryTimer);entryTimer=0;if(dialog.open&&!dialog.dataset.closing&&!dialog.dataset.sheetDismissing)dialog.dataset.sheetSettled="true"};
-      const opened=()=>{clearTimeout(entryTimer);delete dialog.dataset.sheetSettled;lockSheetBackground(dialog);setPhase(phases.IDLE);if(reducedMotionQuery.matches)settleEntry();else entryTimer=setTimeout(settleEntry,360)};
+      const opened=(scrollPosition=null)=>{clearTimeout(entryTimer);delete dialog.dataset.sheetSettled;lockSheetBackground(dialog,scrollPosition);setPhase(phases.IDLE);if(reducedMotionQuery.matches)settleEntry();else entryTimer=setTimeout(settleEntry,360)};
       const closed=()=>{gesture=null;clearTimeout(entryTimer);entryTimer=0;delete dialog.dataset.sheetSettled;clearVisual();unlockSheetBackground(dialog)};
       const onClose=()=>{if(!dialog.open)closed()};
       handle.addEventListener("pointerdown",down);handle.addEventListener("pointermove",move);handle.addEventListener("pointerup",finish);handle.addEventListener("pointercancel",cancel);body.addEventListener("animationend",settleEntry);dialog.addEventListener("touchstart",touchStart,{passive:true});dialog.addEventListener("touchmove",touchMove,{passive:false});dialog.addEventListener("touchend",touchEnd,{passive:true});dialog.addEventListener("touchcancel",touchCancel,{passive:true});addEventListener("resize",viewportReset,{passive:true});window.visualViewport?.addEventListener("resize",viewportReset,{passive:true});dialog.addEventListener("close",onClose);

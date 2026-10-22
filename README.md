@@ -19,7 +19,7 @@
 </p>
 
 <p>
-  <img src="https://img.shields.io/badge/Hosted-v0.2.1-1679F3?style=flat-square" alt="Hosted v0.2.1" />
+  <img src="https://img.shields.io/badge/Hosted-v0.2.2-1679F3?style=flat-square" alt="Hosted v0.2.2" />
   <img src="https://img.shields.io/badge/Local--first-Yes-25D1A7?style=flat-square" alt="Local-first" />
   <img src="https://img.shields.io/badge/正方教务%20V9-已验证-2ea44f?style=flat-square" alt="正方教务 V9 已验证" />
   <img src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square" alt="Apache-2.0 License" />
@@ -37,9 +37,13 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 线上 Hosted Production 当前为 **v0.2.1**。GitHub 已正式发布 [**v0.2.1**](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) 源码 Release。当前仓库 `main` 包含已对齐的 **v0.2.1 公开源码基线**；源码 Release 身份与 Hosted Production 的部署 Build 身份相互独立。
+> 线上 Hosted Production 为 **v0.2.2 / v022-production-20261016-154638**，数据库格式为 Schema 4。网站技术验收、正式归档及用户报告的 iPhone/iPad 真机验收已完成。本地源码从该部署的审定来源对齐；GitHub v0.2.2 源码发布仍待独立批准。详见[发布身份与收尾门禁](docs/v022-navigation-hotfix-candidate.md)。
+
+官方通用快捷指令：[AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install)，**1.0.0 / Build 1**。运行时选择正式版或测试版，两者数据隔离；安装须手动确认。当前没有更新版本，更新 Manifest 保持禁用。
 
 ## 功能
+
+历史 Beta 候选记录：[客户端时间采集与悬浮预览](docs/v022-beta4-candidate.md)、[悬浮预览视觉一致性](docs/v022-beta5-candidate.md)。这些文档保留当时状态，不代表当前部署状态。
 
 - 今日课程与当前 / 下一节课程
 - 周课表
@@ -110,11 +114,11 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 ## 开源状态
 
-**AnyClass v0.2.1 已部署到线上 Production，并已发布对应 GitHub 源码 Release：** [AnyClass v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1)
+**线上网站已为 v0.2.2；最近已发布的 GitHub 源码 Release 仍为 [v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1)。** 两者身份分别记录，不宣称 v0.2.2 tag/Release 已存在。
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
 
-> **仓库源码状态：** 当前 `main` 包含已对齐的 AnyClass v0.2.1 公开源码基线。GitHub 最新源码 Release 为 **v0.2.1**。源码身份为 `v0.2.1`，Hosted Production 使用独立的部署 Build 身份。
+> **仓库源码状态：** v0.2.2 的公开源码通过 [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13) 与已验收的 Hosted Build 对齐，包含完整功能，而非仅修改版本号。GitHub Tag / Release 的实际发布状态请以 [Releases](https://github.com/heyaaron-Wu/AnyClass/releases) 为准；ISSUE-001 严格历史隐私门禁仍为独立事项，不能由当前源码检查替代。
 
 ## 贡献
 

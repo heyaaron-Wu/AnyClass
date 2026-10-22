@@ -1,6 +1,6 @@
 # Public/private extension boundary
 
-AnyClass public source contains the generic timetable core, Schema 3, EffectiveOccurrence runtime, generic import contracts, and generic adapters. Deployments provide a `SchoolProfile` at runtime; the public core never imports a concrete production profile.
+AnyClass v0.2.2 public source contains the generic timetable core, Schema 4 with existing Schema 3 compatibility, EffectiveOccurrence runtime, generic import contracts, and generic adapters. Deployments provide a `SchoolProfile` at runtime; the public core never imports a concrete production profile.
 
 `AnyClassSchoolProfile.create()` validates the generic profile contract. `AnyClassSchoolProfileRegistry` registers profiles, selects the active profile, and matches a captured origin. The public demonstration profile uses `school-demo`, `Example University`, `https://jw.example.edu`, and synthetic course, teacher, campus, and room values.
 

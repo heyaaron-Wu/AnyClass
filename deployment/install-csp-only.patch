@@ -1,0 +1,5 @@
+--- observed-install-route-csp
++++ proposed-install-route-csp
+@@ -1 +1 @@
+-default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
++default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'

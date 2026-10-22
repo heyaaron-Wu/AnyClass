@@ -1,0 +1,10 @@
+{
+  "productVersion": "0.2.2",
+  "releaseId": "v022-production-20261016-154638",
+  "releaseMode": "production",
+  "channel": "stable",
+  "databaseVersion": 4,
+  "baseCommit": "4a1839e56ae32f4c7c94f60a19989d08503a5e5f",
+  "rollbackReleaseId": "v022-production-20261015-223822",
+  "archiveMtimeUtc": "2026-10-16T07:46:38Z"
+}

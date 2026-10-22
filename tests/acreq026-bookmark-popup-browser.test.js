@@ -1,0 +1,81 @@
+"use strict";
+
+// AC-REQ-026 popup/Receiver contract. All source pages below are synthetic;
+// this suite proves transport and UI contracts only, not a school-system run.
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),os=require("node:os"),{chromium}=require("playwright");
+const root=path.resolve(__dirname,"../app"),beta="https://beta.anyclass.heyaaron.asia",source="https://jw.example.edu";
+const evidence=process.env.ANYCLASS_EVIDENCE_DIR||path.join(os.tmpdir(),"anyclass-acreq026-popup-evidence");
+const channelApi=require(path.resolve(__dirname,"../app/assets/timetable/import-client-channels.js"));
+const clientSource=fs.readFileSync(path.resolve(__dirname,"../app/assets/timetable/bookmarklet.txt"),"utf8").trim();
+const bookmarklet=channelApi.buildBookmarklet(clientSource,"beta",{clientId:"anyclass-import",clientVersion:"3.0.0"});
+
+const rows={
+  complete:[
+    ["Clocked Course",1,"08:00-08:45",1,1],
+    ["Second Course",2,"09:00-09:45",2,2]
+  ],
+  partial:[
+    ["Clocked Course",1,"08:00-08:45",1,1],
+    ["Default Course",2,"",2,3]
+  ],
+  none:[
+    ["Default Course",1,"",1,2]
+  ],
+  conflict:[
+    ["Clocked A",1,"08:00-08:45",1,1],
+    ["Clocked B",2,"09:00-09:45",1,1]
+  ]
+};
+const tableFor=kind=>`<table id="kbgrid_table_0"><tbody>${rows[kind].map((r,i)=>`<tr><td id="${r[1]}-${r[3]}"><div class="timetable_con"><p class="title" data-jxb_id="synthetic-${i}">${r[0]}</p><p><span class="glyphicon-time"></span>${r[4]}-${r[4]}周${r[2]?` ${r[2]}（${r[3]}-${r[4]}节）`:`（${r[3]}-${r[4]}节）`}</p><p><span class="glyphicon-user"></span>Teacher ${i}</p><p><span class="glyphicon-map-marker"></span>Room ${i}</p></div></td></tr>`).join("")}</tbody></table>`;
+const sourceHtml=kind=>`<!doctype html><meta charset="utf-8"><select id="xnm"><option value="2026" selected>2026</option></select><select id="xqm"><option value="3" selected>第一学期</option></select>${tableFor(kind)}`;
+const serve=async(route,kind,counts)=>{const u=new URL(route.request().url());if(u.origin===source)return route.fulfill({status:200,contentType:"text/html",body:sourceHtml(kind)});if(u.origin!==beta){counts.other++;return route.abort()}counts.beta++;let name=decodeURIComponent(u.pathname);if(name.endsWith("/"))name+="index.html";const file=path.resolve(root,"."+name);if(!file.startsWith(root+path.sep)||!fs.existsSync(file))return route.fulfill({status:404,body:"not found"});const type=file.endsWith(".js")?"application/javascript":file.endsWith(".css")?"text/css":file.endsWith(".txt")?"text/plain":"text/html";return route.fulfill({status:200,contentType:type,body:fs.readFileSync(file)})};
+
+(async()=>{
+  fs.mkdirSync(evidence,{recursive:true});
+  const executablePath=[path.join(process.env.LOCALAPPDATA||"","Google","Chrome","Application","chrome.exe"),path.join(process.env["PROGRAMFILES(X86)"]||"","Microsoft","Edge","Application","msedge.exe")].find(fs.existsSync);
+  const browser=await chromium.launch({headless:true,executablePath,args:["--disable-background-networking"]});
+  try{
+    for(const [kind,expected] of [["complete","SOURCE_PAGE"],["partial","SOURCE_PAGE"],["none","DEFAULT"]]){
+      const context=await browser.newContext({viewport:{width:430,height:844},serviceWorkers:"block"}),counts={beta:0,other:0};
+      await context.route("**/*",route=>serve(route,kind,counts));
+      await context.addInitScript(()=>{window.__popupMessages=[];addEventListener("message",e=>{if(e.data?.protocol&&e.data?.type)window.__popupMessages.push({origin:e.origin,source:e.source,type:e.data.type,nonce:e.data.nonce,dirty:e.data.dirty,status:e.data.status,mode:e.data.mode})});Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async()=>{}}})});
+      const page=await context.newPage();await page.goto(source+"/timetable");
+      await page.evaluate(code=>(0,eval)(code.slice("javascript:".length)),bookmarklet);
+      const popup=page.locator("#__ANYCLASS_IMPORT_POPUP__"),frame=page.frameLocator("#__ANYCLASS_IMPORT_POPUP__ iframe");
+      await popup.waitFor({state:"visible"});assert(await popup.locator("button[data-anyclass-popup-close]").isVisible());assert.equal(await popup.locator("#__ANYCLASS_IMPORT_STATUS__").getAttribute("role"),"status");assert.equal(await popup.locator("#__ANYCLASS_IMPORT_STATUS__").getAttribute("aria-live"),"polite");assert.equal(await popup.locator("iframe[title='AnyClass 导入预览']").count(),1);assert(await popup.evaluate(e=>e===document.activeElement),"entry focus belongs to the popup, not its Close button");
+      await frame.locator("#filePreview:not([hidden]), #prepareReceiverTarget:not([hidden])").first().waitFor({timeout:30000});
+      if(await frame.locator("#prepareReceiverTarget").isVisible()){await frame.locator("#prepareReceiverTarget").evaluate(()=>Object.defineProperty(document,"requestStorageAccess",{configurable:true,value:()=>Promise.resolve({indexedDB})}));await frame.locator("#prepareReceiverTarget").click()}
+      await frame.locator("#filePreview:not([hidden])").waitFor();
+      const hint=await frame.locator("#filePeriodHint").innerText().catch(()=>"");const details=await frame.locator("#fileTimeDetails").innerText().catch(()=>"");
+      if(kind==="complete")assert.match(details,/08:00/);if(kind==="partial")assert.match(details,/默认作息补全/);if(kind==="none"){assert.match(hint,/默认作息补全/);assert.doesNotMatch(details,/默认作息补全/);assert.match(details,/08:00/)}assert.match(await frame.locator("#fileTimeReminder").innerText(),/核对|确认|作息/);assert.equal(await frame.locator("#fileSave").isDisabled(),true);
+      await page.waitForFunction(()=>window.__popupMessages.some(m=>m.type==="PREVIEW_STATE"&&m.nonce&&m.dirty===true&&m.origin==="https://beta.anyclass.heyaaron.asia"));await frame.locator("#fileSchoolName").fill("合成学校");await frame.locator("#fileSemesterStart").fill("2026-08-31");await frame.locator("#fileSave").click();await page.waitForFunction(()=>document.querySelector("#__ANYCLASS_IMPORT_STATUS__")?.textContent.includes("保存"));assert.match(await popup.locator("#__ANYCLASS_IMPORT_STATUS__").innerText(),/保存|成功/);assert(await popup.locator("button[data-anyclass-popup-close]").isVisible());
+      await page.waitForFunction(()=>window.__popupMessages.some(m=>m.type==="IMPORT_SAVED"&&m.nonce&&m.origin==="https://beta.anyclass.heyaaron.asia"&&m.source),null,{timeout:12000}).catch(async error=>{console.error(JSON.stringify({kind,preview:await frame.locator("#filePreview").getAttribute("data-import-state"),message:await frame.locator("#fileSubmitMessage").innerText(),school:await frame.locator("#fileSchoolName").inputValue(),date:await frame.locator("#fileSemesterStart").inputValue(),blockers:await frame.locator("#fileSubmitBlockers").textContent()}));await page.screenshot({path:path.join(evidence,`failed-save-${kind}.png`)});throw error});
+      if(kind==="complete"){
+        await frame.locator("#fileGoToday").evaluate(()=>{window.__issue040Opens=[];window.open=(url,target)=>{window.__issue040Opens.push({url,target});return null}});
+        await page.waitForFunction(()=>window.__popupMessages.some(m=>m.type==="NAVIGATION_RESULT"&&m.mode==="automatic"&&m.status==="BLOCKED"),null,{timeout:5000});
+        assert.equal(page.url(),source+"/timetable","automatic countdown keeps the school page top-level when popup opening is blocked");
+        assert.match(await frame.locator("#fileSubmitMessage").innerText(),/浏览器未允许自动打开/);
+        assert.match(page.frames().find(item=>item.url().startsWith(beta+"/import/"))?.url()||"",/\/import\//,"automatic countdown never navigates the Receiver iframe to Today");
+        await frame.locator("#fileGoToday").evaluate(()=>{window.open=(url,target)=>{window.__issue040Opens.push({url,target});return{opener:window}}});
+        await frame.locator("#fileGoToday").click();
+        await popup.waitFor({state:"detached"});
+        assert(await page.evaluate(()=>window.__popupMessages.some(m=>m.type==="NAVIGATION_RESULT"&&m.mode==="manual"&&m.status==="OPENED")),"manual navigation reports authenticated standalone open");
+        assert.equal(counts.other,0);await context.close();continue;
+      }
+      const geometry=await page.evaluate(()=>{const root=document.querySelector("#__ANYCLASS_IMPORT_POPUP__"),status=document.querySelector("#__ANYCLASS_IMPORT_STATUS__"),r=root.getBoundingClientRect(),s=status.getBoundingClientRect(),c=getComputedStyle(status);return{inside:r.left>=0&&r.top>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,statusInside:s.left>=0&&s.right<=innerWidth+1,live:c.getPropertyValue("aria-live"),reduced:matchMedia("(prefers-reduced-motion: reduce)").matches}});assert(geometry.inside&&geometry.statusInside);await page.screenshot({path:path.join(evidence,`popup-${kind}-430-light.png`),fullPage:true});
+      assert(await frame.locator("#import-entry").isHidden(),"saved result must not retain method-selection cards");
+      assert(await frame.locator("#fileSubmitMessage").isVisible(),"shared saved result remains visible");
+      assert.equal(counts.other,0);await context.close();
+    }
+    {
+      const context=await browser.newContext({viewport:{width:430,height:844},serviceWorkers:"block"}),counts={beta:0,other:0};await context.route("**/*",route=>serve(route,"conflict",counts));const page=await context.newPage();await page.goto(source+"/timetable");await page.evaluate(code=>(0,eval)(code.slice("javascript:".length)),bookmarklet);const popup=page.locator("#__ANYCLASS_IMPORT_POPUP__");await popup.waitFor({state:"visible"});const conflictFrame=page.frameLocator("#__ANYCLASS_IMPORT_POPUP__ iframe");await page.waitForFunction(()=>/失败|错误|冲突/.test(document.querySelector("#__ANYCLASS_IMPORT_STATUS__")?.textContent||""),null,{timeout:3000});await conflictFrame.locator("#message").scrollIntoViewIfNeeded();assert(await conflictFrame.locator("#message").innerText().then(text=>/冲突|作息|时间/.test(text)));assert(await popup.locator("button[data-anyclass-popup-retry]").isVisible());assert(await popup.locator("button[data-anyclass-popup-close]").isVisible());await popup.screenshot({path:path.join(evidence,"receiver-conflict-error-430.png")});assert.equal(counts.other,0);await context.close();
+    }
+    {
+      const context=await browser.newContext({viewport:{width:390,height:844},colorScheme:"dark",reducedMotion:"reduce",hasTouch:true,serviceWorkers:"block"}),counts={beta:0,other:0};await context.route("**/*",route=>serve(route,"none",counts));const page=await context.newPage();await page.goto(source+"/timetable");await page.evaluate(code=>(0,eval)(code.slice("javascript:".length)),bookmarklet);const popup=page.locator("#__ANYCLASS_IMPORT_POPUP__");await popup.waitFor({state:"visible"});const frame=page.frameLocator("#__ANYCLASS_IMPORT_POPUP__ iframe");await frame.locator("#filePreview:not([hidden]), #prepareReceiverTarget:not([hidden])").first().waitFor();let confirmCalls=0;page.on("dialog",d=>{confirmCalls++;if(confirmCalls===1)d.dismiss();else d.accept()});await popup.locator("button[data-anyclass-popup-close]").click();assert(confirmCalls>=1);assert(await popup.isVisible());assert.equal(await popup.locator("button[data-anyclass-popup-retry]").count(),1);await page.screenshot({path:path.join(evidence,"popup-unsaved-390-dark.png"),fullPage:true});await popup.locator("button[data-anyclass-popup-close]").click();await popup.waitFor({state:"detached"});assert.equal(await page.locator("#__ANYCLASS_IMPORT_FRAME__").count(),0);assert.equal(counts.other,0);await context.close();
+    }
+    for(const width of [390,430,768,1280])for(const theme of ["light","dark"])for(const reduced of [false,true]){
+      const context=await browser.newContext({viewport:{width,height:844},colorScheme:theme,reducedMotion:reduced?"reduce":"no-preference",hasTouch:width<=430,serviceWorkers:"block"}),counts={beta:0,other:0};await context.route("**/*",route=>serve(route,"none",counts));const page=await context.newPage();await page.goto(source+"/timetable");await page.evaluate(code=>(0,eval)(code.slice("javascript:".length)),bookmarklet);const popup=page.locator("#__ANYCLASS_IMPORT_POPUP__");await popup.waitFor({state:"visible"});const matrixFrame=page.frameLocator("#__ANYCLASS_IMPORT_POPUP__ iframe");await matrixFrame.locator("#filePreview:not([hidden]), #prepareReceiverTarget:not([hidden])").first().waitFor({timeout:3000});if(await matrixFrame.locator("#prepareReceiverTarget").isVisible()){await matrixFrame.locator("#prepareReceiverTarget").evaluate(()=>Object.defineProperty(document,"requestStorageAccess",{configurable:true,value:()=>Promise.resolve({indexedDB})}));await matrixFrame.locator("#prepareReceiverTarget").click()}await matrixFrame.locator("#filePreview:not([hidden])").waitFor({timeout:5000});await page.evaluate(()=>document.querySelector("#__ANYCLASS_IMPORT_POPUP__ iframe")?.contentWindow.postMessage({protocol:"timetable-import-v1",type:"HTML_IMPORT",nonce:"wrong-nonce",source:{origin:"https://evil.example"},tableHtml:"<table></table>"},"https://beta.anyclass.heyaaron.asia"));assert(await popup.isVisible());await matrixFrame.locator("#fileTimeDetails").scrollIntoViewIfNeeded();const embedded=await matrixFrame.locator("#fileTimeDetails").evaluate(el=>{const r=el.getBoundingClientRect();return{text:el.textContent,inside:r.top>=0&&r.bottom<=innerHeight+1,scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth}});assert(embedded.scrollWidth<=embedded.clientWidth&&embedded.text&&embedded.inside,JSON.stringify({width,theme,reduced,embedded}));await matrixFrame.locator("#filePreview").screenshot({path:path.join(evidence,`receiver-${width}-${theme}-${reduced?"reduce":"motion"}-top.png`)});await matrixFrame.locator("#fileTimeDetails").scrollIntoViewIfNeeded();await matrixFrame.locator("#fileTimeReminder").scrollIntoViewIfNeeded();const reminder=await matrixFrame.locator("#fileTimeReminder").innerText();assert(/核对|验证|作息/.test(reminder),reminder);await matrixFrame.locator("#fileTimeDetails").screenshot({path:path.join(evidence,`receiver-${width}-${theme}-${reduced?"reduce":"motion"}-time.png`)});await matrixFrame.locator("#fileSave").scrollIntoViewIfNeeded();const saveBox=await matrixFrame.locator("#fileSave").evaluate(el=>{const r=el.getBoundingClientRect();return{inside:r.left>=0&&r.right<=innerWidth+1,top:r.top,bottom:r.bottom}});assert(saveBox.inside,JSON.stringify({width,theme,reduced,saveBox}));await matrixFrame.locator("#fileSave").screenshot({path:path.join(evidence,`receiver-${width}-${theme}-${reduced?"reduce":"motion"}-bottom.png`)});const metrics=await page.evaluate(()=>{const root=document.querySelector("#__ANYCLASS_IMPORT_POPUP__"),status=document.querySelector("#__ANYCLASS_IMPORT_STATUS__"),r=root.getBoundingClientRect(),s=status.getBoundingClientRect(),c=getComputedStyle(status),rgb=x=>(x.match(/[\d.]+/g)||[]).slice(0,3).map(Number),lum=x=>{const q=rgb(x).map(v=>(v/=255)<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*q[0]+.7152*q[1]+.0722*q[2]},fg=lum(c.color),bg=lum(c.backgroundColor);return{inside:r.left>=0&&r.top>=0&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1,statusInside:s.left>=0&&s.right<=innerWidth+1,contrast:(Math.max(fg,bg)+.05)/(Math.min(fg,bg)+.05),reduced:matchMedia("(prefers-reduced-motion: reduce)").matches,overflow:document.documentElement.scrollWidth>innerWidth}});assert(metrics.inside&&metrics.statusInside&&!metrics.overflow&&metrics.contrast>=4.5);assert.equal(metrics.reduced,reduced);await page.screenshot({path:path.join(evidence,`popup-${width}-${theme}-${reduced?"reduce":"motion"}.png`),fullPage:true});assert.equal(counts.other,0);await context.close();
+    }
+    console.log(JSON.stringify({result:"ACREQ026_BOOKMARK_POPUP_CONTRACT_PASS",cases:["complete","partial","none","unsaved-dismiss"],evidence,syntheticSource:true},null,2));
+  }finally{await browser.close()}
+})().catch(error=>{console.error(error);process.exitCode=1});
