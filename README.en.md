@@ -37,13 +37,11 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> Hosted Production is **v0.2.2 / v022-production-20261016-154638**, using database Schema 4. Website technical acceptance, formal archival and owner-reported iPhone/iPad acceptance are complete. The public source was aligned with the accepted Hosted Build through [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13); GitHub Tag / Release and Hosted Build retain separate identities. See [release identity and closeout gates](docs/v022-navigation-hotfix-candidate.md).
+> Hosted Production is **v0.2.2 / v022-production-20261016-154638**, using database Schema 4. Website technical acceptance, formal archival and owner-reported iPhone/iPad acceptance are complete. The public source was aligned with the accepted Hosted Build through [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13); GitHub Tag / Release and Hosted Build retain separate identities. See [Current Stable Release](docs/CURRENT_STABLE_RELEASE.md).
 
 Official universal Shortcut: [AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install), **1.0.0 / Build 1**. Choose Stable or Beta when running it; their data remains isolated. Installation requires explicit user confirmation. No newer release exists, and the update Manifest remains disabled.
 
 ## Features
-
-Historical Beta candidate records: [client clock capture and floating preview](docs/v022-beta4-candidate.md) and [floating-preview visual consistency](docs/v022-beta5-candidate.md). Their contemporaneous status is preserved; it is not the current deployment status.
 
 - Today's classes and current / next class
 - Weekly timetable
