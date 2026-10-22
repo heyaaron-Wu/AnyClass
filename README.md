@@ -37,13 +37,13 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
-> 线上 Hosted Production 为 **v0.2.2 / v022-production-20261015-223822**。本地导航热修复候选仍为 **v0.2.2**，新 Build 为 `v022-production-20261016-154638`，尚未部署。详见[候选与收尾门禁](docs/v022-navigation-hotfix-candidate.md)。历史 [v0.2.1 源码 Release](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) 与本次网站部署身份分开记录，不能视为 v0.2.2 的 GitHub 发布证据。
+> 线上 Hosted Production 为 **v0.2.2 / v022-production-20261016-154638**，数据库格式为 Schema 4。网站技术验收、正式归档及用户报告的 iPhone/iPad 真机验收已完成。本地源码从该部署的审定来源对齐；GitHub v0.2.2 源码发布仍待独立批准。详见[发布身份与收尾门禁](docs/v022-navigation-hotfix-candidate.md)。
+
+官方通用快捷指令：[AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install)，**1.0.0 / Build 1**。运行时选择正式版或测试版，两者数据隔离；安装须手动确认。当前没有更新版本，更新 Manifest 保持禁用。
 
 ## 功能
 
-本地 v0.2.2-beta.4 候选说明：[客户端时间采集与悬浮预览](docs/v022-beta4-candidate.md)。此候选尚未部署；线上与历史 Release 状态保持独立。
-
-独立本地 v0.2.2-beta.5 候选说明：[悬浮预览视觉一致性](docs/v022-beta5-candidate.md)。尚未部署，真实 Safari 验收仍待完成。
+历史 Beta 候选记录：[客户端时间采集与悬浮预览](docs/v022-beta4-candidate.md)、[悬浮预览视觉一致性](docs/v022-beta5-candidate.md)。这些文档保留当时状态，不代表当前部署状态。
 
 - 今日课程与当前 / 下一节课程
 - 周课表
@@ -114,11 +114,11 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 ## 开源状态
 
-**AnyClass v0.2.1 已部署到线上 Production，并已发布对应 GitHub 源码 Release：** [AnyClass v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1)
+**线上网站已为 v0.2.2；最近已发布的 GitHub 源码 Release 仍为 [v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1)。** 两者身份分别记录，不宣称 v0.2.2 tag/Release 已存在。
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
 
-> **仓库源码状态：** 此为独立本地 v0.2.2 导航热修复分支，未执行远程 main 同步、推送或 Release。GitHub 源码/文档对齐和 ISSUE-001 完整历史隐私门禁仍需独立完成，不能由网站已部署或当前源码扫描 PASS 替代。
+> **仓库源码状态：** 此为独立本地 v0.2.2 公开源码对齐候选，包含已部署功能源码，不是仅修改版本号。尚未推送、合并或发布 Release；ISSUE-001 严格历史隐私门禁仍独立保留，不能由当前源码审查替代。
 
 ## 贡献
 

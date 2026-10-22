@@ -37,13 +37,13 @@
 
 **Web app:** https://anyclass.heyaaron.asia/
 
-> Hosted Production is **v0.2.2 / v022-production-20261015-223822**. This LOCAL navigation hotfix remains **v0.2.2**, with new Build `v022-production-20261016-154638`; it is NOT deployed. See the [candidate and closeout gates](docs/v022-navigation-hotfix-candidate.md). The historical [v0.2.1 source release](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1) is separate evidence, not proof of a v0.2.2 GitHub release.
+> Hosted Production is **v0.2.2 / v022-production-20261016-154638**, using database Schema 4. Website technical acceptance, formal archival and owner-reported iPhone/iPad acceptance are complete. This local source candidate follows the reviewed source of that deployment; the GitHub v0.2.2 source release requires separate approval. See [release identity and closeout gates](docs/v022-navigation-hotfix-candidate.md).
+
+Official universal Shortcut: [AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install), **1.0.0 / Build 1**. Choose Stable or Beta when running it; their data remains isolated. Installation requires explicit user confirmation. No newer release exists, and the update Manifest remains disabled.
 
 ## Features
 
-Local v0.2.2-beta.4 candidate: [client clock capture and floating preview](docs/v022-beta4-candidate.md). This candidate has not been deployed; hosted and historical release identities remain separate.
-
-Separate local v0.2.2-beta.5 candidate: [floating-preview visual consistency](docs/v022-beta5-candidate.md). Not deployed; physical Safari acceptance remains pending.
+Historical Beta candidate records: [client clock capture and floating preview](docs/v022-beta4-candidate.md) and [floating-preview visual consistency](docs/v022-beta5-candidate.md). Their contemporaneous status is preserved; it is not the current deployment status.
 
 - Today's classes and current / next class
 - Weekly timetable
@@ -114,11 +114,11 @@ Roadmap items are plans, not currently available features.
 
 ## Open-source status
 
-**AnyClass v0.2.1 is deployed to the hosted Production app, and the corresponding GitHub source release is published:** [AnyClass v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1)
+**The hosted website runs v0.2.2; the latest published GitHub source release remains [v0.2.1](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.1).** These are separate identities; no v0.2.2 tag or GitHub Release is claimed.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** this is an independent LOCAL v0.2.2 navigation-hotfix branch. No remote main reconciliation, push or Release was performed. GitHub source/docs reconciliation and the ISSUE-001 full-history privacy gate remain separate requirements; website deployment or current-source scan PASS does not satisfy them.
+> **Repository source status:** this is an independent LOCAL v0.2.2 public-source alignment candidate containing the deployed functionality, not a version-only edit. No push, merge or Release has occurred. The ISSUE-001 strict full-history privacy gate remains separate and cannot be satisfied by current-source review alone.
 
 ## Contributing
 

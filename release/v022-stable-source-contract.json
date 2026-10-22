@@ -3,9 +3,16 @@
   "productVersion": "0.2.2",
   "candidateReleaseId": "v0.2.2",
   "releaseMode": "source-release",
-  "sourceBaseCommit": "61321b97336bb93e24d8bc2cd38250c65111e6f2",
+  "sourceBaseCommit": "270d1e021165087e0a9a639c18ab712303d87432",
   "databaseVersion": 4,
   "appRoot": "app",
   "publicPrivateBoundary": "public-core-only",
-  "published": false
+  "published": false,
+  "sourceAppChannelPolicy": "dual-channel-source; reviewed stable-only packaging transform",
+  "hostedReleaseId": "v022-production-20261016-154638",
+  "hostedPackageSha256": "a64d5afb66f96d67337e8305551f6dcf76310352bb45d2df83ff80a73f922775",
+  "hostedManifestSha256": "a6d150de8ec854d07e5ba07221cd8f73282f8985d221f95ce13e16201dfef441",
+  "hostedManifest": "release/v022-hosted-app-manifest.json",
+  "runtimeMetadataPolicy": "Preserve hosted runtime identity; source-release identity is separate",
+  "githubReleaseState": "NOT_PUBLISHED"
 }

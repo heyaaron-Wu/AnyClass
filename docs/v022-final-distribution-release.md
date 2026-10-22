@@ -1,6 +1,6 @@
-# v0.2.2 final website/distribution candidate
+# v0.2.2 website and universal Shortcut distribution
 
-This branch prepares, but does not deploy, the coordinated AnyClass v0.2.2 website and Universal Shortcut distribution surfaces.
+The website is deployed at v0.2.2 / `v022-production-20261016-154638`; technical acceptance, 22-artifact archival and owner-reported iPhone/iPad acceptance are complete. This local source/documentation alignment does not redeploy it. GitHub source publication and final coordinated Shortcut closeout remain separately gated.
 
 ## Locked Shortcut evidence
 
@@ -14,7 +14,9 @@ This branch prepares, but does not deploy, the coordinated AnyClass v0.2.2 websi
 
 The installation page is static and JavaScript-free. It contains exactly one audited outbound link and requires a user click. The update Manifest remains disabled (`enabled=false`, `reviewed=false`, `updateUrl=null`, `publishedAt=null`); Build 1 is current and is not advertised as an update to itself.
 
-## Later coordinated deployment sequence
+## Historical coordinated deployment plan
+
+The following sequence records the earlier candidate plan. It is not a current instruction or authorization to redeploy, repeat completed tests or alter Nginx. Current status and remaining gates are in [the navigation release record](v022-navigation-hotfix-candidate.md).
 
 Separate owner authorization is mandatory.
 
