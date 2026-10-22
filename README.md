@@ -37,6 +37,8 @@
 
 **在线使用：** https://anyclass.heyaaron.asia/
 
+**当前正式版：** v0.2.2（网站 Build 与源码 Tag 独立）；[发布状态及验收详情](docs/CURRENT_STABLE_RELEASE.md)。
+
 官方通用快捷指令：[AnyClass·课程导入](https://anyclass.heyaaron.asia/shortcuts/install)，**1.0.0 / Build 1**。运行时选择正式版或测试版，两者数据隔离；安装须手动确认。当前没有更新版本，更新 Manifest 保持禁用。
 
 ## 功能
