@@ -4,12 +4,12 @@
 
 | Surface | Status |
 | --- | --- |
-| Hosted Production v0.2.1 | Supported |
-| GitHub source release v0.2.1 | Current published source release |
+| Hosted Production v0.2.2 | Supported |
+| GitHub source release v0.2.2 | Current published source release |
 
 The hosted Production app at https://anyclass.heyaaron.asia/ is the current supported product.
 
-The public repository `main` branch and the current GitHub source release correspond to the verified v0.2.1 public source baseline. Hosted Production uses a separate deployment Build identity, so its deployment identifier may differ from the GitHub source-release identifier.
+The current published GitHub source release is [AnyClass v0.2.2](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.2), tagged at `63150daa50c4d5399c4c4b4ee75b0bb7162bd6ed`. The `main` branch also includes subsequent documentation-only alignment. Hosted Production runs v0.2.2 / `v022-production-20261016-154638`; hosted Build and GitHub source Tag remain separate identities. For the current status and limitations, see [Current Stable Release](docs/CURRENT_STABLE_RELEASE.md).
 
 ## Reporting a security issue
 
