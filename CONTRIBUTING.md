@@ -59,6 +59,6 @@ Changes to import behavior should preserve the current product contracts unless 
 
 ## Development notes
 
-The repository `main` branch currently contains the verified AnyClass v0.2.1 public source baseline. The current GitHub source release and Hosted Production are both on v0.2.1, while Hosted Production keeps its own deployment Build identity.
+The repository `main` branch contains the AnyClass v0.2.2 public source baseline and subsequent documentation-only updates. The published GitHub source release is [`v0.2.2`](https://github.com/heyaaron-Wu/AnyClass/releases/tag/v0.2.2), pinned to commit `63150daa50c4d5399c4c4b4ee75b0bb7162bd6ed`. Hosted Production runs v0.2.2 with the separate Build ID `v022-production-20261016-154638`. See [Current Stable Release](docs/CURRENT_STABLE_RELEASE.md) for current publication status and remaining historical privacy validation.
 
 When working on current code, keep public documentation, tests, release-channel configuration, and privacy boundaries aligned with the actual target environment. Historical releases remain available through GitHub Releases and the changelog rather than being treated as the current development target.
