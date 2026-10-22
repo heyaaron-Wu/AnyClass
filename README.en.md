@@ -118,7 +118,7 @@ Roadmap items are plans, not currently available features.
 
 For normal use, the hosted [AnyClass web app](https://anyclass.heyaaron.asia/) remains the recommended entry point. This repository is primarily for source review, issue reporting, compatibility work, and development collaboration.
 
-> **Repository source status:** the v0.2.2 public-source alignment candidate has been pushed to `codex/v022-public-source-alignment` and [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13) has been created. It includes the deployed functionality, not just version-string changes. It has not been merged into `main`, and no v0.2.2 GitHub Release has been published. The ISSUE-001 strict full-history privacy gate remains separate and cannot be satisfied by current-source review alone.
+> **Repository source status:** the v0.2.2 public source is aligned with the accepted Hosted Build through [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13), including the full product functionality rather than version-string changes alone. For current GitHub Tag / Release publication status, refer to [Releases](https://github.com/heyaaron-Wu/AnyClass/releases). The ISSUE-001 strict full-history privacy gate remains separate and cannot be satisfied by current-source review alone.
 
 ## Contributing
 

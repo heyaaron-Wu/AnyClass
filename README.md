@@ -118,7 +118,7 @@ Roadmap 中的内容属于规划，并不代表当前版本已经提供。
 
 普通用户推荐直接使用 [AnyClass 在线版](https://anyclass.heyaaron.asia/)；本仓库主要用于查看源码、问题反馈、兼容性适配与开发协作。
 
-> **仓库源码状态：** v0.2.2 公开源码对齐候选已推送至 `codex/v022-public-source-alignment`，并创建了 [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13)，包含已部署功能源码，不是仅修改版本号。尚未合并至 `main`，也尚未发布 v0.2.2 GitHub Release；ISSUE-001 严格历史隐私门禁仍独立保留，不能由当前源码审查替代。
+> **仓库源码状态：** v0.2.2 的公开源码通过 [PR #13](https://github.com/heyaaron-Wu/AnyClass/pull/13) 与已验收的 Hosted Build 对齐，包含完整功能，而非仅修改版本号。GitHub Tag / Release 的实际发布状态请以 [Releases](https://github.com/heyaaron-Wu/AnyClass/releases) 为准；ISSUE-001 严格历史隐私门禁仍为独立事项，不能由当前源码检查替代。
 
 ## 贡献
 
