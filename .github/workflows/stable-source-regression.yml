@@ -1,0 +1,28 @@
+name: Stable source regression
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  stable-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Run existing core regression suite
+        run: npm test
+      - name: Verify Stable packaging script syntax
+        run: node --check tools/package-final-ui.cjs
+      - name: Reject retired Beta-only artifacts
+        run: |
+          if git ls-files | grep -E '(^|/)(v022-beta|build-beta-candidate|generate-beta-manifest|beta-candidate-packaging|generic-bookmarklet-beta-receiver)'; then
+            echo "Retired development artifact remains in the current source tree."
+            exit 1
+          fi

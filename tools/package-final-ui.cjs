@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const [mode,rootArg,destArg]=process.argv.slice(2),root=path.resolve(rootArg||'.');
 if(!['prepare','package'].includes(mode)||!rootArg)throw Error('EXPLICIT_MODE_ROOT_REQUIRED');
 const identity=JSON.parse(fs.readFileSync(path.join(root,'release/safari-ui-fix-identity.json'),'utf8'));
-if(identity.databaseVersion!==4||!/^v022-(beta11|production)-\d{8}-\d{6}$/.test(identity.releaseId)||!['beta-candidate','production'].includes(identity.releaseMode))throw Error('IDENTITY_INVALID');
+if(identity.databaseVersion!==4||!/^v022-production-\d{8}-\d{6}$/.test(identity.releaseId)||identity.releaseMode!=='production'||identity.channel!=='stable')throw Error('STABLE_IDENTITY_REQUIRED');
 const navigationContractFile=path.join(root,'release/navigation-hotfix-contract.json');
 if(fs.existsSync(navigationContractFile)){
   const c=JSON.parse(fs.readFileSync(navigationContractFile,'utf8'));
@@ -32,11 +32,6 @@ if(mode==='prepare'){
   }
   const pkgPath=path.join(root,'package.json'),pkg=JSON.parse(fs.readFileSync(pkgPath,'utf8'));pkg.version=identity.productVersion;write(pkgPath,JSON.stringify(pkg,null,2)+'\n');
   const lockPath=path.join(root,'package-lock.json');if(fs.existsSync(lockPath)){const lock=JSON.parse(fs.readFileSync(lockPath,'utf8'));lock.version=identity.productVersion;if(lock.packages?.[''])lock.packages[''].version=identity.productVersion;write(lockPath,JSON.stringify(lock,null,2)+'\n');}
-  if(identity.channel==='beta'){
-    const f=path.join(root,'release/v022-beta-contract.json'),c=JSON.parse(fs.readFileSync(f,'utf8'));Object.assign(c,{productVersion:identity.productVersion,candidateReleaseId:identity.releaseId,rollbackReleaseId:identity.rollbackReleaseId,sourceBaseCommit:identity.baseCommit});write(f,JSON.stringify(c,null,2)+'\n');
-    const files=Object.fromEntries(list(app).map(rel=>[rel,sha(fs.readFileSync(path.join(app,rel)))]));const digest=sha(Object.entries(files).map(([p,h])=>`${p}\0${h}\n`).join(''));
-    write(path.join(root,'release/v022-beta-app-manifest.json'),JSON.stringify({...c,generatedPackageIdentity:`${identity.releaseId}:${digest}`,sourceTreeDigest:digest,applicationFileCount:Object.keys(files).length,files},null,2)+'\n');
-  }
   console.log(JSON.stringify({result:'LOCAL_IDENTITY_PREPARED',...identity}));process.exit(0);
 }
 if(!destArg)throw Error('DEST_REQUIRED');const dest=path.resolve(destArg);
@@ -46,8 +41,7 @@ if(fs.existsSync(dest)||dest===root||dest.startsWith(root+path.sep))throw Error(
 if(cp.execFileSync('git',['-C',root,'status','--porcelain'],{encoding:'utf8'}).trim())throw Error('LOCAL_REVIEWED_COMMIT_REQUIRED_BEFORE_PACKAGING');
 const sourceCommit=cp.execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
 const runtime=require(path.join(app,'assets/timetable/release-metadata.js'));for(const k of ['productVersion','releaseId','releaseMode'])if(runtime[k]!==identity[k])throw Error('RUNTIME_IDENTITY_DRIFT');
-const inventory=list(app);if(inventory.length!==(identity.channel==='beta'?93:98))throw Error('INVENTORY_DRIFT');
-if(identity.channel==='beta'&&inventory.some(p=>p.startsWith('shortcuts/')))throw Error('STABLE_RESOURCE_IN_BETA');
+const inventory=list(app);if(inventory.length!==98)throw Error('STABLE_INVENTORY_DRIFT');
 if(!fs.readFileSync(path.join(app,'assets/timetable/storage-v2.js'),'utf8').includes('DB_VERSION = 4'))throw Error('SCHEMA_DRIFT');
 const bodies=Object.fromEntries(inventory.map(rel=>[rel,fs.readFileSync(path.join(app,rel))]));
 if(identity.channel==='stable'){
